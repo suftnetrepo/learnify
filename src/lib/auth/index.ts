@@ -10,6 +10,12 @@ import * as Sentry from "@sentry/nextjs";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // Render (and most non-Vercel hosts) don't set any of the env vars
+  // (AUTH_URL / AUTH_TRUST_HOST / VERCEL / CF_PAGES) that Auth.js checks to
+  // auto-trust the request Host header, so every request gets rejected with
+  // UntrustedHost unless this is set explicitly.
+  // https://errors.authjs.dev#untrustedhost
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
