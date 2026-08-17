@@ -1,0 +1,7 @@
+export { UserService }      from "./user.service";
+export { CourseService }    from "./course.service";
+export { TutorService }     from "./tutor.service";
+export { PaymentService }   from "./payment.service";
+export { AnalyticsService } from "./analytics.service";
+export { EnrollmentService } from "./enrollment.service";
+export { SessionService } from "./session.service";
