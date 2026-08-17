@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Suspense } from "react";
 import { RegisterForm } from "./RegisterForm";
 
 export const metadata: Metadata = { title: "Create Account — Learnify" };
@@ -13,7 +14,9 @@ export default function RegisterPage() {
         Join thousands of learners. Free to get started.
       </p>
       <div className="mt-7">
-        <RegisterForm />
+        <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-surface-100" />}>
+          <RegisterForm />
+        </Suspense>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Suspense } from "react";
 import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = { title: "Sign In — Learnify" };
@@ -13,7 +14,9 @@ export default function LoginPage() {
         Sign in to continue to your account.
       </p>
       <div className="mt-7">
-        <LoginForm />
+        <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-surface-100" />}>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   );
