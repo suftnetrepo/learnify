@@ -163,7 +163,7 @@ export default async function CheckoutPage({ params }: Props) {
                       <CheckCircle2 size={14} className="text-emerald-600" /> Already enrolled
                     </span>
                   </div>
-                  <Link href={`/dashboard/courses/${courseId}`}>
+                  <Link href={`/learn/${courseId}`}>
                     <Button className="w-full" variant="secondary">Go to course</Button>
                   </Link>
                 </div>

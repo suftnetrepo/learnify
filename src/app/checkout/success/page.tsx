@@ -71,7 +71,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
 
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           {purchase?.courseId && (
-            <Link href={`/dashboard/courses/${purchase.courseId}`}>
+            <Link href={`/learn/${purchase.courseId}`}>
               <Button size="lg" leftIcon={<BookOpen size={18} />}>
                 Start learning
               </Button>

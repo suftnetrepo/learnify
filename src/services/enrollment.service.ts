@@ -259,7 +259,13 @@ export class EnrollmentService {
     if (!enrollment) return null;
 
     const [course] = await db
-      .select({ id: courses.id, title: courses.title, thumbnailUrl: courses.thumbnailUrl })
+      .select({
+        id:               courses.id,
+        title:            courses.title,
+        thumbnailUrl:     courses.thumbnailUrl,
+        shortDescription: courses.shortDescription,
+        whatYouLearn:     courses.whatYouLearn,
+      })
       .from(courses)
       .where(eq(courses.id, courseId))
       .limit(1);

@@ -17,7 +17,7 @@ export function useCheckout() {
     if (res?.url) window.location.href = res.url;
     return res;
   };
-  // Note: free courses return { url: "/dashboard/courses/..." } which is handled above
+  // Note: free courses return { url: "/learn/..." } which is handled above
 
   return { startCheckout, loading, error: mutError };
 }

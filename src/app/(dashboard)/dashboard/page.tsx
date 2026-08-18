@@ -122,7 +122,7 @@ export default async function DashboardPage() {
                 <h2 className="font-display text-base font-bold text-gray-900">Continue learning</h2>
               </div>
               <Link
-                href={`/dashboard/courses/${topContinue.courseId}`}
+                href={`/learn/${topContinue.courseId}`}
                 className="group flex items-center gap-4 rounded-2xl border border-surface-100 bg-white p-4 hover:border-brand-200 hover:shadow-sm transition-all"
               >
                 {/* Thumbnail */}
@@ -192,7 +192,7 @@ export default async function DashboardPage() {
                   return (
                     <Link
                       key={e.enrollmentId}
-                      href={`/dashboard/courses/${e.courseId}`}
+                      href={`/learn/${e.courseId}`}
                       className="group flex flex-col rounded-2xl border border-surface-100 bg-white overflow-hidden hover:border-brand-200 hover:shadow-sm transition-all"
                     >
                       {/* Thumbnail */}

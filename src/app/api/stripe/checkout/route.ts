@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
         stripeEventId: `free-${crypto.randomUUID()}`,
       });
 
-      return successResponse({ url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/courses/${courseId}` }, "Enrolled in free course");
+      return successResponse({ url: `${process.env.NEXT_PUBLIC_APP_URL}/learn/${courseId}` }, "Enrolled in free course");
     }
 
     // Find the active tutor assignment for payment routing

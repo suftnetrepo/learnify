@@ -235,7 +235,7 @@ export default async function CourseDetailPage({ params }: Props) {
                     <div className="flex items-center justify-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 py-2.5 text-sm font-medium text-emerald-700">
                       <CheckCircle2 size={15} className="text-emerald-600" /> You&apos;re enrolled
                     </div>
-                    <Link href={`/dashboard/courses/${course.id}`}
+                    <Link href={`/learn/${course.id}`}
                       className="flex h-11 w-full items-center justify-center rounded-xl border border-surface-200 bg-white text-sm font-semibold text-gray-700 hover:bg-surface-50 transition-colors">
                       Continue learning →
                     </Link>
@@ -308,7 +308,7 @@ export default async function CourseDetailPage({ params }: Props) {
             </p>
           </div>
           {isEnrolled ? (
-            <Link href={`/dashboard/courses/${course.id}`}
+            <Link href={`/learn/${course.id}`}
               className="flex h-11 items-center rounded-xl bg-brand-500 px-6 text-sm font-bold text-white">
               Continue →
             </Link>
