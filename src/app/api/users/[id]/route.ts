@@ -19,12 +19,22 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const session = await auth();
     if (!session?.user) return unauthorized();
-    if (session.user.role !== "admin") return forbidden();
 
     const { id } = await params;
+    const isSelf  = session.user.id === id;
+    const isAdmin = session.user.role === "admin";
+    if (!isAdmin && !isSelf) return forbidden();
+
     const body   = await req.json();
     const parsed = updateSchema.safeParse(body);
     if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors as Record<string, string[]>);
+
+    // Self-service updates (e.g. the account settings form) may only touch
+    // name/bio — role and status changes, on any account including your
+    // own, require admin privileges.
+    if (!isAdmin && (parsed.data.role !== undefined || parsed.data.status !== undefined)) {
+      return forbidden("Only admins can change role or status.");
+    }
 
     const user = await UserService.update(id, parsed.data);
     if (!user) return notFound("User");
