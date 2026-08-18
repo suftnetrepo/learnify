@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { ToastProvider } from "@/components/ui/Toast";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -9,15 +8,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (session.user.role !== "admin") redirect("/unauthorized");
 
   return (
-    <ToastProvider>
-      <DashboardShell
-        role={session.user.role}
-        name={session.user.name}
-        email={session.user.email}
-        avatar={session.user.image}
-      >
-        {children}
-      </DashboardShell>
-    </ToastProvider>
+    <DashboardShell
+      role={session.user.role}
+      name={session.user.name}
+      email={session.user.email}
+      avatar={session.user.image}
+    >
+      {children}
+    </DashboardShell>
   );
 }
