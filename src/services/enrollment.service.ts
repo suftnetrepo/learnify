@@ -199,6 +199,7 @@ export class EnrollmentService {
         courseSlug:      courses.slug,
         courseThumbnail: courses.thumbnailUrl,
         courseFormat:    courses.format,
+        totalDuration:   courses.totalDuration,
         categoryName:    categories.name,
         progress:        enrollments.progress,
         completedAt:     enrollments.completedAt,
