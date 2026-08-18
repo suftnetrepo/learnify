@@ -34,9 +34,19 @@ export async function createCheckoutSession({
   const { platformFee }  = calculatePlatformFee(priceInPounds);
   const platformFeePence = Math.round(platformFee * 100);
 
-  const sessionParams: Stripe.Checkout.SessionCreateParams = {
+  // This account has Managed Payments enabled by default, which (a) owns
+  // payment-method selection itself — passing payment_method_types is
+  // rejected as unsupported — and (b) requires a Stripe tax code on every
+  // line item's product, which this app doesn't track. Rather than assign
+  // tax codes to ad-hoc price_data line items, we opt this session out of
+  // Managed Payments entirely, as Stripe's own error message recommends.
+  // `managed_payments` isn't in the installed stripe SDK's types yet
+  // (22.5.0, currently latest on npm) even though the live API already
+  // expects it, hence the local type extension.
+  // https://docs.stripe.com/payments/managed-payments/update-checkout#remove-unsupported-parameters
+  const sessionParams: Stripe.Checkout.SessionCreateParams & { managed_payments?: { enabled: boolean } } = {
     mode:               "payment",
-    payment_method_types: ["card"],
+    managed_payments:   { enabled: false },
     customer_email:     studentEmail,
     line_items: [
       {
