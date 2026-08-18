@@ -7,58 +7,63 @@ import { useMobileMenu } from "./DashboardShell";
 interface TopbarProps {
   title?:       string;
   breadcrumbs?: { label: string; href?: string }[];
+  userName?:    string;
+  userInitials?: string;
+  actions?:     React.ReactNode;
 }
 
-export function Topbar({ title, breadcrumbs }: TopbarProps) {
+export function Topbar({ title, breadcrumbs, actions }: TopbarProps) {
   const { open: openMenu } = useMobileMenu();
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-surface-100 bg-white px-4 sm:px-6">
+    <header className="flex h-16 items-center justify-between border-b border-surface-100 bg-white px-4 sm:px-6 flex-shrink-0">
+      {/* Left */}
       <div className="flex items-center gap-3 min-w-0">
-        {/* Mobile hamburger — only visible on small screens */}
         <button
           onClick={openMenu}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-surface-100 lg:hidden"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-gray-500 hover:bg-surface-100 lg:hidden transition-colors"
           aria-label="Open navigation"
         >
           <Menu size={20} />
         </button>
 
-        {/* Breadcrumb / title */}
         {breadcrumbs && breadcrumbs.length > 0 ? (
           <nav className="flex items-center gap-1.5 text-sm min-w-0" aria-label="Breadcrumb">
             {breadcrumbs.map((b, i) => (
               <span key={i} className="flex items-center gap-1.5">
-                {i > 0 && <span className="text-gray-300">/</span>}
+                {i > 0 && <span className="text-gray-200">/</span>}
                 {b.href ? (
-                  <Link href={b.href} className="text-gray-400 hover:text-gray-700 transition-colors truncate max-w-[120px] sm:max-w-none">
+                  <Link href={b.href} className="text-gray-400 hover:text-gray-700 transition-colors">
                     {b.label}
                   </Link>
                 ) : (
-                  <span className="font-medium text-gray-900 truncate max-w-[140px] sm:max-w-none">{b.label}</span>
+                  <span className="font-semibold text-gray-900">{b.label}</span>
                 )}
               </span>
             ))}
           </nav>
         ) : title ? (
-          <h1 className="heading-3 text-gray-900 truncate">{title}</h1>
+          <h1 className="text-base font-semibold text-gray-900">{title}</h1>
         ) : null}
       </div>
 
-      {/* Right actions */}
-      <div className="flex items-center gap-1 flex-shrink-0">
+      {/* Right */}
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        {actions}
+
         <button
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-surface-100 hover:text-gray-700 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 hover:bg-surface-100 hover:text-gray-700 transition-colors"
           aria-label="Search"
         >
-          <Search size={18} />
+          <Search size={17} />
         </button>
+
         <button
-          className="relative flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-surface-100 hover:text-gray-700 transition-colors"
+          className="relative flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 hover:bg-surface-100 hover:text-gray-700 transition-colors"
           aria-label="Notifications"
         >
-          <Bell size={18} />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-brand-500" aria-hidden="true" />
+          <Bell size={17} />
+          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-white" aria-hidden="true" />
         </button>
       </div>
     </header>
