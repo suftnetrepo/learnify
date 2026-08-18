@@ -57,13 +57,14 @@ export default async function HomePage() {
               </div>
 
               <h1 className="font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-gray-900 sm:text-5xl lg:text-6xl xl:text-7xl">
-                Online learning<br />
+                Expert learning<br />
                 now in your{" "}
-                <span className="text-brand-500 italic">Fingertips</span>
+                <span className="text-brand-500 ">Fingertips</span>
               </h1>
 
               <p className="mt-5 max-w-lg text-base text-gray-500 leading-relaxed">
-                Learning with the experts — expert-led courses across design, development, marketing and more.
+                Learning with the experts — online, in-person, and live courses
+                across design, development, marketing and more.
                 Join {totalStudents > 0 ? `${totalStudents.toLocaleString()}+` : "thousands of"} learners already growing their skills.
               </p>
 
@@ -101,9 +102,18 @@ export default async function HomePage() {
             </div>
 
             {/* Right illustration */}
-            <div className="relative hidden lg:flex items-end justify-center">
-              {/* Purple backdrop card */}
-              <div className="absolute bottom-0 right-8 h-[420px] w-[360px] rounded-t-[200px] bg-brand-500/90" />
+            <div className="relative hidden lg:flex items-end justify-center pb-16 pt-8 lg:pb-24">
+              {/* Photo backdrop */}
+              <div className="relative h-[620px] w-[590px] overflow-hidden rounded--[5px]">
+                <Image
+                  src="/student-learning-hero.png"
+                  alt="Student taking notes while following an online course on her laptop"
+                  fill
+                  sizes="560px"
+                  className="object-cover"
+                  priority
+                />
+              </div>
 
               {/* Floating info card */}
               <div className="absolute left-0 top-24 z-10 rounded-2xl bg-gray-900/90 px-4 py-3 text-white shadow-xl backdrop-blur-sm">
@@ -118,38 +128,6 @@ export default async function HomePage() {
                 <div className="mt-1.5 h-1.5 w-32 rounded-full bg-surface-100">
                   <div className="h-1.5 w-[87%] rounded-full bg-brand-500" />
                 </div>
-              </div>
-
-              {/* Placeholder person silhouette / illustration */}
-              <div className="relative z-10 flex h-[440px] w-[320px] items-end justify-center">
-                {/* SVG illustration — abstract learning figure */}
-                <svg viewBox="0 0 320 440" fill="none" className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
-                  {/* Body */}
-                  <ellipse cx="160" cy="200" rx="80" ry="90" fill="rgba(255,255,255,0.15)"/>
-                  {/* Head */}
-                  <circle cx="160" cy="110" r="50" fill="#f5d0a9"/>
-                  {/* Glasses */}
-                  <rect x="133" y="108" width="20" height="12" rx="6" fill="none" stroke="#374151" strokeWidth="2.5"/>
-                  <rect x="167" y="108" width="20" height="12" rx="6" fill="none" stroke="#374151" strokeWidth="2.5"/>
-                  <line x1="153" y1="114" x2="167" y2="114" stroke="#374151" strokeWidth="2"/>
-                  {/* Hair */}
-                  <ellipse cx="160" cy="90" rx="50" ry="28" fill="#1a1a2e"/>
-                  <ellipse cx="135" cy="98" rx="18" ry="22" fill="#1a1a2e"/>
-                  <ellipse cx="185" cy="98" rx="18" ry="22" fill="#1a1a2e"/>
-                  {/* Smile */}
-                  <path d="M148 125 Q160 135 172 125" stroke="#c87941" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                  {/* Shirt */}
-                  <path d="M100 200 Q100 170 120 165 L160 180 L200 165 Q220 170 220 200 L225 340 L95 340 Z" fill="#ffffff"/>
-                  {/* Suspenders */}
-                  <rect x="145" y="170" width="8" height="170" rx="4" fill="#ef4444"/>
-                  <rect x="167" y="170" width="8" height="170" rx="4" fill="#ef4444"/>
-                  {/* Arms - pointing gesture */}
-                  <path d="M100 200 Q70 210 55 195 Q45 185 55 175 Q70 165 95 178" fill="#f5d0a9"/>
-                  <path d="M220 200 Q250 195 265 185 Q270 180 265 172 Q255 165 235 175" fill="#f5d0a9"/>
-                  {/* Pointing hand detail */}
-                  <ellipse cx="55" cy="182" rx="12" ry="8" fill="#f5d0a9"/>
-                  <ellipse cx="265" cy="178" rx="12" ry="8" fill="#f5d0a9"/>
-                </svg>
               </div>
             </div>
           </div>
@@ -179,31 +157,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ── CATEGORIES ────────────────────────────────────────────────────── */}
-      {allCategories.length > 0 && (
-        <section className="py-12 bg-white">
-          <div className="container">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-display text-xl font-bold text-gray-900">Browse by Category</h2>
-              <Link href="/courses" className="text-sm font-medium text-brand-600 hover:underline flex items-center gap-1">
-                All categories <ChevronRight size={14} />
-              </Link>
-            </div>
-            <div className="flex flex-wrap gap-2.5">
-              {allCategories.map((cat) => (
-                <Link
-                  key={cat.id}
-                  href={`/courses?category=${cat.slug}`}
-                  className="rounded-full border border-surface-200 bg-surface-50 px-5 py-2.5 text-sm font-medium text-gray-700 transition-all hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700"
-                >
-                  {cat.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ── FEATURED COURSES ──────────────────────────────────────────────── */}
       <section className="py-16 bg-surface-50">
@@ -236,31 +189,20 @@ export default async function HomePage() {
       </section>
 
       {/* ── BOOK CTA SECTION ──────────────────────────────────────────────── */}
-      <section className="py-20 bg-white">
+      <section className="py-20">
         <div className="container">
           <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
             {/* Left image area */}
             <div className="relative">
-              <div className="relative h-[380px] overflow-hidden rounded-3xl bg-amber-400/20">
-                {/* Person SVG illustration */}
-                <svg viewBox="0 0 480 380" fill="none" className="absolute bottom-0 left-1/2 h-full -translate-x-1/2" xmlns="http://www.w3.org/2000/svg">
-                  {/* Yellow backdrop */}
-                  <ellipse cx="240" cy="380" rx="200" ry="60" fill="#fbbf24" opacity="0.3"/>
-                  {/* Standing figure */}
-                  <circle cx="240" cy="110" r="55" fill="#f5c28c"/>
-                  <ellipse cx="240" cy="85" rx="55" ry="32" fill="#7c3aed"/>
-                  {/* Body */}
-                  <path d="M165 220 Q165 185 185 178 L240 195 L295 178 Q315 185 315 220 L320 380 L160 380 Z" fill="#f59e0b"/>
-                  {/* Pointing arm */}
-                  <path d="M165 220 Q135 215 115 205 Q105 200 110 190 Q120 180 145 195" fill="#f5c28c"/>
-                  <ellipse cx="112" cy="196" rx="14" ry="9" fill="#f5c28c"/>
-                  {/* Face details */}
-                  <circle cx="225" cy="118" r="5" fill="#7c3aed"/>
-                  <circle cx="255" cy="118" r="5" fill="#7c3aed"/>
-                  <path d="M228 132 Q240 142 252 132" stroke="#c87941" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                  {/* Headband */}
-                  <path d="M185 95 Q240 70 295 95" stroke="#f59e0b" strokeWidth="8" fill="none" strokeLinecap="round"/>
-                </svg>
+              <div className="relative h-[480px] overflow-hidden rounded-3xl">
+                {/* Illustration */}
+                <Image
+                  src="/student-study.png"
+                  alt="Instructor explaining a concept at a whiteboard"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover object-top"
+                />
 
                 {/* Floating card */}
                 <div className="absolute right-4 top-8 rounded-2xl bg-brand-500 px-4 py-3 text-white shadow-lg">
