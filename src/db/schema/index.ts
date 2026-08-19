@@ -17,6 +17,8 @@ export * from "./courseSessions";
 export * from "./enrollments";
 export * from "./purchases";
 export * from "./lectureProgress";
+export * from "./lectureResources";
+export * from "./lectureNotes";
 
 // ─── Tutors ───────────────────────────────────────────────────────────────────
 export * from "./tutorAssignments";

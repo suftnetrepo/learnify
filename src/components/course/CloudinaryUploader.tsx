@@ -68,11 +68,11 @@ export function CloudinaryUploader({
 
       // 2. Upload directly to Cloudinary
       const formData = new FormData();
-      formData.append("file",            file);
-      formData.append("api_key",         apiKey);
-      formData.append("timestamp",       String(timestamp));
-      formData.append("signature",       signature);
-      formData.append("folder",          cloudFolder);
+      formData.append("file",       file);
+      formData.append("api_key",    apiKey);
+      formData.append("timestamp",  String(timestamp));
+      formData.append("signature",  signature);
+      formData.append("folder",     cloudFolder);
 
       const xhr = new XMLHttpRequest();
       xhr.upload.addEventListener("progress", (e) => {

@@ -135,3 +135,18 @@ export const progressApi = {
   update: (lectureId: string, payload: { completed?: boolean; position?: number }) =>
     post<{ progress: number }>(`/api/lectures/${lectureId}/progress`, payload),
 };
+
+// ─── Lecture resources ─────────────────────────────────────────────────────────
+import type { LectureResource, CreateResourcePayload, LectureNote } from "@/types";
+
+export const resourcesApi = {
+  list:   (lectureId: string)                          => get<LectureResource[]>(`/api/lectures/${lectureId}/resources`),
+  create: (lectureId: string, p: CreateResourcePayload) => post<LectureResource>(`/api/lectures/${lectureId}/resources`, p),
+  remove: (id: string)                                  => del(`/api/resources/${id}`),
+};
+
+// ─── Lecture notes ──────────────────────────────────────────────────────────────
+export const notesApi = {
+  get:  (lectureId: string)                    => get<LectureNote | null>(`/api/lectures/${lectureId}/notes`),
+  save: (lectureId: string, content: string)   => post<LectureNote>(`/api/lectures/${lectureId}/notes`, { content }),
+};

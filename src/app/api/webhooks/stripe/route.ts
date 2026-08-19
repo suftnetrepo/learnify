@@ -163,14 +163,46 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
     const { EmailService } = await import("@/services/email.service");
     const [[studentRow], [courseRow]] = await Promise.all([
       db.select({ name: users.name, email: users.email }).from(users).where(eq(users.id, studentId)).limit(1),
-      db.select({ title: courses.title }).from(courses).where(eq(courses.id, courseId)).limit(1),
+      db.select({ title: courses.title, format: courses.format }).from(courses).where(eq(courses.id, courseId)).limit(1),
     ]);
+
+    // sessionId here is the *course* session (Stripe metadata, read above) —
+    // not the Stripe checkout `session` object this handler is named after.
+    let sessionDetails = null;
+    if (sessionId) {
+      const { courseSessions } = await import("@/db/schema");
+      const [sess] = await db
+        .select()
+        .from(courseSessions)
+        .where(eq(courseSessions.id, sessionId))
+        .limit(1);
+      sessionDetails = sess ?? null;
+    }
+
     if (studentRow?.email && courseRow) {
       await EmailService.purchaseConfirmation(studentRow.email, {
-        studentName: studentRow.name ?? "Student",
-        courseTitle: courseRow.title,
-        courseSlug:  courseId,
-        amount:      `£${Number(session.amount_total ? session.amount_total / 100 : 0).toFixed(2)}`,
+        studentName:  studentRow.name ?? "Student",
+        courseTitle:  courseRow.title,
+        courseSlug:   courseId,
+        amount:       `£${Number(session.amount_total ? session.amount_total / 100 : 0).toFixed(2)}`,
+        courseFormat: courseRow.format,
+        // Session details
+        sessionTitle: sessionDetails?.title ?? undefined,
+        sessionDate:  sessionDetails?.startDatetime
+          ? new Date(sessionDetails.startDatetime).toLocaleDateString("en-GB", {
+              weekday: "long", day: "numeric", month: "long", year: "numeric",
+            })
+          : undefined,
+        sessionTime: sessionDetails?.startDatetime && sessionDetails?.endDatetime
+          ? `${new Date(sessionDetails.startDatetime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })} – ${new Date(sessionDetails.endDatetime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`
+          : undefined,
+        venueAddress:       sessionDetails?.venueAddress       ?? undefined,
+        venueCity:          sessionDetails?.venueCity          ?? undefined,
+        venuePostcode:      sessionDetails?.venuePostcode      ?? undefined,
+        venueMapUrl:        sessionDetails?.venueMapUrl        ?? undefined,
+        conferencePlatform: sessionDetails?.conferencePlatform ?? undefined,
+        conferenceUrl:      sessionDetails?.conferenceUrl      ?? undefined,
+        conferencePassword: sessionDetails?.conferencePassword ?? undefined,
       });
     }
   } catch (emailErr) {

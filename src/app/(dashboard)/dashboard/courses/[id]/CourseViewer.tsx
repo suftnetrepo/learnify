@@ -166,12 +166,7 @@ export function CourseViewer({
         </div>
 
         <div className="flex flex-1 items-center justify-center gap-2 min-w-0">
-          <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-brand-500">
-            <Sparkles size={12} className="text-white" />
-          </div>
-          <span className="truncate text-sm font-semibold text-gray-900 max-w-md">
-            {course.title}
-          </span>
+          
         </div>
 
         <div className="flex w-[220px] flex-shrink-0 items-center justify-end gap-3">

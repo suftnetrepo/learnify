@@ -10,10 +10,15 @@ import {
 } from "@/lib/api-response";
 import { log } from "@/lib/logger";
 
+const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
+
 const createSectionSchema = z.object({
   title:       z.string().min(2).max(200).trim(),
   description: z.string().max(1000).optional(),
   sortOrder:   z.number().int().min(0).optional(),
+  // Plain clock time — "HH:MM" or "HH:MM:SS", no date/timezone component.
+  scheduledStart: z.string().regex(TIME_REGEX, "Invalid time").optional().nullable(),
+  scheduledEnd:   z.string().regex(TIME_REGEX, "Invalid time").optional().nullable(),
 });
 
 export async function GET(
@@ -96,6 +101,8 @@ export async function POST(
         title:       parsed.data.title,
         description: parsed.data.description,
         sortOrder,
+        scheduledStart: parsed.data.scheduledStart ?? null,
+        scheduledEnd:   parsed.data.scheduledEnd   ?? null,
       })
       .returning();
 

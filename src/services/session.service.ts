@@ -264,6 +264,39 @@ export class SessionService {
   }
 
   /**
+   * Student calendar page — every session for courses the student is enrolled in.
+   */
+  static async getStudentSessions(studentId: string) {
+    const { enrollments, courseSessions, courses } = await import("@/db/schema");
+    const { eq, asc } = await import("drizzle-orm");
+
+    return db
+      .select({
+        sessionId:          courseSessions.id,
+        courseId:           courseSessions.courseId,
+        courseTitle:        courses.title,
+        title:              courseSessions.title,
+        startDatetime:      courseSessions.startDatetime,
+        endDatetime:        courseSessions.endDatetime,
+        status:             courseSessions.status,
+        conferencePlatform: courseSessions.conferencePlatform,
+        conferenceUrl:      courseSessions.conferenceUrl,
+        conferencePassword: courseSessions.conferencePassword,
+        venueAddress:       courseSessions.venueAddress,
+        venueCity:          courseSessions.venueCity,
+        venuePostcode:      courseSessions.venuePostcode,
+        venueMapUrl:        courseSessions.venueMapUrl,
+        capacity:           courseSessions.capacity,
+        enrolledCount:      courseSessions.enrolledCount,
+      })
+      .from(courseSessions)
+      .innerJoin(courses,     eq(courseSessions.courseId, courses.id))
+      .innerJoin(enrollments, eq(enrollments.courseId,    courses.id))
+      .where(eq(enrollments.studentId, studentId))
+      .orderBy(asc(courseSessions.startDatetime));
+  }
+
+  /**
    * Instructor sessions page — all sessions for a tutor's assigned courses.
    */
   static async getInstructorSessions(tutorId: string) {

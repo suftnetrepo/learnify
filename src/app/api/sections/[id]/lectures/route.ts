@@ -20,6 +20,7 @@ const createLectureSchema = z.object({
   resourceUrl:  z.string().url().optional(),
   resourceName: z.string().max(200).optional(),
   isFree:       z.boolean().default(false),
+  isPublished:  z.boolean().default(false),
   sortOrder:    z.number().int().min(0).optional(),
 });
 
@@ -72,7 +73,7 @@ export async function POST(
         resourceUrl:   parsed.data.resourceUrl,
         resourceName:  parsed.data.resourceName,
         isFree:        parsed.data.isFree,
-        isPublished:   false,
+        isPublished:   parsed.data.isPublished,
         sortOrder,
       })
       .returning();

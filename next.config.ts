@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  // pdfkit reads its bundled .afm font-metric files from disk at runtime via
+  // fs.readFileSync — Turbopack/webpack bundling a route handler rewrites
+  // that path to a virtual location that doesn't exist on the real
+  // filesystem ("ENOENT .../pdfkit/js/data/Helvetica.afm"). Marking it
+  // external makes Next.js use a native require() instead, resolving the
+  // path for real. Affects both certificate and booking-confirmation PDFs.
+  serverExternalPackages: ["pdfkit"],
+
   // ── Images ──────────────────────────────────────────────────────────────────
   images: {
     remotePatterns: [

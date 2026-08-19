@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   CheckCircle2, Circle, ChevronDown, ChevronRight, ChevronLeft,
   Download, PlayCircle, Sparkles, Maximize2,
   Video, Clock, FileText, Code2, AlignLeft, StickyNote,
   LayoutDashboard, BookOpen, Award, Trophy, Calendar, Settings, LogOut,
+  Archive, ExternalLink, Radio, MapPin,
 } from "lucide-react";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
 import { cn, formatDuration } from "@/lib/utils";
+import { resourcesApi, notesApi } from "@/lib/api-client";
+import type { LectureResource, LectureResourceType } from "@/types";
 import Link from "next/link";
 import Image from "next/image";
 import { signOut } from "next-auth/react";
@@ -29,6 +32,12 @@ interface Section {
   id:       string;
   title:    string;
   lectures: Lecture[];
+  // Plain "HH:MM:SS" clock time — no date/timezone component. The section's
+  // time slot in the day for in-person/hybrid courses (e.g. "Morning
+  // Session, 09:00–11:00"); lectures inside it are just topics, not
+  // separately scheduled.
+  scheduledStart: string | null;
+  scheduledEnd:   string | null;
 }
 
 interface ProgressRow {
@@ -75,11 +84,13 @@ const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "resources",  label: "Resources",  icon: <Download   size={14} /> },
 ];
 
-const RESOURCE_CHIPS = [
-  { icon: <FileText size={13} />, label: "Lecture notes" },
-  { icon: <Download size={13} />, label: "Exercise files" },
-  { icon: <Code2    size={13} />, label: "Code on GitHub" },
-];
+const RESOURCE_TYPE_ICONS: Record<LectureResourceType, React.ReactNode> = {
+  pdf:    <FileText     size={16} />,
+  zip:    <Archive      size={16} />,
+  github: <Code2        size={16} />,
+  link:   <ExternalLink size={16} />,
+  video:  <Video        size={16} />,
+};
 
 function parseWhatYouLearn(json?: string | null): string[] {
   if (!json) return [];
@@ -89,6 +100,26 @@ function parseWhatYouLearn(json?: string | null): string[] {
   } catch {
     return [];
   }
+}
+
+// Lectures don't carry a format field of their own — live/in-person meeting
+// slots live in the curriculum as regular lecture rows with no video attached.
+// Course-level scheduling (courseSessions) doesn't map to a specific lecture
+// row either, so until lectures carry an explicit format, detect it from the
+// title as a best-effort signal.
+function getLectureFormat(lecture: Lecture): "video" | "live" | "in_person" {
+  const t = lecture.title.toLowerCase();
+  if (t.includes("live") || t.includes("q&a") || t.includes("session")) return "live";
+  if (t.includes("workshop") || t.includes("in-person") || t.includes("in person")) return "in_person";
+  return "video";
+}
+
+// scheduledStart/scheduledEnd are plain "HH:MM:SS" clock times (no date, no
+// timezone), so this is a straight substring — not a Date/toLocaleTimeString
+// conversion, which would silently reinterpret the time through whatever
+// timezone happens to run the conversion.
+function formatClockTime(t: string) {
+  return t.slice(0, 5);
 }
 
 export function CourseViewer({
@@ -102,6 +133,43 @@ export function CourseViewer({
   const [activeLecture, setActiveLecture] = useState(initialLecture);
   const [progressMap,   setProgressMap]   = useState(initialProgressMap);
   const [activeTab,     setActiveTab]     = useState<TabKey>("overview");
+
+  // ─ Resources — feeds the Resources tab AND the "Watch Recording" quick-view
+  //   in the video area, so this fetches on every lecture change, not just
+  //   when the Resources tab happens to be open.
+  const [resources,        setResources]        = useState<LectureResource[]>([]);
+  const [loadingResources, setLoadingResources]  = useState(false);
+
+  useEffect(() => {
+    if (!activeLecture) { setResources([]); return; }
+    setLoadingResources(true);
+    resourcesApi.list(activeLecture.id)
+      .then(setResources)
+      .catch(() => setResources([]))
+      .finally(() => setLoadingResources(false));
+  }, [activeLecture?.id]);
+
+  // ─ Notes tab — fetch on lecture change, auto-save 1s after typing stops ─────
+  const [noteContent, setNoteContent] = useState("");
+  const [noteSaved,   setNoteSaved]   = useState(false);
+
+  useEffect(() => {
+    if (!activeLecture) { setNoteContent(""); setNoteSaved(false); return; }
+    setNoteSaved(false);
+    notesApi.get(activeLecture.id)
+      .then((note) => setNoteContent(note?.content ?? ""))
+      .catch(() => setNoteContent(""));
+  }, [activeLecture?.id]);
+
+  useEffect(() => {
+    if (!activeLecture) return;
+    const timer = setTimeout(() => {
+      notesApi.save(activeLecture.id, noteContent)
+        .then(() => setNoteSaved(true))
+        .catch(() => {});
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [noteContent, activeLecture?.id]);
 
   const allLectures    = sections.flatMap((s) => s.lectures);
   const initialSection = sections.find((s) =>
@@ -142,6 +210,15 @@ export function CourseViewer({
   const previousLecture  = activeIndex > 0 ? allLectures[activeIndex - 1] : null;
   const nextLecture      = activeIndex >= 0 ? allLectures[activeIndex + 1] ?? null : null;
   const whatYouLearn     = parseWhatYouLearn(course.whatYouLearn);
+  const activeFmt        = activeLecture ? getLectureFormat(activeLecture) : "video";
+
+  // A "link" or "video" resource on a lecture with no video of its own is
+  // treated as a recording (e.g. the Zoom/Teams recording URL for a live
+  // session) and gets a prominent quick-view instead of the plain placeholder.
+  const recordingResource = resources.find((r) => r.type === "link" || r.type === "video");
+  const isZoom             = recordingResource?.url.includes("zoom.us");
+  const isTeams            = recordingResource?.url.includes("teams.microsoft.com");
+  const platformLabel      = isZoom ? "Zoom" : isTeams ? "Microsoft Teams" : "Recording";
 
   const isCoursePage = pathname?.startsWith("/learn") ?? false;
   const activeHref = isCoursePage
@@ -262,6 +339,71 @@ export function CourseViewer({
                       className="h-full w-full"
                     />
                   </div>
+                ) : recordingResource ? (
+                  <div className="flex flex-shrink-0 w-full h-[42%] flex-col items-center justify-center gap-5 bg-gradient-to-br from-surface-50 to-white px-8">
+                    <div className="w-full max-w-md rounded-2xl border border-surface-200 bg-white p-6 text-center shadow-sm">
+                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-brand-100 bg-brand-50">
+                        <PlayCircle size={28} className="text-brand-500" />
+                      </div>
+                      <p className="mb-1 flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-brand-500">
+                        <Video size={12} /> {platformLabel} Recording
+                      </p>
+                      <h3 className="font-display text-base font-semibold text-gray-900 mb-1">
+                        {activeLecture.title}
+                      </h3>
+                      <p className="mb-5 text-xs text-gray-400">
+                        This session was recorded. Watch it at your own pace.
+                      </p>
+                      <a
+                        href={recordingResource.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+                      >
+                        <PlayCircle size={16} /> Watch Recording
+                      </a>
+                      <p className="mt-3 text-[10px] text-gray-300">
+                        Opens in {platformLabel}
+                      </p>
+                    </div>
+                  </div>
+                ) : activeFmt === "live" ? (
+                  <div className="flex flex-shrink-0 w-full h-[42%] flex-col items-center justify-center gap-4 bg-surface-50">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 border border-brand-200">
+                      <Radio size={28} className="text-brand-500" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-base font-semibold text-gray-900">Live Session</p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        This lecture is delivered live via video call.
+                      </p>
+                    </div>
+                    {/* The conferenceUrl would come from session data — for now link to calendar */}
+                    <Link
+                      href="/dashboard/calendar"
+                      className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+                    >
+                      <ExternalLink size={15} /> View session details & join link
+                    </Link>
+                  </div>
+                ) : activeFmt === "in_person" ? (
+                  <div className="flex flex-shrink-0 w-full h-[42%] flex-col items-center justify-center gap-4 bg-surface-50">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 border border-amber-200">
+                      <MapPin size={28} className="text-amber-500" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-base font-semibold text-gray-900">In-Person Session</p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        This session takes place at a physical location.
+                      </p>
+                    </div>
+                    <Link
+                      href="/dashboard/calendar"
+                      className="inline-flex items-center gap-2 rounded-xl border border-surface-200 px-6 py-3 text-sm font-semibold text-gray-700 hover:border-brand-300 hover:text-brand-600 transition-colors"
+                    >
+                      <MapPin size={15} /> View location & directions
+                    </Link>
+                  </div>
                 ) : (
                   <div className="relative flex-shrink-0 w-full h-[42%] bg-gray-900">
                     {course.thumbnailUrl && (
@@ -344,6 +486,11 @@ export function CourseViewer({
                         )}
                       >
                         {tab.icon} {tab.label}
+                        {tab.key === "notes" && noteSaved && (
+                          <span className="inline-flex items-center gap-1 text-emerald-500">
+                            <CheckCircle2 size={13} /> Saved
+                          </span>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -380,22 +527,34 @@ export function CourseViewer({
 
                     {activeTab === "notes" && (
                       <textarea
+                        value={noteContent}
+                        onChange={(e) => { setNoteContent(e.target.value); setNoteSaved(false); }}
                         placeholder="Add your notes for this lecture..."
                         className="h-full min-h-[240px] w-full resize-none border-none bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
                       />
                     )}
 
                     {activeTab === "resources" && (
-                      <div className="flex flex-wrap gap-2">
-                        {RESOURCE_CHIPS.map(({ icon, label }) => (
-                          <button
-                            key={label}
-                            className="flex items-center gap-1.5 rounded-lg border border-surface-200 bg-white px-3 py-1.5 text-xs text-gray-500 hover:border-surface-300 hover:text-gray-800 transition-colors"
-                          >
-                            {icon} {label}
-                          </button>
-                        ))}
-                      </div>
+                      loadingResources ? (
+                        <p className="text-sm text-gray-400">Loading resources…</p>
+                      ) : resources.length === 0 ? (
+                        <p className="text-sm text-gray-500">No resources have been added for this lecture yet.</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {resources.map((resource) => (
+                            <a
+                              key={resource.id}
+                              href={resource.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download={resource.type === "pdf" || resource.type === "zip" || undefined}
+                              className="inline-flex items-center gap-2 rounded-xl border border-surface-200 bg-white px-4 py-2.5 text-sm text-gray-700 hover:border-brand-300 hover:text-brand-600 transition-colors"
+                            >
+                              {RESOURCE_TYPE_ICONS[resource.type]} {resource.label}
+                            </a>
+                          ))}
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
@@ -414,7 +573,7 @@ export function CourseViewer({
           </div>
 
           {/* ── RIGHT CURRICULUM SIDEBAR ──────────────────────────────────── */}
-          <aside className="w-[300px] flex-shrink-0 border-l border-surface-100 flex flex-col overflow-hidden bg-white">
+          <aside className="w-[320px] lg:w-[360px] xl:w-[400px] 2xl:w-[440px] flex-shrink-0 border-l border-surface-100 flex flex-col overflow-hidden bg-white">
           <div className="flex-shrink-0 border-b border-surface-100 px-5 py-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
               <AlignLeft size={16} /> Course content
@@ -442,6 +601,13 @@ export function CourseViewer({
                       <p className="truncate text-sm font-semibold text-gray-900">
                         {sIdx + 1}. {section.title}
                       </p>
+                      {section.scheduledStart && (
+                        <p className="flex items-center gap-1 text-[10px] text-gray-400">
+                          <Clock size={10} />
+                          {formatClockTime(section.scheduledStart)}
+                          {section.scheduledEnd && <> – {formatClockTime(section.scheduledEnd)}</>}
+                        </p>
+                      )}
                     </div>
                     <div className="flex flex-shrink-0 items-center gap-2">
                       <span className="text-xs text-gray-400">

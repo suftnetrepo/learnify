@@ -73,7 +73,20 @@ export async function POST(req: NextRequest) {
     // Short-circuit: free courses get instant enrollment without Stripe
     if (Number(course.price) === 0) {
       const { EnrollmentService } = await import("@/services/enrollment.service");
-      await EnrollmentService.enroll(studentId, courseId);
+      await EnrollmentService.enroll(studentId, courseId, sessionId);
+
+      // Reserve the seat — mirrors the paid path in the Stripe webhook
+      // (handleCheckoutCompleted). Without this, a free in-person/hybrid
+      // booking never increments courseSessions.enrolledCount even though
+      // the student is enrolled and sessionId is set on their enrollment.
+      if (sessionId) {
+        try {
+          const { SessionService } = await import("@/services/session.service");
+          await SessionService.reserveSeat(sessionId);
+        } catch (seatErr) {
+          log.warn("Seat reservation failed for free enrollment", { sessionId, seatErr });
+        }
+      }
 
       // Record a £0 purchase for audit trail
       await db.insert(purchases).values({

@@ -34,7 +34,7 @@ export default async function CourseSectionsPage({ params }: Props) {
             Manage sections and lectures for <strong>{course.title}</strong>.
           </p>
         </div>
-        <SectionsManager courseId={courseId} initialSections={sections} />
+        <SectionsManager courseId={courseId} initialSections={sections} format={course.format} />
       </div>
     </div>
   );

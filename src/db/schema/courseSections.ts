@@ -6,6 +6,7 @@ import {
   integer,
   boolean,
   timestamp,
+  time,
   index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -23,6 +24,13 @@ export const courseSections = pgTable(
     title: varchar("title", { length: 200 }).notNull(),
     description: text("description"),
     sortOrder: integer("sort_order").default(0).notNull(),
+    // Scheduling — for in-person/hybrid courses, a section is a time slot in
+    // the day (e.g. "Morning Session, 09:00–11:00") and the lectures inside
+    // it are just the topics covered in that slot, not separately scheduled.
+    // Plain clock time (no date, no timezone) — see the same note that used
+    // to live on `lectures` before this moved here.
+    scheduledStart: time("scheduled_start"),
+    scheduledEnd: time("scheduled_end"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

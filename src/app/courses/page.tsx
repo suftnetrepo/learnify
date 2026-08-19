@@ -112,16 +112,6 @@ export default async function CoursesPage({ searchParams }: PageProps) {
             </div>
           </form>
         </div>
-
-        {/* Category tabs — wrapped, no scrollbar */}
-        <CategoryTabs
-          categories={allCategories}
-          currentCategory={categorySlug}
-          currentSearch={search}
-          currentSort={sort}
-          currentLevel={level}
-          currentFormat={format}
-        />
       </div>
 
       {/* ── Main content ───────────────────────────────────────────────────── */}

@@ -1,0 +1,240 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Premium skin for react-big-calendar.
+   The library ships completely unstyled-brand markup (thick black grid
+   lines, system-ui type, a jarring blue selection colour) — this file
+   restyles it to match Learnify's design tokens (brand indigo, surface
+   greys, Plus Jakarta / Inter type) instead of fighting it with per-node
+   Tailwind classes, since most of the DOM here is rendered by the library
+   itself and only reachable via its static class names.
+   Scoped under .premium-calendar so it never leaks onto other pages.
+   ────────────────────────────────────────────────────────────────────────*/
+
+.premium-calendar .rbc-calendar {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  color: #374151;
+}
+
+/* ── Remove the library's heavy outer border — the card wrapper already
+   provides one ────────────────────────────────────────────────────────── */
+.premium-calendar .rbc-month-view,
+.premium-calendar .rbc-time-view {
+  border: 1px solid #f1f1f8;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* ── Weekday header row ──────────────────────────────────────────────── */
+.premium-calendar .rbc-month-header,
+.premium-calendar .rbc-time-header-content {
+  border-bottom: none;
+}
+
+.premium-calendar .rbc-header {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f1f1f8;
+  border-left: 1px solid #f1f1f8;
+  background: #fafafd;
+  font-family: var(--font-plus-jakarta), var(--font-inter), sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.premium-calendar .rbc-header:first-child { border-left: none; }
+.premium-calendar .rbc-header + .rbc-header { border-left: 1px solid #f1f1f8; }
+
+/* ── Month grid lines — thin surface grey instead of the default heavy
+   black borders ──────────────────────────────────────────────────────── */
+.premium-calendar .rbc-month-row + .rbc-month-row,
+.premium-calendar .rbc-day-bg + .rbc-day-bg,
+.premium-calendar .rbc-time-content > * + * > * {
+  border-color: #f1f1f8;
+}
+
+.premium-calendar .rbc-day-bg {
+  transition: background-color 0.15s ease;
+}
+
+.premium-calendar .rbc-day-bg:hover {
+  background: #fafafd;
+}
+
+/* ── Off-range (adjacent month) days — dimmed, not the default flat grey
+   fill ────────────────────────────────────────────────────────────────── */
+.premium-calendar .rbc-off-range-bg {
+  background: #fdfdfe;
+}
+
+.premium-calendar .rbc-off-range {
+  color: #d1d5db;
+}
+
+/* ── Today — brand tint on the cell, a solid brand circle around the date
+   number instead of the library's orange highlight ─────────────────────── */
+.premium-calendar .rbc-today {
+  background: #f0f0ff;
+}
+
+.premium-calendar .rbc-date-cell {
+  padding: 8px 10px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.premium-calendar .rbc-date-cell.rbc-now {
+  font-weight: 700;
+}
+
+.premium-calendar .rbc-date-cell.rbc-now > a,
+.premium-calendar .rbc-date-cell.rbc-now button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #6366f1;
+  color: #fff;
+}
+
+/* ── Selected cell — brand tint instead of the default saturated blue ──── */
+.premium-calendar .rbc-selected-cell {
+  background: #e3e3ff;
+}
+
+/* ── Events — soft rounded pills with a subtle shadow instead of flat
+   rectangles ─────────────────────────────────────────────────────────── */
+.premium-calendar .rbc-event {
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.premium-calendar .rbc-event:hover,
+.premium-calendar .rbc-event:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 6px 14px rgba(0, 0, 0, 0.08);
+  outline: none;
+}
+
+.premium-calendar .rbc-event-label {
+  display: none; /* the custom EventPill already renders course + session title */
+}
+
+.premium-calendar .rbc-event-content {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.premium-calendar .rbc-row-segment {
+  padding: 1px 3px 0;
+}
+
+/* ── "+N more" link — a small brand-tinted chip ─────────────────────────── */
+.premium-calendar .rbc-show-more {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #f0f0ff;
+  color: #4f46e5;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.premium-calendar .rbc-show-more:hover {
+  background: #e3e3ff;
+  text-decoration: none;
+}
+
+/* ── Popup overlay for "+N more" ─────────────────────────────────────── */
+.premium-calendar .rbc-overlay {
+  border: 1px solid #f1f1f8;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08), 0 16px 40px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+}
+
+.premium-calendar .rbc-overlay-header {
+  font-family: var(--font-plus-jakarta), var(--font-inter), sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: #13131f;
+  border-bottom: 1px solid #f1f1f8;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+/* ── Week / day time-grid view ───────────────────────────────────────── */
+.premium-calendar .rbc-time-header-gutter,
+.premium-calendar .rbc-time-gutter {
+  background: #fafafd;
+}
+
+.premium-calendar .rbc-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  padding: 0 8px;
+}
+
+.premium-calendar .rbc-timeslot-group {
+  border-bottom: 1px solid #f1f1f8;
+  min-height: 52px;
+}
+
+.premium-calendar .rbc-time-slot {
+  border-top: none;
+}
+
+.premium-calendar .rbc-day-slot .rbc-time-slot {
+  border-top: 1px dashed #f8f8fc;
+}
+
+.premium-calendar .rbc-time-content {
+  border-top: 2px solid #f1f1f8;
+}
+
+.premium-calendar .rbc-time-content > * + * > * {
+  border-left: 1px solid #f1f1f8;
+}
+
+.premium-calendar .rbc-day-slot .rbc-event {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.premium-calendar .rbc-current-time-indicator {
+  background-color: #ef4444;
+  height: 2px;
+}
+
+.premium-calendar .rbc-current-time-indicator::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #ef4444;
+}
+
+.premium-calendar .rbc-allday-cell {
+  background: #fafafd;
+}
+
+/* ── Focus ring cleanup — the library outlines cells with a hard blue
+   ring by default; use a soft brand ring instead ───────────────────────── */
+.premium-calendar .rbc-day-bg + .rbc-day-bg,
+.premium-calendar .rbc-month-row {
+  outline: none;
+}
+
+.premium-calendar *:focus-visible {
+  outline: 2px solid #a5a5fc;
+  outline-offset: -2px;
+}

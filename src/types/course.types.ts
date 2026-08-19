@@ -57,6 +57,10 @@ export interface CourseSection {
   title:     string;
   sortOrder: number;
   lectures:  CourseLecture[];
+  // "HH:MM:SS" clock time, no date/timezone — the section's time slot in the
+  // day for in-person/hybrid courses (e.g. "Morning Session, 09:00–11:00").
+  scheduledStart: string | null;
+  scheduledEnd:   string | null;
 }
 
 export interface CourseLecture {
@@ -108,6 +112,8 @@ export interface UpdateCoursePayload extends Partial<CreateCoursePayload> {}
 export interface CreateSectionPayload {
   title:     string;
   sortOrder?: number;
+  scheduledStart?: string | null; // "HH:MM" clock time — for in-person/hybrid courses
+  scheduledEnd?:   string | null;
 }
 
 export interface CreateLecturePayload {
@@ -122,3 +128,32 @@ export interface CreateLecturePayload {
 }
 
 export interface UpdateLecturePayload extends Partial<CreateLecturePayload> {}
+
+// ─── Lecture resources ─────────────────────────────────────────────────────────
+export type LectureResourceType = "pdf" | "zip" | "github" | "link" | "video";
+
+export interface LectureResource {
+  id:         string;
+  lectureId:  string;
+  type:       LectureResourceType;
+  label:      string;
+  url:        string;
+  sortOrder:  number;
+  createdAt:  Date;
+}
+
+export interface CreateResourcePayload {
+  type:       LectureResourceType;
+  label:      string;
+  url:        string;
+  sortOrder?: number;
+}
+
+// ─── Lecture notes ──────────────────────────────────────────────────────────────
+export interface LectureNote {
+  id:        string;
+  userId:    string;
+  lectureId: string;
+  content:   string;
+  updatedAt: Date;
+}

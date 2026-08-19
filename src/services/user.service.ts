@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { users, tutorInvitations } from "@/db/schema";
 import { eq, and, like, desc, count, isNull, sql } from "drizzle-orm";
 import { log } from "@/lib/logger";
 import type {
@@ -165,4 +165,92 @@ export class UserService {
       .set({ lastLoginAt: new Date() })
       .where(eq(users.id, id));
   }
+
+  /**
+   * Register a new user — validates email uniqueness, invitation token for tutors,
+   * hashes password, creates user, marks invitation accepted, sends emails.
+   */
+  static async registerUser(params: {
+    name:            string;
+    email:           string;
+    password:        string;
+    role:            "student" | "tutor";
+    invitationToken?: string;
+  }): Promise<{
+    success: boolean;
+    code?:   string;
+    message?: string;
+    user?:   { id: string; email: string; name: string | null; role: string };
+    status?: "active" | "pending";
+  }> {
+    const { name, email, password, role, invitationToken } = params;
+
+    // Check email already exists
+    const [existing] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    if (existing) {
+      return { success: false, code: "CONFLICT", message: "An account with this email already exists" };
+    }
+
+    // Validate tutor invitation
+    let invitation: typeof tutorInvitations.$inferSelect | null = null;
+    if (role === "tutor" && invitationToken) {
+      const [inv] = await db
+        .select()
+        .from(tutorInvitations)
+        .where(
+          and(
+            eq(tutorInvitations.token, invitationToken),
+            eq(tutorInvitations.email, email),
+            eq(tutorInvitations.status, "pending")
+          )
+        )
+        .limit(1);
+
+      if (!inv || inv.expiresAt < new Date()) {
+        return { success: false, code: "INVALID_INVITATION", message: "This invitation link is invalid or has expired" };
+      }
+      invitation = inv;
+    }
+
+    const { hashPassword } = await import("@/lib/utils");
+    const passwordHash = await hashPassword(password);
+    const status: "active" | "pending" = role === "tutor" && !invitation ? "pending" : "active";
+
+    const [user] = await db
+      .insert(users)
+      .values({ name, email, passwordHash, role, status })
+      .returning({ id: users.id, email: users.email, name: users.name, role: users.role });
+
+    // Mark invitation accepted
+    if (invitation) {
+      await db
+        .update(tutorInvitations)
+        .set({ status: "accepted", inviteeId: user.id, acceptedAt: new Date() })
+        .where(eq(tutorInvitations.id, invitation.id));
+    }
+
+    // Send emails (non-fatal)
+    try {
+      const { EmailService } = await import("@/services/email.service");
+      if (role === "student") {
+        await EmailService.welcomeEmail(user.email, { name: user.name ?? "there" });
+      } else if (role === "tutor") {
+        const adminEmail = process.env.ADMIN_EMAIL;
+        if (adminEmail) {
+          await EmailService.newTutorApplication(adminEmail, {
+            applicantName:  user.name ?? "Unknown",
+            applicantEmail: user.email,
+          });
+        }
+      }
+    } catch { /* non-fatal */ }
+
+    return { success: true, user, status };
+  }
+
 }

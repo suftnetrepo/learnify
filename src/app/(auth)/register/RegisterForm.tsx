@@ -41,7 +41,7 @@ function FloatingInput({
           disabled={disabled}
           placeholder=" "
           className={cn(
-            "peer h-14 w-full bg-transparent px-4 pt-4 pb-1 text-sm text-gray-900",
+            "peer h-14 w-full px-4 pt-5 pb-1 text-sm text-gray-900 bg-transparent [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_white] [&:-webkit-autofill]:[-webkit-text-fill-color:#111827]",
             "placeholder-transparent outline-none",
             "disabled:cursor-not-allowed disabled:text-gray-400"
           )}

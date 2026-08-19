@@ -23,7 +23,7 @@ function FloatingInput({
   return (
     <div className="relative">
       <div className={cn(
-        "relative flex items-center rounded-xl border bg-white transition-all duration-200",
+        "relative flex items-center rounded-xl border bg-white transition-all duration-200 overflow-hidden",
         error     ? "border-red-400 ring-1 ring-red-100"         :
         focused   ? "border-brand-400 ring-2 ring-brand-100"     :
         "border-surface-200 hover:border-surface-300"
@@ -40,8 +40,10 @@ function FloatingInput({
           disabled={disabled}
           placeholder=" "
           className={cn(
-            "peer h-14 w-full bg-transparent px-4 pt-4 pb-1 text-sm text-gray-900",
-            "placeholder-transparent outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            "peer h-14 w-full px-4 pt-5 pb-1 text-sm text-gray-900 bg-transparent",
+            "placeholder-transparent outline-none disabled:cursor-not-allowed disabled:opacity-50",
+            // Override browser autofill blue background
+            "[&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_white] [&:-webkit-autofill]:[-webkit-text-fill-color:#111827]"
           )}
         />
         {/* Floating label */}

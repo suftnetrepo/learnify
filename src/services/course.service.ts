@@ -181,6 +181,8 @@ export class CourseService {
       id:        s.id,
       title:     s.title,
       sortOrder: s.sortOrder,
+      scheduledStart: s.scheduledStart,
+      scheduledEnd:   s.scheduledEnd,
       lectures:  lectureRows
         .filter((l) => l.sectionId === s.id)
         .map((l) => ({

@@ -73,10 +73,10 @@ export class EnrollmentService {
   /**
    * Create a new enrollment.
    */
-  static async enroll(studentId: string, courseId: string): Promise<Enrollment> {
+  static async enroll(studentId: string, courseId: string, sessionId?: string | null): Promise<Enrollment> {
     const [enrollment] = await db
       .insert(enrollments)
-      .values({ studentId, courseId, progress: 0 })
+      .values({ studentId, courseId, sessionId: sessionId ?? null, progress: 0 })
       .returning();
 
     await db
@@ -84,7 +84,7 @@ export class EnrollmentService {
       .set({ enrollmentCount: sql`${courses.enrollmentCount} + 1` })
       .where(eq(courses.id, courseId));
 
-    log.info("Student enrolled", { studentId, courseId });
+    log.info("Student enrolled", { studentId, courseId, sessionId });
     return enrollment as unknown as Enrollment;
   }
 

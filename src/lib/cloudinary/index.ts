@@ -27,12 +27,6 @@ export function generateSignedUploadParams(options: {
   const paramsToSign: Record<string, string | number> = {
     timestamp,
     folder,
-    // Generate eager transformation for video thumbnail
-    ...(options.resourceType === "video" && {
-      eager:                 "so_auto,w_1280,h_720,c_fill",
-      eager_async:           "true",
-      resource_type:         "video",
-    }),
   };
 
   const signature = cloudinary.utils.api_sign_request(

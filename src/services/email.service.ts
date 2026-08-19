@@ -87,18 +87,64 @@ export const EmailService = {
 
   /** Sent after a student successfully purchases a course. */
   async purchaseConfirmation(to: string, data: {
-    studentName: string;
-    courseTitle: string;
-    courseSlug:  string;
-    amount:      string;
+    studentName:  string;
+    courseTitle:  string;
+    courseSlug:   string;
+    amount:       string;
+    courseFormat?: string;
+    // Session details for in-person / hybrid
+    sessionTitle?:    string;
+    sessionDate?:     string;
+    sessionTime?:     string;
+    venueName?:       string;
+    venueAddress?:    string;
+    venueCity?:       string;
+    venuePostcode?:   string;
+    venueMapUrl?:     string;
+    // Online session details
+    conferencePlatform?: string;
+    conferenceUrl?:      string;
+    conferencePassword?: string;
   }) {
-    const courseUrl = `${APP}/dashboard/courses`;
+    const courseUrl = `${APP}/learn`;
+
+    const isInPerson = data.courseFormat === "in_person" || data.courseFormat === "hybrid";
+    const isOnline   = data.courseFormat === "online"    || data.courseFormat === "hybrid";
+
+    const sessionBlock = data.sessionTitle ? `
+      <table style="width:100%;background:#f8f8fc;border-radius:10px;padding:16px;margin-bottom:16px;border:1px solid #e4e4ef">
+        <tr><td style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6366f1;padding-bottom:8px">
+          Your Session
+        </td></tr>
+        <tr><td style="font-size:15px;font-weight:600;color:#13131f;padding-bottom:4px">${data.sessionTitle}</td></tr>
+        ${data.sessionDate ? `<tr><td style="font-size:13px;color:#374151;padding-bottom:2px">📅 ${data.sessionDate}</td></tr>` : ""}
+        ${data.sessionTime ? `<tr><td style="font-size:13px;color:#374151;padding-bottom:8px">🕐 ${data.sessionTime}</td></tr>` : ""}
+        ${isInPerson && data.venueAddress ? `
+          <tr><td style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#6b7280;padding-top:8px;padding-bottom:4px">Venue</td></tr>
+          ${data.venueName    ? `<tr><td style="font-size:13px;font-weight:600;color:#13131f">${data.venueName}</td></tr>` : ""}
+          ${data.venueAddress ? `<tr><td style="font-size:13px;color:#374151">${data.venueAddress}</td></tr>` : ""}
+          ${data.venueCity    ? `<tr><td style="font-size:13px;color:#374151">${data.venueCity}${data.venuePostcode ? `, ${data.venuePostcode}` : ""}</td></tr>` : ""}
+          ${data.venueMapUrl  ? `<tr><td style="padding-top:8px"><a href="${data.venueMapUrl}" style="color:#6366f1;font-size:13px;font-weight:500">📍 Get directions →</a></td></tr>` : ""}
+        ` : ""}
+        ${isOnline && data.conferenceUrl ? `
+          <tr><td style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#6b7280;padding-top:8px;padding-bottom:4px">Join online</td></tr>
+          <tr><td style="font-size:13px;color:#374151">${data.conferencePlatform ?? "Video call"}</td></tr>
+          <tr><td style="padding-top:6px"><a href="${data.conferenceUrl}" style="color:#6366f1;font-size:13px;font-weight:500">🔗 Join link →</a></td></tr>
+          ${data.conferencePassword ? `<tr><td style="font-size:12px;color:#6b7280;padding-top:4px">Password: <span style="font-family:monospace">${data.conferencePassword}</span></td></tr>` : ""}
+        ` : ""}
+      </table>
+    ` : "";
+
     const html = baseTemplate(
       h1("Your enrolment is confirmed! 🎉") +
       p(`Hi ${data.studentName}, you're now enrolled in <strong>${data.courseTitle}</strong>.`) +
       p(`Amount paid: <strong>${data.amount}</strong>`) +
-      p("You can start learning right away — your progress is saved automatically so you can pick up where you left off at any time.") +
-      btn("Start learning →", courseUrl) +
+      sessionBlock +
+      (isInPerson
+        ? p("Please arrive 10 minutes before the session starts. Bring a laptop if you have one.")
+        : p("You can start learning right away — your progress is saved automatically.")
+      ) +
+      btn("Go to my courses →", courseUrl) +
       `<p style="margin-top:24px;font-size:13px;color:#9ca3af">Remember: we offer a 30-day money-back guarantee if you're not satisfied.</p>`,
       `You're enrolled in ${data.courseTitle}`
     );

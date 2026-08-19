@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import { useMutation } from "./useApi";
 import { coursesApi } from "@/lib/api-client";
-import type { CreateCoursePayload, UpdateCoursePayload, CreateLecturePayload, UpdateLecturePayload } from "@/types";
+import type { CreateCoursePayload, UpdateCoursePayload, CreateLecturePayload, UpdateLecturePayload, CreateSectionPayload } from "@/types";
 
 export function useCourseForm(courseId?: string) {
   const router = useRouter();
@@ -54,12 +54,12 @@ export function useSections(courseId: string) {
   const { success, error } = useToast();
 
   const createMut = useMutation(
-    (title: string) => coursesApi.createSection(courseId, { title }),
+    (data: CreateSectionPayload) => coursesApi.createSection(courseId, data),
     { onError: (msg) => error("Failed to create section", msg) }
   );
 
   const updateMut = useMutation(
-    ({ id, data }: { id: string; data: { title?: string; isPublished?: boolean } }) =>
+    ({ id, data }: { id: string; data: Partial<CreateSectionPayload> }) =>
       coursesApi.updateSection(id, data),
     { onError: (msg) => error("Failed to update section", msg) }
   );
@@ -68,14 +68,14 @@ export function useSections(courseId: string) {
     onError: (msg) => error("Failed to delete section", msg),
   });
 
-  const createSection = useCallback(async (title: string) => {
-    const res = await createMut.mutate(title);
+  const createSection = useCallback(async (data: CreateSectionPayload) => {
+    const res = await createMut.mutate(data);
     if (res) { success("Section created"); router.refresh(); }
     return res;
   }, [createMut, success, router]);
 
   const updateSection = useCallback(
-    (id: string, data: { title?: string; isPublished?: boolean }) =>
+    (id: string, data: Partial<CreateSectionPayload>) =>
       updateMut.mutate({ id, data }),
     [updateMut]
   );
