@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, BookOpen, Users, GraduationCap, Calendar,
   BarChart3, CreditCard, LogOut, Sparkles, X,
-  Award, Settings, Trophy,
+  Award, Settings, Trophy, Clock, CalendarDays,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -29,15 +29,17 @@ const NAV_ITEMS: NavItem[] = [
   // Admin
   { label: "Dashboard",  href: "/admin",                 icon: <LayoutDashboard size={18} />, roles: ["admin"] },
   { label: "Courses",    href: "/admin/courses",         icon: <BookOpen        size={18} />, roles: ["admin"] },
+  { label: "Pending Review", href: "/admin/courses/pending", icon: <Clock       size={18} />, roles: ["admin"] },
   { label: "Users",      href: "/admin/users",           icon: <Users           size={18} />, roles: ["admin"] },
   { label: "Tutors",     href: "/admin/tutors",          icon: <GraduationCap   size={18} />, roles: ["admin"] },
   { label: "Analytics",  href: "/admin/analytics",       icon: <BarChart3       size={18} />, roles: ["admin"] },
   { label: "Payments",   href: "/admin/payments",        icon: <CreditCard      size={18} />, roles: ["admin"] },
   // Instructor
-  { label: "Dashboard",  href: "/instructor/courses",    icon: <LayoutDashboard size={18} />, roles: ["tutor"] },
+  { label: "Dashboard",  href: "/instructor",            icon: <LayoutDashboard size={18} />, roles: ["tutor"] },
   { label: "My Courses", href: "/instructor/courses",    icon: <BookOpen        size={18} />, roles: ["tutor"] },
   { label: "Earnings",   href: "/instructor/earnings",   icon: <CreditCard      size={18} />, roles: ["tutor"] },
   { label: "Sessions",   href: "/instructor/sessions",   icon: <Calendar        size={18} />, roles: ["tutor"] },
+  { label: "Calendar",   href: "/instructor/calendar",   icon: <CalendarDays    size={18} />, roles: ["tutor"] },
 ];
 
 interface SidebarProps {

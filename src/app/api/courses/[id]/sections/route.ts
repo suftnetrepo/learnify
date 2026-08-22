@@ -9,6 +9,7 @@ import {
   forbidden, serverError, validationError,
 } from "@/lib/api-response";
 import { log } from "@/lib/logger";
+import { requireCourseAccess } from "@/lib/access/course";
 
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
 
@@ -73,9 +74,12 @@ export async function POST(
   try {
     const session = await auth();
     if (!session?.user) return unauthorized();
-    if (!["admin", "tutor"].includes(session.user.role)) return forbidden();
 
     const { id: courseId } = await params;
+
+    const allowed = await requireCourseAccess(session.user.id, courseId, session.user.role, "editor");
+    if (!allowed) return forbidden("Insufficient course access");
+
     const body   = await req.json();
     const parsed = createSectionSchema.safeParse(body);
     if (!parsed.success) {

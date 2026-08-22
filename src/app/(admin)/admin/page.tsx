@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { AnalyticsService, PaymentService, UserService } from "@/services";
 import { StatCard } from "@/components/ui/Card";
 import { Topbar } from "@/components/layout/Topbar";
@@ -33,6 +34,18 @@ export default async function AdminDashboardPage() {
             delta={stats.pendingTutors > 0 ? `${stats.pendingTutors} tutor${stats.pendingTutors > 1 ? "s" : ""} pending` : undefined}
             deltaType={stats.pendingTutors > 0 ? "down" : "neutral"}
             icon={<BookOpen size={20} />} />
+
+          {stats.pendingReviewCourses > 0 && (
+            <Link href="/admin/courses/pending"
+              className="rounded-2xl border-2 border-amber-200 bg-amber-50 p-5 flex items-center justify-between hover:bg-amber-100 transition-colors">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">Needs attention</p>
+                <p className="font-display text-3xl font-extrabold text-amber-800">{stats.pendingReviewCourses}</p>
+                <p className="text-sm text-amber-600 mt-0.5">Course{stats.pendingReviewCourses > 1 ? "s" : ""} pending review</p>
+              </div>
+              <div className="h-3 w-3 rounded-full bg-amber-400 animate-pulse" />
+            </Link>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">

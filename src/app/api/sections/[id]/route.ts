@@ -8,6 +8,7 @@ import {
   successResponse, unauthorized, forbidden,
   notFound, serverError, validationError,
 } from "@/lib/api-response";
+import { requireCourseAccess } from "@/lib/access/course";
 
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
 
@@ -27,9 +28,19 @@ export async function PATCH(
   try {
     const session = await auth();
     if (!session?.user) return unauthorized();
-    if (!["admin", "tutor"].includes(session.user.role)) return forbidden();
 
     const { id } = await params;
+
+    const [existingSection] = await db
+      .select({ courseId: courseSections.courseId })
+      .from(courseSections)
+      .where(eq(courseSections.id, id))
+      .limit(1);
+    if (!existingSection) return notFound("Section");
+
+    const allowed = await requireCourseAccess(session.user.id, existingSection.courseId, session.user.role, "editor");
+    if (!allowed) return forbidden("Insufficient course access");
+
     const parsed  = updateSchema.safeParse(await req.json());
     if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors as Record<string, string[]>);
 

@@ -97,13 +97,15 @@ export const coursesApi = {
 };
 
 // ─── Tutors ────────────────────────────────────────────────────────────────────
-import type { TutorAssignmentWithDetails, TutorInvitation, AssignTutorPayload } from "@/types";
+import type { TutorAssignmentWithDetails, TutorInvitation, AssignTutorPayload, TutorAccessLevel } from "@/types";
 
 export const tutorsApi = {
-  assign:          (payload: AssignTutorPayload)      => post<TutorAssignmentWithDetails>("/api/tutors/assign", payload),
-  cancelAssignment:(id: string)                       => del(`/api/tutors/assign?id=${id}`),
-  invite:          (email: string)                    => post<TutorInvitation>("/api/tutors/invite", { email }),
-  revokeInvite:    (id: string)                       => del(`/api/tutors/invite/${id}`),
+  assign:            (payload: AssignTutorPayload)      => post<TutorAssignmentWithDetails>("/api/tutors/assign", payload),
+  cancelAssignment:  (id: string)                       => del(`/api/tutors/assign?id=${id}`),
+  invite:            (email: string)                    => post<TutorInvitation>("/api/tutors/invite", { email }),
+  revokeInvite:      (id: string)                       => del(`/api/tutors/invite/${id}`),
+  updateAccessLevel: (id: string, accessLevel: TutorAccessLevel) =>
+    patch<{ updated: boolean }>(`/api/tutor-assignments/${id}`, { accessLevel }),
 };
 
 // ─── Payments ──────────────────────────────────────────────────────────────────

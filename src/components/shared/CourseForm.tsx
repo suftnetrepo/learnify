@@ -31,6 +31,10 @@ interface CourseFormProps {
     language?:         string;
   };
   mode: "create" | "edit";
+  /** Hide the publication-status picker — for manager-tutors, who can edit
+   *  content and pricing but publish only via the admin approval flow. */
+  hidePublish?: boolean;
+  hideStatus?:  boolean;
 }
 
 type StatusKey = "draft" | "published" | "archived";
@@ -79,7 +83,8 @@ function SectionCard({ icon, title, sub, children }: {
   );
 }
 
-export function CourseForm({ categories, initialData, mode }: CourseFormProps) {
+export function CourseForm({ categories, initialData, mode, hidePublish, hideStatus }: CourseFormProps) {
+  const showPublishSection = !(hidePublish || hideStatus);
   const router = useRouter();
   const { success } = useToast();
   const { save, loading, error } = useCourseForm(initialData?.id);
@@ -209,36 +214,44 @@ export function CourseForm({ categories, initialData, mode }: CourseFormProps) {
       </SectionCard>
 
       {/* Status */}
-      <SectionCard icon={<Eye size={16} />} title="Publication Status" sub="Control whether this course is visible to students.">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {(Object.keys(STATUS_CONFIG) as StatusKey[]).map((key) => {
-            const cfg      = STATUS_CONFIG[key];
-            const isActive = status === key;
-            return (
-              <button key={key} type="button" onClick={() => setStatus(key)}
-                className={cn(
-                  "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all",
-                  isActive
-                    ? `${cfg.activeRing} ${cfg.activeBg} ${cfg.activeText}`
-                    : "border-surface-200 bg-white text-gray-600 hover:border-brand-200 hover:bg-surface-50"
-                )}>
-                <div className="flex w-full items-center gap-2">
-                  {cfg.icon}
-                  <span className="text-sm font-semibold">{cfg.label}</span>
-                  {isActive && <CheckCircle2 size={13} className="ml-auto" />}
-                </div>
-                <p className="text-xs leading-relaxed opacity-75">{cfg.description}</p>
-              </button>
-            );
-          })}
-        </div>
-        {status === "published" && (
-          <div className="mt-3 flex items-start gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
-            <Info size={13} className="text-emerald-600 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-emerald-700">Publishing makes this course immediately available for purchase. Ensure all sections and lectures are added first.</p>
+      {showPublishSection && (
+        <SectionCard icon={<Eye size={16} />} title="Publication Status" sub="Control whether this course is visible to students.">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {(Object.keys(STATUS_CONFIG) as StatusKey[]).map((key) => {
+              const cfg      = STATUS_CONFIG[key];
+              const isActive = status === key;
+              return (
+                <button key={key} type="button" onClick={() => setStatus(key)}
+                  className={cn(
+                    "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all",
+                    isActive
+                      ? `${cfg.activeRing} ${cfg.activeBg} ${cfg.activeText}`
+                      : "border-surface-200 bg-white text-gray-600 hover:border-brand-200 hover:bg-surface-50"
+                  )}>
+                  <div className="flex w-full items-center gap-2">
+                    {cfg.icon}
+                    <span className="text-sm font-semibold">{cfg.label}</span>
+                    {isActive && <CheckCircle2 size={13} className="ml-auto" />}
+                  </div>
+                  <p className="text-xs leading-relaxed opacity-75">{cfg.description}</p>
+                </button>
+              );
+            })}
           </div>
-        )}
-      </SectionCard>
+          {status === "published" && (
+            <div className="mt-3 flex items-start gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
+              <Info size={13} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-emerald-700">Publishing makes this course immediately available for purchase. Ensure all sections and lectures are added first.</p>
+            </div>
+          )}
+        </SectionCard>
+      )}
+
+      {!showPublishSection && (
+        <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs text-amber-700">
+          Publishing is handled by the platform admin — submit this course for approval from the banner above once it&apos;s ready.
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex items-center justify-between rounded-2xl border border-surface-200 bg-white px-6 py-4 shadow-card">

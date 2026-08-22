@@ -315,4 +315,55 @@ export const EmailService = {
     );
     await send(to, `💳 Refund issued — ${data.amount}`, html);
   },
+
+  /** Sent to admin when a manager-tutor submits a course for review. */
+  async courseSubmittedForReview(to: string, data: {
+    courseTitle:    string;
+    instructorName: string;
+    reviewUrl:      string;
+  }) {
+    const html = baseTemplate(
+      h1("Course submitted for review") +
+      p(`<strong>${data.instructorName}</strong> has submitted <strong>${data.courseTitle}</strong> for approval.`) +
+      p("Review the course content, pricing, and curriculum before approving.") +
+      btn("Review course →", data.reviewUrl),
+      `New course pending review: ${data.courseTitle}`
+    );
+    await send(to, `📋 Course pending review: "${data.courseTitle}"`, html);
+  },
+
+  /** Sent to a manager-tutor when their submitted course is approved and published. */
+  async courseApproved(to: string, data: {
+    courseTitle: string;
+    courseUrl:   string;
+  }) {
+    const html = baseTemplate(
+      h1("Your course has been approved! 🎉") +
+      p(`Great news — <strong>${data.courseTitle}</strong> has been reviewed and approved by the platform admin.`) +
+      p("Your course is now live and available for students to enrol.") +
+      btn("View your course →", data.courseUrl),
+      `Course approved: ${data.courseTitle}`
+    );
+    await send(to, `✅ Course approved: "${data.courseTitle}"`, html);
+  },
+
+  /** Sent to a manager-tutor when their submitted course is rejected with feedback. */
+  async courseRejected(to: string, data: {
+    courseTitle:   string;
+    rejectionNote: string;
+    editUrl:       string;
+  }) {
+    const html = baseTemplate(
+      h1("Course needs some changes") +
+      p(`Your course <strong>${data.courseTitle}</strong> has been reviewed and needs some changes before it can be published.`) +
+      `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:16px;margin:16px 0">
+        <p style="font-size:13px;font-weight:600;color:#9a3412;margin-bottom:6px">Feedback from admin:</p>
+        <p style="font-size:13px;color:#7c2d12">${data.rejectionNote}</p>
+      </div>` +
+      p("Please address the feedback and resubmit for review.") +
+      btn("Edit course →", data.editUrl),
+      `Course needs changes: ${data.courseTitle}`
+    );
+    await send(to, `📝 Course needs changes: "${data.courseTitle}"`, html);
+  },
 };

@@ -9,6 +9,7 @@ import {
   forbidden, notFound, serverError, validationError,
 } from "@/lib/api-response";
 import { log } from "@/lib/logger";
+import { requireCourseAccess } from "@/lib/access/course";
 
 const createLectureSchema = z.object({
   title:        z.string().min(2).max(200).trim(),
@@ -31,7 +32,6 @@ export async function POST(
   try {
     const session = await auth();
     if (!session?.user) return unauthorized();
-    if (!["admin", "tutor"].includes(session.user.role)) return forbidden();
 
     const { id: sectionId } = await params;
 
@@ -43,6 +43,9 @@ export async function POST(
       .limit(1);
 
     if (!section) return notFound("Section");
+
+    const allowed = await requireCourseAccess(session.user.id, section.courseId, session.user.role, "editor");
+    if (!allowed) return forbidden("Insufficient course access");
 
     const body   = await req.json();
     const parsed = createLectureSchema.safeParse(body);

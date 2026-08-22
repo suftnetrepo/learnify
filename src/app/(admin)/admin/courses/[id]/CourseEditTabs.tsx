@@ -14,15 +14,21 @@ const TABS = [
 type TabId = typeof TABS[number]["id"];
 
 interface Props {
-  overview:   React.ReactNode;
-  curriculum: React.ReactNode;
-  tutors:     React.ReactNode;
-  sessions:   React.ReactNode;
+  overview:    React.ReactNode;
+  curriculum:  React.ReactNode;
+  tutors:      React.ReactNode | null;
+  sessions:    React.ReactNode | null;
   defaultTab?: TabId;
+  role?:       "admin" | "tutor"; // default "admin"
 }
 
-export function CourseEditTabs({ overview, curriculum, tutors, sessions, defaultTab = "overview" }: Props) {
+export function CourseEditTabs({ overview, curriculum, tutors, sessions, defaultTab = "overview", role = "admin" }: Props) {
   const [active, setActive] = useState<TabId>(defaultTab);
+
+  const visibleTabs = TABS.filter((t) => {
+    if (role === "tutor" && (t.id === "tutors" || t.id === "sessions")) return false;
+    return true;
+  });
 
   const panels = { overview, curriculum, tutors, sessions };
 
@@ -35,7 +41,7 @@ export function CourseEditTabs({ overview, curriculum, tutors, sessions, default
     <div>
       {/* Tab bar */}
       <div className="sticky top-0 z-10 flex border-b border-surface-100 bg-white px-6 gap-0">
-        {TABS.map(({ id, label, icon: Icon }) => (
+        {visibleTabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActive(id)}

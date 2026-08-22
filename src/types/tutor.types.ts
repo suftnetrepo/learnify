@@ -1,17 +1,19 @@
 export type AssignmentStatus  = "active" | "completed" | "cancelled";
 export type InvitationStatus  = "pending" | "accepted" | "revoked" | "expired";
+export type TutorAccessLevel  = "viewer" | "editor" | "manager";
 
 export interface TutorAssignment {
-  id:         string;
-  courseId:   string;
-  tutorId:    string;
-  assignedBy: string;
-  startDate:  Date;
-  endDate:    Date;
-  status:     AssignmentStatus;
-  notes:      string | null;
-  createdAt:  Date;
-  updatedAt:  Date;
+  id:          string;
+  courseId:    string;
+  tutorId:     string;
+  assignedBy:  string;
+  startDate:   Date;
+  endDate:     Date;
+  status:      AssignmentStatus;
+  accessLevel: TutorAccessLevel;
+  notes:       string | null;
+  createdAt:   Date;
+  updatedAt:   Date;
 }
 
 export interface TutorAssignmentWithDetails extends TutorAssignment {

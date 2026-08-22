@@ -1,13 +1,14 @@
 import { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { lectures } from "@/db/schema";
+import { lectures, courseSections } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import {
   successResponse, unauthorized, forbidden,
   notFound, serverError, validationError,
 } from "@/lib/api-response";
+import { requireCourseAccess } from "@/lib/access/course";
 
 const updateSchema = z.object({
   title:         z.string().min(2).max(200).optional(),
@@ -30,9 +31,20 @@ export async function PATCH(
   try {
     const session = await auth();
     if (!session?.user) return unauthorized();
-    if (!["admin", "tutor"].includes(session.user.role)) return forbidden();
 
     const { id } = await params;
+
+    const [existingLecture] = await db
+      .select({ courseId: courseSections.courseId })
+      .from(lectures)
+      .innerJoin(courseSections, eq(lectures.sectionId, courseSections.id))
+      .where(eq(lectures.id, id))
+      .limit(1);
+    if (!existingLecture) return notFound("Lecture");
+
+    const allowed = await requireCourseAccess(session.user.id, existingLecture.courseId, session.user.role, "editor");
+    if (!allowed) return forbidden("Insufficient course access");
+
     const parsed  = updateSchema.safeParse(await req.json());
     if (!parsed.success) {
       return validationError(parsed.error.flatten().fieldErrors as Record<string, string[]>);
@@ -58,9 +70,20 @@ export async function DELETE(
   try {
     const session = await auth();
     if (!session?.user) return unauthorized();
-    if (!["admin", "tutor"].includes(session.user.role)) return forbidden();
 
     const { id } = await params;
+
+    const [existingLecture] = await db
+      .select({ courseId: courseSections.courseId })
+      .from(lectures)
+      .innerJoin(courseSections, eq(lectures.sectionId, courseSections.id))
+      .where(eq(lectures.id, id))
+      .limit(1);
+    if (!existingLecture) return notFound("Lecture");
+
+    const allowed = await requireCourseAccess(session.user.id, existingLecture.courseId, session.user.role, "editor");
+    if (!allowed) return forbidden("Insufficient course access");
+
     const [deleted] = await db
       .delete(lectures)
       .where(eq(lectures.id, id))

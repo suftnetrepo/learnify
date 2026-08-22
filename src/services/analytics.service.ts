@@ -21,6 +21,7 @@ export class AnalyticsService {
       [monthRevenue],
       [totalEnrollments],
       [pendingTutors],
+      [pendingReviewCourses],
     ] = await Promise.all([
       db.select({ count: count() }).from(users),
       db.select({ count: count() }).from(courses),
@@ -33,6 +34,7 @@ export class AnalyticsService {
       db.select({ count: count() }).from(users).where(
         and(eq(users.role, "tutor"), eq(users.status, "pending"))
       ),
+      db.select({ count: count() }).from(courses).where(eq(courses.status, "pending_review")),
     ]);
 
     return {
@@ -43,6 +45,7 @@ export class AnalyticsService {
       monthRevenue:     Number(monthRevenue.total  ?? 0),
       totalEnrollments: totalEnrollments.count,
       pendingTutors:    pendingTutors.count,
+      pendingReviewCourses: pendingReviewCourses.count,
     };
   }
 
@@ -200,10 +203,10 @@ export class AnalyticsService {
       db.select({ count: count() }).from(purchases).where(and(eq(purchases.tutorId, tutorId), eq(purchases.status, "completed"))),
       db.select({ id: purchases.id, amount: purchases.amount, tutorAmount: purchases.tutorAmount, platformFee: purchases.platformFee, status: purchases.status, createdAt: purchases.createdAt, courseTitle: courses.title })
         .from(purchases).leftJoin(courses, eq(purchases.courseId, courses.id)).where(eq(purchases.tutorId, tutorId)).orderBy(desc(purchases.createdAt)).limit(limit),
-      db.select({ courseId: courses.id, courseTitle: courses.title, total: sum(purchases.tutorAmount), students: count() })
+      db.select({ courseId: courses.id, courseTitle: courses.title, thumbnailUrl: courses.thumbnailUrl, total: sum(purchases.tutorAmount), students: count() })
         .from(purchases).leftJoin(courses, eq(purchases.courseId, courses.id))
         .where(and(eq(purchases.tutorId, tutorId), eq(purchases.status, "completed")))
-        .groupBy(courses.id, courses.title).orderBy(desc(sum(purchases.tutorAmount))).limit(5),
+        .groupBy(courses.id, courses.title, courses.thumbnailUrl).orderBy(desc(sum(purchases.tutorAmount))).limit(5),
       db.select({ stripePayoutsEnabled: users.stripePayoutsEnabled, stripeOnboardingStatus: users.stripeOnboardingStatus, stripeAccountId: users.stripeAccountId })
         .from(users).where(eq(users.id, tutorId)).limit(1),
     ]);

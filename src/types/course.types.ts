@@ -1,6 +1,6 @@
 import type { Pagination } from "./user.types";
 
-export type CourseStatus = "draft" | "published" | "archived";
+export type CourseStatus = "draft" | "pending_review" | "published" | "archived";
 export type CourseFormat = "online" | "in_person" | "hybrid";
 export type CourseLevel  = "beginner" | "intermediate" | "advanced";
 
@@ -26,6 +26,11 @@ export interface Course {
   createdBy:        string | null;
   createdAt:        Date;
   updatedAt:        Date;
+  // Approval workflow (manager-tutor course creation)
+  pendingReviewAt:  Date | null;
+  reviewedAt:       Date | null;
+  reviewedBy:       string | null;
+  rejectionNote:    string | null;
 }
 
 export interface CourseListItem extends Pick<Course,

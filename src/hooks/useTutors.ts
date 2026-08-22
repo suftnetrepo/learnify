@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import { useMutation } from "./useApi";
 import { tutorsApi, usersApi } from "@/lib/api-client";
-import type { AssignTutorPayload } from "@/types";
+import type { AssignTutorPayload, TutorAccessLevel } from "@/types";
 
 export function useTutorInvite() {
   const router = useRouter();
@@ -54,6 +54,9 @@ export function useTutorAssignment() {
   const revokeMut = useMutation(tutorsApi.revokeInvite, {
     onError: (msg) => error("Failed to revoke", msg),
   });
+  const accessMut = useMutation(tutorsApi.updateAccessLevel, {
+    onError: (msg) => error("Failed to update access", msg),
+  });
 
   const assign = useCallback(async (payload: AssignTutorPayload) => {
     const res = await assignMut.mutate(payload);
@@ -73,5 +76,14 @@ export function useTutorAssignment() {
     return res;
   }, [revokeMut, success, router]);
 
-  return { assign, cancelAssignment, revokeInvite, assigning: assignMut.loading, cancelling: cancelMut.loading, revoking: revokeMut.loading };
+  const updateAccessLevel = useCallback(async (id: string, accessLevel: TutorAccessLevel) => {
+    const res = await accessMut.mutate(id, accessLevel);
+    if (res) { success("Access updated", `Tutor is now ${accessLevel === "editor" ? "an editor" : "a viewer"} on this course.`); router.refresh(); }
+    return res;
+  }, [accessMut, success, router]);
+
+  return {
+    assign, cancelAssignment, revokeInvite, updateAccessLevel,
+    assigning: assignMut.loading, cancelling: cancelMut.loading, revoking: revokeMut.loading, updatingAccess: accessMut.loading,
+  };
 }

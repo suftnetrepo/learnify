@@ -18,6 +18,7 @@ export interface AdminDashboardStats {
   monthRevenue:     number;
   totalEnrollments: number;
   pendingTutors:    number;
+  pendingReviewCourses: number;
 }
 
 export interface TopCourse {

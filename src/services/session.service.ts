@@ -337,3 +337,5 @@ export class SessionService {
   }
 
 }
+
+export type InstructorSession = Awaited<ReturnType<typeof SessionService.getInstructorSessions>>[number];

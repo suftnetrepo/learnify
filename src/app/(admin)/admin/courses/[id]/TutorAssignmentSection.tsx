@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { UserPlus, CalendarDays, ArrowRight, GraduationCap } from "lucide-react";
 import { CancelAssignmentButton } from "./CancelAssignmentButton";
+import { AccessLevelToggle } from "./AccessLevelToggle";
 
 interface Props { courseId: string }
 
@@ -76,7 +77,8 @@ export async function TutorAssignmentSection({ courseId }: Props) {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <AccessLevelToggle assignmentId={a.id} accessLevel={a.accessLevel} />
                 <Badge variant="success" dot>active</Badge>
                 <CancelAssignmentButton assignmentId={a.id} tutorName={a.tutorName ?? "this tutor"} />
               </div>

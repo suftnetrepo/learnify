@@ -7,7 +7,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { assignmentStatusEnum } from "./enums";
+import { assignmentStatusEnum, tutorAccessLevelEnum } from "./enums";
 import { users } from "./users";
 import { courses } from "./courses";
 
@@ -26,6 +26,7 @@ export const tutorAssignments = pgTable(
     startDate: timestamp("start_date").notNull(),
     endDate: timestamp("end_date").notNull(),
     status: assignmentStatusEnum("status").default("active").notNull(),
+    accessLevel: tutorAccessLevelEnum("access_level").notNull().default("viewer"),
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),

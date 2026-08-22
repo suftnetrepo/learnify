@@ -73,6 +73,11 @@ export const courses = pgTable(
     publishedAt: timestamp("published_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    // Approval workflow (manager-tutor course creation)
+    pendingReviewAt: timestamp("pending_review_at"),
+    reviewedAt:      timestamp("reviewed_at"),
+    reviewedBy:      uuid("reviewed_by").references(() => users.id),
+    rejectionNote:   text("rejection_note"),
   },
   (table) => [
     index("courses_status_idx").on(table.status),

@@ -17,6 +17,7 @@ export const userStatusEnum = pgEnum("user_status", [
 // ─── Course ───────────────────────────────────────────────────────────────────
 export const courseStatusEnum = pgEnum("course_status", [
   "draft",
+  "pending_review", // submitted by a manager-level tutor, awaiting admin approval
   "published",
   "archived",
 ]);
@@ -32,6 +33,16 @@ export const assignmentStatusEnum = pgEnum("assignment_status", [
   "active",
   "completed",
   "cancelled",
+]);
+
+// Per-assignment capability level — scopes what a tutor can do on that one
+// course. "editor" unlocks the instructor-facing course editor (content only).
+// "manager" additionally allows creating courses and setting pricing, but a
+// manager-created/edited course still needs admin approval before it publishes.
+export const tutorAccessLevelEnum = pgEnum("tutor_access_level", [
+  "viewer",
+  "editor",
+  "manager",
 ]);
 
 // ─── Purchase ─────────────────────────────────────────────────────────────────
