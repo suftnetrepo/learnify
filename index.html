@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Learnify — Tester's Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:    #6366f1;
+      --brand-lt: #eef2ff;
+      --amber:    #f59e0b;
+      --emerald:  #10b981;
+      --rose:     #f43f5e;
+      --ink:      #111827;
+      --muted:    #6b7280;
+      --border:   #e5e7eb;
+      --surface:  #f9fafb;
+      --white:    #ffffff;
+      --mono:     "JetBrains Mono", "Fira Mono", "Courier New", monospace;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      color: var(--ink);
+      background: var(--white);
+      line-height: 1.65;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 6rem;
+    }
+
+    /* ── TOP BAR ── */
+    .site-name {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+    }
+    .site-name a { color: inherit; text-decoration: none; }
+    .site-name a:hover { color: var(--brand); }
+
+    /* ── HERO ── */
+    h1 {
+      font-size: clamp(1.6rem, 4vw, 2.25rem);
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .intro {
+      font-size: 1.0625rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      max-width: 620px;
+    }
+
+    /* ── PAYMENT NOTICE ── */
+    .notice {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      background: #fffbeb;
+      border: 1.5px solid #fde68a;
+      border-radius: 10px;
+      padding: 0.875rem 1rem;
+      margin-bottom: 2rem;
+      font-size: 0.9375rem;
+    }
+    .notice-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.05rem; }
+    .notice code {
+      font-family: var(--mono);
+      background: #fef3c7;
+      border-radius: 4px;
+      padding: 0.1em 0.35em;
+      font-size: 0.875rem;
+    }
+
+    /* ── NAV PILLS ── */
+    .role-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .role-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+    .role-nav a:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-lt); }
+
+    /* ── ROLE SECTION ── */
+    .role-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    h2 {
+      font-size: clamp(1.4rem, 3vw, 1.75rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
+    }
+
+    .role-intro {
+      font-size: 0.9375rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      max-width: 580px;
+    }
+
+    /* ── SECTIONS ── */
+    h3 {
+      font-size: 1.0625rem;
+      font-weight: 700;
+      margin-top: 2.25rem;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    ol {
+      padding-left: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    ol li {
+      margin-bottom: 0.55rem;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+    ol li::marker { color: var(--brand); font-weight: 700; }
+
+    ul {
+      padding-left: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    ul li {
+      margin-bottom: 0.45rem;
+      font-size: 0.9375rem;
+    }
+    ul li::marker { color: var(--muted); }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.84em;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+    }
+
+    strong { font-weight: 700; }
+
+    /* ── CALLOUT BOXES ── */
+    .callout {
+      border-radius: 10px;
+      padding: 0.9rem 1.1rem;
+      margin: 1.25rem 0;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    .callout-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+    .callout.warning {
+      background: #fff7ed;
+      border: 1.5px solid #fed7aa;
+      color: #9a3412;
+    }
+    .callout.warning .callout-label { color: #c2410c; }
+
+    .callout.info {
+      background: var(--brand-lt);
+      border: 1.5px solid #c7d2fe;
+      color: #3730a3;
+    }
+    .callout.info .callout-label { color: var(--brand); }
+
+    .callout.danger {
+      background: #fff1f2;
+      border: 1.5px solid #fecdd3;
+      color: #9f1239;
+    }
+    .callout.danger .callout-label { color: var(--rose); }
+
+    .callout.success {
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      color: #14532d;
+    }
+    .callout.success .callout-label { color: var(--emerald); }
+
+    /* ── CREDENTIALS TABLE ── */
+    .creds {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 1.5rem;
+      font-size: 0.9rem;
+    }
+    .creds th {
+      text-align: left;
+      padding: 0.55rem 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .creds td {
+      padding: 0.55rem 0.75rem;
+      border: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 0.84rem;
+      color: var(--ink);
+    }
+    .creds tr:nth-child(even) td { background: var(--surface); }
+
+    /* ── ROLE DIVIDER ── */
+    .role-divider {
+      margin: 3.5rem 0;
+      border: none;
+      border-top: 2px solid var(--border);
+    }
+
+    /* ── REPORTING SECTION ── */
+    .report-example {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    .report-example .field {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 0.25rem 0.75rem;
+      margin-bottom: 0.5rem;
+      align-items: baseline;
+    }
+    .report-example .field:last-child { margin-bottom: 0; }
+    .report-example .field-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-top: 0.1rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      margin-top: 4rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      body { padding: 1.25rem 1rem 5rem; }
+      .report-example .field { grid-template-columns: 1fr; }
+      .report-example .field-label { margin-bottom: 0.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <p class="site-name"><a href="/">Learnify</a> · Tester's Guide</p>
+
+  <h1>Everything to test, in the order to test it.</h1>
+  <p class="intro">
+    Four roles, one platform: Student, Instructor, Admin, and a public visitor who hasn't signed up yet.
+    Every step below maps to a real page and a real action — not written from memory.
+  </p>
+
+  <div class="notice">
+    <span class="notice-icon">💳</span>
+    <span>
+      <strong>Payments are in Stripe test mode.</strong> No real charges anywhere in this guide.
+      When a step asks for card details, use card number <code>4242 4242 4242 4242</code>,
+      any future expiry date (e.g. <code>12/29</code>), any 3-digit CVC, and any postcode.
+    </span>
+  </div>
+
+  <nav class="role-nav">
+    <a href="#visitor">👤 Visitor</a>
+    <a href="#student">🎓 Student</a>
+    <a href="#instructor">🧑‍🏫 Instructor</a>
+    <a href="#admin">🛡 Admin</a>
+    <a href="#reporting">📋 Reporting</a>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════════════════ VISITOR -->
+  <section id="visitor">
+    <p class="role-label">Before signing up</p>
+    <h2>Visitor</h2>
+    <p class="role-intro">The public-facing side of the platform — what anyone sees before creating an account.</p>
+
+    <h3>Homepage</h3>
+    <ol>
+      <li>Open the root URL. The dark hero section should load with the heading <em>"Online learning now in your Fingertips"</em>.</li>
+      <li>Verify the stats bar below the hero shows numbers (students enrolled, courses, rating, completion rate).</li>
+      <li>Scroll down — confirm the "Browse by Category" section shows category pills that link through to <code>/courses?category=...</code>.</li>
+      <li>Confirm "Featured Courses" renders course cards. Each card should show: rating stars, title, short description, level badge, a "Join Now" button, and a price.</li>
+      <li>Click a course card — you should land on the course detail page, not a 404.</li>
+      <li>Continue scrolling on the homepage — verify the "Book Our Courses" split section, features grid, testimonials, newsletter bar, and final CTA all render without layout breaks.</li>
+    </ol>
+
+    <h3>Navigation</h3>
+    <ol>
+      <li>On desktop: confirm the navbar shows <strong>Home · Courses · About Us · Blog · Contact</strong> in the centre, and a profile icon + <strong>Sign Up</strong> pill on the right.</li>
+      <li>On mobile (resize to ≤ 768px): the centre links disappear, a hamburger icon appears. Tap it — a dropdown menu should slide down with the same links.</li>
+      <li>Click <strong>Courses</strong> — should go to <code>/courses</code>.</li>
+      <li>Click <strong>About Us</strong> — should go to <code>/about</code>.</li>
+      <li>Click <strong>Blog</strong> — should go to <code>/blog</code>.</li>
+      <li>Click <strong>Contact</strong> — should go to <code>/contact</code>.</li>
+    </ol>
+
+    <h3>Course catalogue</h3>
+    <ol>
+      <li>Go to <code>/courses</code>. The dark hero should show "All Courses" with a search bar.</li>
+      <li>Type a term in the search bar and click Search — the results should update.</li>
+      <li>On desktop: the left filter sidebar should be visible with Category, Level, Format, and Sort by sections.</li>
+      <li>On mobile: the sidebar is hidden. A "Filters" button should appear. Tap it — a bottom sheet drawer slides up with category pills, level options, and format options.</li>
+      <li>Click a category tab in the dark header strip — the URL updates and results filter.</li>
+      <li>Click a course card — land on the course detail page.</li>
+    </ol>
+
+    <h3>Course detail page</h3>
+    <ol>
+      <li>Verify the dark hero shows: course title, short description, rating + review count, student count, instructor name, and pill badges (level, language, duration, format).</li>
+      <li>Confirm the stats bar below the hero shows lecture count, hours, certificate, guarantee, device access, instant access.</li>
+      <li>Scroll to the sticky purchase card on the right — confirm price is shown and the button says <strong>Enrol now</strong> (or <strong>Sign in to enrol</strong> if not logged in).</li>
+      <li>On mobile: confirm a sticky bottom bar appears with the price and an enrol button. Confirm the main content isn't hidden behind it (there should be bottom padding).</li>
+      <li>Click the <strong>About</strong> / <strong>Curriculum</strong> / <strong>Reviews</strong> tabs — all three should render without error.</li>
+      <li>In the Curriculum tab, click a section heading to expand/collapse it. Free lectures should show a "Preview" label; paid ones should show a lock icon.</li>
+    </ol>
+
+    <h3>Content pages</h3>
+    <ol>
+      <li><strong>About Us</strong> (<code>/about</code>) — dark hero, stats row, mission + timeline, values grid, team cards, testimonials, CTA.</li>
+      <li><strong>Blog</strong> (<code>/blog</code>) — featured post card, tag filter row, 6 article cards with read-time and author. Click any card — should land on the article detail page at <code>/blog/[slug]</code> with full content, related posts, and newsletter strip.</li>
+      <li><strong>Contact</strong> (<code>/contact</code>) — three contact channel cards, contact form, right sidebar (office info, quick links, response-time badge), FAQ accordion. Submit the form — a green success state should appear.</li>
+      <li><strong>Legal pages</strong> — visit <code>/terms</code>, <code>/privacy</code>, <code>/cookies</code>. All three should load with content.</li>
+      <li><strong>Sitemap</strong> — visit <code>/sitemap.xml</code>. Should return valid XML listing the homepage, <code>/courses</code>, individual course pages, and category filter URLs.</li>
+      <li><strong>Robots</strong> — visit <code>/robots.txt</code>. Should show allow rules for public pages and disallow rules for <code>/admin/</code>, <code>/dashboard/</code>, <code>/instructor/</code>.</li>
+    </ol>
+  </section>
+
+  <hr class="role-divider" />
+
+
+  <!-- ═══════════════════════════════════════════════════════ STUDENT -->
+  <section id="student">
+    <p class="role-label">Role 1 of 3</p>
+    <h2>Student</h2>
+    <p class="role-intro">Browsing, enrolling, watching, progressing, earning a certificate, and leaving a review.</p>
+
+    <h3>Test credentials</h3>
+    <table class="creds">
+      <thead><tr><th>Field</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Email</td><td>student@learnify.dev</td></tr>
+        <tr><td>Password</td><td>Password1</td></tr>
+        <tr><td>Role</td><td>Student</td></tr>
+      </tbody>
+    </table>
+
+    <p>Or register a new account: <code>/register</code> → leave the role as Student → fill in name, email, password (8+ characters, one uppercase, one number).</p>
+
+    <h3>Account setup</h3>
+    <ol>
+      <li>Go to <code>/login</code>. Enter the credentials above and click Sign in.</li>
+      <li>You should land on <code>/dashboard</code>. The sidebar should show: Dashboard, Settings.</li>
+      <li>The topbar should show a hamburger on mobile. Tap it — the sidebar slides in as a drawer.</li>
+    </ol>
+
+    <h3>Enrolling in a free course</h3>
+    <ol>
+      <li>Go to <code>/courses</code> and find a course with a £0 price (or "Free" label).</li>
+      <li>Click the course card, then click <strong>Enrol free</strong> on the purchase card.</li>
+      <li>You should be redirected immediately to <code>/dashboard/courses/[courseId]</code> — no Stripe checkout, no payment step.</li>
+      <li>Confirm the course now appears on your <code>/dashboard</code> under "My Courses."</li>
+    </ol>
+
+    <h3>Enrolling in a paid course</h3>
+    <ol>
+      <li>Go to <code>/courses</code> and pick a paid course.</li>
+      <li>On the detail page, click <strong>Enrol now</strong> or <strong>Join Now</strong>.</li>
+      <li>On the checkout page — confirm course title, price, instructor, and description are all shown.</li>
+      <li>Click <strong>Sign in to enrol</strong> if not logged in, then return to checkout.</li>
+      <li>If the course has sessions, a "Choose a session" section should appear — pick one.</li>
+      <li>Click the <strong>Enrol now</strong> / <strong>Join Now</strong> button. Stripe Checkout should open.</li>
+      <li>Enter test card <code>4242 4242 4242 4242</code>, any future expiry, any CVC, any postcode.</li>
+      <li>Complete payment — you should land on <code>/checkout/success</code> showing a confirmation.</li>
+      <li>Return to <code>/dashboard</code> — the course should appear under "My Courses."</li>
+    </ol>
+
+    <div class="callout info">
+      <p class="callout-label">After payment</p>
+      <p>There may be a few seconds before the course appears on your dashboard. The Stripe webhook needs to fire and the enrollment record to be written. Refresh after 5–10 seconds if it doesn't appear immediately.</p>
+    </div>
+
+    <h3>Watching a course</h3>
+    <ol>
+      <li>From <code>/dashboard</code>, click an enrolled course.</li>
+      <li>The course viewer should open. On desktop: curriculum sidebar on the left, video on the right.</li>
+      <li>On mobile: sidebar is hidden. Tap the <strong>☰</strong> hamburger icon — a drawer slides in from the left showing the curriculum. Tap a lecture to load it, then the drawer should close automatically.</li>
+      <li>Watch part of a lecture. Progress should save automatically (the sidebar shows a partially-filled circle for in-progress lectures).</li>
+      <li>Complete a lecture — the circle should turn into a filled checkmark ✓.</li>
+      <li>The overall progress percentage at the top of the sidebar should update.</li>
+      <li>Use the "Next: [title]" button to advance to the next lecture automatically.</li>
+    </ol>
+
+    <h3>Completing a course and earning a certificate</h3>
+    <ol>
+      <li>Complete all lectures in the course (mark each one done).</li>
+      <li>The progress bar should reach 100%.</li>
+      <li>A <strong>Download Certificate</strong> button should appear at the bottom of the curriculum sidebar.</li>
+      <li>Click it — a PDF certificate should download with your name, the course title, and a verification mark.</li>
+    </ol>
+
+    <div class="callout warning">
+      <p class="callout-label">Certificate timing</p>
+      <p>Certificate generation happens in the background after the 100% progress mark is saved. It can take 3–5 seconds. If the button doesn't appear immediately, wait a moment and refresh.</p>
+    </div>
+
+    <h3>Leaving a review</h3>
+    <ol>
+      <li>After completing a course, a review form should appear below the video.</li>
+      <li>Select a star rating (1–5), optionally add a title and comment, then submit.</li>
+      <li>The review should appear in the course's Reviews tab (visible to all visitors).</li>
+      <li>You can only review once per course — the form should disappear after submission.</li>
+    </ol>
+
+    <h3>Password reset</h3>
+    <ol>
+      <li>Sign out. On the login page, click <strong>Forgot password?</strong></li>
+      <li>Enter your email and submit. You should see a "Check your inbox" confirmation — the same message regardless of whether the email exists (this is intentional — prevents email enumeration).</li>
+      <li>If using a real email address, check your inbox for a reset link. Click it — you land on <code>/reset-password</code>.</li>
+      <li>Enter and confirm a new password. The strength chips (8+ chars, uppercase, number) should update as you type.</li>
+      <li>Submit — you should be redirected to the login page.</li>
+      <li>Log in with the new password to confirm it worked.</li>
+    </ol>
+
+    <h3>Settings</h3>
+    <ol>
+      <li>Go to <code>/dashboard/settings</code>.</li>
+      <li>Update your display name and click Save. Return to the dashboard — the name in the sidebar should update.</li>
+    </ol>
+  </section>
+
+  <hr class="role-divider" />
+
+
+  <!-- ═══════════════════════════════════════════════════════ INSTRUCTOR -->
+  <section id="instructor">
+    <p class="role-label">Role 2 of 3</p>
+    <h2>Instructor</h2>
+    <p class="role-intro">Viewing assigned courses, monitoring earnings, and managing live sessions.</p>
+
+    <h3>Test credentials</h3>
+    <table class="creds">
+      <thead><tr><th>Field</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Email</td><td>tutor@learnify.dev</td></tr>
+        <tr><td>Password</td><td>Password1</td></tr>
+        <tr><td>Role</td><td>Instructor</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <p class="callout-label">How instructors are assigned — and the Manager exception</p>
+      <p>Instructors are normally assigned to courses by an admin, at one of three access levels: <strong>Viewer</strong> (read-only), <strong>Editor</strong> (can edit content and curriculum), or <strong>Manager</strong> (can also create new courses and set pricing, subject to admin approval before anything publishes). Course creation is admin-only <em>unless</em> a tutor holds Manager on at least one existing assignment — see "Creating a course" below. If the seeded tutor account shows no assigned courses, an admin needs to assign them first.</p>
+    </div>
+
+    <h3>Dashboard</h3>
+    <ol>
+      <li>Sign in as the instructor. You should land on <code>/instructor</code> — the "Welcome back" dashboard, not the course list.</li>
+      <li>The sidebar should show: Dashboard, My Courses, Earnings, Sessions, Calendar.</li>
+      <li>Confirm 4 stat cards render: assigned courses, total students, upcoming sessions, avg completion.</li>
+      <li>Confirm the earnings strip below the stat cards shows all-time / month / week totals and links to <code>/instructor/earnings</code>.</li>
+      <li>Confirm "Your courses" lists each assigned course with a coloured access-level badge — <strong>Viewer</strong> (grey), <strong>Editor</strong> (brand), or <strong>Manager</strong> (emerald).</li>
+      <li>Confirm the Schedule strip on the right highlights today and marks days that have a session with a dot, and "Today's sessions" lists anything scheduled for today with a Join/Directions action.</li>
+      <li>Clicking Dashboard in the sidebar should go to <code>/instructor</code> (not the student dashboard).</li>
+      <li>Clicking My Courses should go to <code>/instructor/courses</code> — the full course-card grid, separate from the dashboard.</li>
+    </ol>
+
+    <h3>Course access levels</h3>
+    <ol>
+      <li>On a course card in My Courses, the badge reflects the access level an admin set for this instructor on that specific course (Admin → Courses → open a course → Tutor Assignments panel).</li>
+      <li><strong>Viewer</strong> — read-only. No "Manage" button appears on the course card.</li>
+      <li><strong>Editor</strong> — a <strong>Manage</strong> button appears, opening the course editor with Overview + Curriculum tabs. Title/description/pricing are locked to admin; sections and lectures are editable.</li>
+      <li><strong>Manager</strong> — same Manage button and curriculum access as Editor, <em>plus</em> the Overview tab becomes an editable form (title, description, price) and a "Submit for approval" flow becomes available. Manager status on any one course also unlocks course creation platform-wide (see next section).</li>
+    </ol>
+
+    <h3>Creating a course (Manager only)</h3>
+    <ol>
+      <li>If the signed-in tutor holds Manager on at least one assignment, a <strong>+ New Course</strong> button appears at the top of <code>/instructor/courses</code>. If it's missing, the tutor doesn't currently have Manager anywhere — have an admin grant it first.</li>
+      <li>Click it — fill in title, short description, full description, category, format, level, language, and price. Submit.</li>
+      <li>You land on the new course's editor page. Confirm a "Manager access" badge shows in the header and the course status badge reads <strong>Draft</strong>.</li>
+      <li>Add curriculum in the Curriculum tab (sections and lectures), same as an Editor would.</li>
+      <li>Once ready, click <strong>Submit for approval</strong> (only visible on Draft courses with Manager access). Confirm the dialog, then confirm the page now shows a "Pending admin review" banner and the status badge changes to <strong>Pending review</strong>.</li>
+      <li>Wait for an admin to approve or reject (see Admin → Reviewing manager-submitted courses). You'll get an email either way.</li>
+      <li>If rejected, a red "Changes requested" banner appears on the course editor showing the admin's note, and the status returns to Draft so you can fix it and resubmit.</li>
+      <li>If approved, the course status becomes <strong>Published</strong> and it's live on the public catalogue.</li>
+    </ol>
+
+    <div class="callout warning">
+      <p class="callout-label">Publishing always needs admin approval</p>
+      <p>Even with Manager access, a tutor can never set a course straight to Published — the price/title/description form omits the publish control entirely, and the underlying save endpoint strips any status change from a non-admin request server-side. The only way a manager-created or manager-edited course goes live is via Submit for approval → admin Approve.</p>
+    </div>
+
+    <h3>Earnings</h3>
+    <ol>
+      <li>Click <strong>Earnings</strong> in the sidebar.</li>
+      <li>Confirm the page shows: all-time earnings, last 30 days, last 7 days, and total student count as stat cards.</li>
+      <li>If any purchases have been made for this instructor's courses, the recent transactions table should list them.</li>
+      <li>If Stripe Connect hasn't been set up yet, a "Set up payouts" prompt should appear.</li>
+    </ol>
+
+    <h3>Sessions</h3>
+    <ol>
+      <li>Click <strong>Sessions</strong> in the sidebar.</li>
+      <li>Live, upcoming, and past sessions for the instructor's courses should be listed in separate sections — a live session shows a pulsing "Live now" badge.</li>
+      <li>Each session card shows: course title, date/time, platform (Zoom/Teams/etc.) or venue address, and an attendee count with a fill bar.</li>
+      <li>Online sessions show <strong>Copy link</strong> and <strong>Join session</strong> actions; in-person sessions show <strong>Directions</strong> and <strong>Email students</strong>, each on their own row below the attendee count.</li>
+    </ol>
+
+    <h3>Calendar</h3>
+    <ol>
+      <li>Click <strong>Calendar</strong> in the sidebar — lands on <code>/instructor/calendar</code>.</li>
+      <li>Confirm a month-view calendar renders with every scheduled session as a coloured pill (red = live, brand indigo = upcoming, grey = past), and a legend at the top counts live/upcoming sessions.</li>
+      <li>Switch between Month / Week / Day using the toggle in the top-right of the calendar toolbar.</li>
+      <li>Click any session pill — a drawer slides in from the right with the full session card (same Join/Directions/Email actions as the Sessions page). Close it with the × or by clicking the overlay.</li>
+    </ol>
+
+    <h3>Stripe Connect onboarding (if testing payouts)</h3>
+    <ol>
+      <li>From the Earnings page, click <strong>Set up payouts</strong>.</li>
+      <li>You're redirected to Stripe's Connect onboarding flow.</li>
+      <li>Complete the onboarding with test details (Stripe provides a "Skip this form" button in test mode).</li>
+      <li>Return to Learnify — the Earnings page should now show payouts as enabled.</li>
+    </ol>
+
+
+  </section>
+
+  <hr class="role-divider" />
+
+
+  <!-- ═══════════════════════════════════════════════════════ ADMIN -->
+  <section id="admin">
+    <p class="role-label">Role 3 of 3</p>
+    <h2>Admin</h2>
+    <p class="role-intro">Platform management: courses, users, tutors, payments, analytics.</p>
+
+    <h3>Test credentials</h3>
+    <table class="creds">
+      <thead><tr><th>Field</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Email</td><td>admin@learnify.dev</td></tr>
+        <tr><td>Password</td><td>Password1</td></tr>
+        <tr><td>Role</td><td>Admin</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout danger">
+      <p class="callout-label">Read before testing</p>
+      <p>There is no self-serve way to become an admin — the registration form only allows Student or Instructor roles, and that restriction is enforced server-side, not just hidden in the UI. Admin access requires a manual database change. <strong>Do not share admin credentials publicly.</strong> An admin account can approve or reject any course, email all users, and issue refunds on any purchase.</p>
+    </div>
+
+    <h3>Dashboard overview</h3>
+    <ol>
+      <li>Sign in as admin. You should land on <code>/admin</code>.</li>
+      <li>Verify the stats cards show: total revenue, total students, total courses, total instructors.</li>
+      <li>Confirm the recent purchases table and recent users table render below the stats.</li>
+    </ol>
+
+    <h3>Course management</h3>
+    <ol>
+      <li>Sidebar → <strong>Courses</strong>. Verify the course list loads with filters (search, status, format).</li>
+      <li>Click <strong>+ New Course</strong>. Fill in: title, short description, full description, category, format, level, language, price. Click Save.</li>
+      <li>You should land on the course edit page. Confirm the course appears with its details.</li>
+      <li>In the <strong>Sections &amp; Lectures</strong> tab: click <strong>+ Add section</strong>, give it a title. Then click <strong>+ Add lecture</strong> inside the section — enter a title, upload or link a video, toggle "Free preview" on one lecture.</li>
+      <li>In the <strong>Tutor Assignment</strong> panel: click <strong>Assign Instructor</strong>, search for the seeded tutor, select them. The assignment should appear in the list.</li>
+      <li>Next to the assigned tutor, click the access-level pill — it cycles <strong>Viewer → Editor → Manager → Viewer</strong> on each click. Hover it for a tooltip explaining what each level unlocks.</li>
+      <li>In the <strong>Sessions</strong> panel: click <strong>+ Add Session</strong>. Set a title, start/end datetime, capacity, and either a venue address (in-person) or a conference URL (online). Save. The session should appear in the list.</li>
+      <li>Return to the course list. Change the course status from Draft to Published — the course should now be visible on the public catalogue.</li>
+    </ol>
+
+    <h3>Reviewing manager-submitted courses</h3>
+    <ol>
+      <li>Have a Manager-level tutor create a course and click "Submit for approval" (see Instructor → Creating a course), or use the seeded tutor if they already hold Manager on an assignment.</li>
+      <li>Back on <code>/admin</code>, confirm a <strong>"Needs attention"</strong> amber stat card appears showing the pending-review count, linking to the review queue. It only appears when the count is above zero.</li>
+      <li>Sidebar → <strong>Pending Review</strong> (sits under Courses) — lands on <code>/admin/courses/pending</code>.</li>
+      <li>Confirm each pending course shows: title, short description, format/level, price, submitting tutor's name and email, and how long ago it was submitted.</li>
+      <li>Click <strong>Approve</strong> — confirm the dialog, then confirm the course disappears from the queue. Its status is now Published and the tutor gets an "approved" email.</li>
+      <li>On a different pending course, click <strong>Reject</strong> — a feedback textarea appears. Try submitting under 10 characters — should show a validation message and refuse to submit.</li>
+      <li>Enter a real reason (10+ characters) and click <strong>Send feedback</strong>. Confirm the course leaves the queue, its status reverts to Draft, and the tutor gets a "needs changes" email containing your note.</li>
+      <li>As that tutor, open the rejected course's editor — confirm a red "Changes requested" banner shows your exact rejection note.</li>
+    </ol>
+
+    <h3>User management</h3>
+    <ol>
+      <li>Sidebar → <strong>Users</strong>. Verify the user list loads with search and role/status filters.</li>
+      <li>On mobile: the table should scroll horizontally — verify it doesn't get clipped at the edge of the screen.</li>
+      <li>Click the edit icon on a user — confirm you can change their status (Active / Suspended / Pending) and save.</li>
+    </ol>
+
+    <h3>Tutor management</h3>
+    <ol>
+      <li>Sidebar → <strong>Tutors</strong>. Verify the list shows instructors with their Stripe onboarding status.</li>
+      <li>Click <strong>Invite Instructor</strong>. Enter an email address — an invitation email is sent and the invitation appears in the list as "Pending."</li>
+    </ol>
+
+    <h3>Payments</h3>
+    <ol>
+      <li>Sidebar → <strong>Payments</strong>. Verify the transaction ledger loads.</li>
+      <li>On any completed purchase, click the <strong>Refund</strong> button. Confirm a refund-confirmation dialog appears before processing.</li>
+      <li>After confirming, the purchase status should change to "Refunded."</li>
+    </ol>
+
+    <div class="callout warning">
+      <p class="callout-label">Refunds are real in live mode</p>
+      <p>In Stripe test mode, refunds have no effect on real accounts. In production with live keys, a refund immediately reverses the charge. Only issue test refunds during testing sessions — not against live purchases.</p>
+    </div>
+
+    <h3>Analytics</h3>
+    <ol>
+      <li>Sidebar → <strong>Analytics</strong>. Verify the charts and stats load (revenue over time, top courses, enrolment trends).</li>
+    </ol>
+  </section>
+
+  <hr class="role-divider" />
+
+
+  <!-- ═══════════════════════════════════════════════════════ EDGE CASES -->
+  <section id="edge">
+    <p class="role-label">Worth checking separately</p>
+    <h2>Edge cases and security</h2>
+
+    <h3>Rate limiting</h3>
+    <ol>
+      <li>On the login page, enter a wrong password more than 10 times for the same email — on the 11th attempt, the response should change to a rate-limit error (not just "Incorrect password").</li>
+      <li>On the registration page, attempt to register 6 times from the same IP within an hour — the 6th should be blocked with a 429 error.</li>
+    </ol>
+
+    <h3>Access control</h3>
+    <ol>
+      <li>While signed out, visit <code>/dashboard</code> — should redirect to <code>/login</code>.</li>
+      <li>While signed out, visit <code>/admin</code> — should redirect to <code>/login</code>.</li>
+      <li>Signed in as a Student, visit <code>/admin</code> — should redirect to <code>/dashboard</code> or show an Unauthorized page.</li>
+      <li>Signed in as an Instructor, visit <code>/admin</code> — same as above.</li>
+    </ol>
+
+    <h3>Free course bypass</h3>
+    <ol>
+      <li>Click "Enrol free" on a £0 course — you should land directly on the course viewer. No Stripe page should ever open for a free course.</li>
+    </ol>
+
+    <h3>Already enrolled</h3>
+    <ol>
+      <li>Visit the detail page for a course you're already enrolled in — the purchase card should show "You're enrolled" and a "Continue learning →" link instead of a price and buy button.</li>
+    </ol>
+
+    <h3>reCAPTCHA</h3>
+    <ol>
+      <li>Register, log in, and use the forgot-password form normally — reCAPTCHA v3 runs silently in the background. There's no checkbox or challenge to interact with. A score below 0.5 (bot-like) would be blocked server-side — this can't be easily triggered manually, but confirm the forms submit successfully for legitimate use.</li>
+    </ol>
+  </section>
+
+  <hr class="role-divider" />
+
+
+  <!-- ═══════════════════════════════════════════════════════ REPORTING -->
+  <section id="reporting">
+    <p class="role-label">When something doesn't match</p>
+    <h2>Reporting back</h2>
+
+    <p style="font-size:0.9375rem; color:var(--muted); margin-bottom:1.25rem;">
+      For every issue: what you expected to happen, and what actually happened.
+      You don't need to explain why something broke — just where it broke and what you saw.
+    </p>
+
+    <div class="report-example">
+      <div class="field">
+        <span class="field-label">Step</span>
+        <span>Student → Enrolling in a paid course → step 8 (Stripe Checkout)</span>
+      </div>
+      <div class="field">
+        <span class="field-label">Expected</span>
+        <span>Stripe Checkout opens after clicking "Enrol now."</span>
+      </div>
+      <div class="field">
+        <span class="field-label">Actual</span>
+        <span>Page shows a blank white screen. No checkout, no error message.</span>
+      </div>
+    </div>
+
+    <div class="report-example">
+      <div class="field">
+        <span class="field-label">Step</span>
+        <span>Visitor → Course catalogue → mobile filter drawer</span>
+      </div>
+      <div class="field">
+        <span class="field-label">Expected</span>
+        <span>Tapping "Filters" opens a bottom sheet with category, level, and format options.</span>
+      </div>
+      <div class="field">
+        <span class="field-label">Actual</span>
+        <span>Button is visible but tapping it does nothing. Drawer never appears.</span>
+      </div>
+    </div>
+
+    <p style="font-size:0.9375rem; color:var(--muted); margin-top:1.5rem;">
+      Include the device and browser if relevant (e.g. iPhone 14 / Safari 17, or Chrome 126 / Windows 11).
+      Screenshots are always helpful — attach them directly if you can.
+    </p>
+
+    <div class="callout success">
+      <p class="callout-label">Positive reports too</p>
+      <p>If something works especially well — a flow that felt unusually smooth, a feature that was clearly better than expected — that's worth noting too. It helps identify what to protect during future changes.</p>
+    </div>
+  </section>
+
+  <footer>
+    Learnify · Testing Guide · Last updated 22 August 2026 ·
+    Written against the live build — if anything above stops matching what you see, that's worth reporting.
+  </footer>
+
+</body>
+</html>
