@@ -36,8 +36,8 @@ export default async function InstructorDashboardPage() {
     new Date(s.startDatetime).toDateString() === todayStr
   );
 
-  // Week days Mon–Fri
-  const weekDays = Array.from({ length: 5 }, (_, i) => {
+  // Week days Mon–Sun
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
     const day = now.getDay();
     const mon = new Date(now);
     mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
@@ -120,7 +120,7 @@ export default async function InstructorDashboardPage() {
         </div>
 
         {/* Middle — two columns */}
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_260px]">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[3fr_2fr]">
 
           {/* LEFT — Your courses */}
           <div className="rounded-2xl border border-surface-100 bg-white p-5">
@@ -196,29 +196,31 @@ export default async function InstructorDashboardPage() {
                   {now.toLocaleDateString("en-GB", { month: "short", year: "numeric" })}
                 </span>
               </div>
-              <div className="grid grid-cols-5 gap-1">
+              <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                 {weekDays.map((day) => {
                   const isToday    = day.toDateString() === todayStr;
                   const hasSession = sessionDays.has(day.toDateString());
                   return (
                     <div key={day.toISOString()} className={cn(
-                      "flex flex-col items-center gap-1.5 rounded-xl py-2 cursor-pointer transition-colors",
-                      isToday ? "bg-brand-500" : "hover:bg-surface-50"
+                      "flex flex-col items-center gap-1 py-2 sm:gap-2 sm:py-3 cursor-pointer transition-all",
+                      isToday
+                        ? "rounded-full bg-gradient-brand text-white shadow-glow-brand"
+                        : "rounded-xl hover:bg-surface-50 hover:shadow-sm"
                     )}>
                       <span className={cn(
-                        "text-[8px] font-bold uppercase tracking-wide",
-                        isToday ? "text-white/70" : "text-gray-400"
+                        "text-[7px] sm:text-[9px] font-bold uppercase tracking-wide",
+                        isToday ? "text-white/80" : "text-gray-400"
                       )}>
                         {day.toLocaleDateString("en-GB", { weekday: "short" })}
                       </span>
                       <span className={cn(
-                        "text-sm font-semibold",
+                        "text-sm sm:text-base font-bold",
                         isToday ? "text-white" : "text-gray-900"
                       )}>
                         {day.getDate()}
                       </span>
                       <div className={cn(
-                        "h-1 w-1 rounded-full",
+                        "h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full transition-colors",
                         hasSession
                           ? isToday ? "bg-white" : "bg-brand-500"
                           : "bg-transparent"
