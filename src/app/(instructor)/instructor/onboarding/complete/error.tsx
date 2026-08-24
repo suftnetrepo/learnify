@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 export default function Error({ error, reset }: { error: Error; reset: () => void }) {
-  useEffect(() => { console.error(error); }, [error]);
+  useEffect(() => {
+    console.error(error);
+    Sentry.captureException(error);
+  }, [error]);
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-surface-50 p-8 text-center">
       <AlertCircle size={40} className="mb-4 text-red-400" />
