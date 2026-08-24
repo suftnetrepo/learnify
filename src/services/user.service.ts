@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { users, tutorInvitations } from "@/db/schema";
-import { eq, and, like, desc, count, isNull, sql } from "drizzle-orm";
+import { eq, and, or, ilike, desc, count, isNull, sql } from "drizzle-orm";
 import { log } from "@/lib/logger";
 import type {
   UserListItem, UserListResult, UserFilters, UpdateUserPayload, User,
@@ -23,7 +23,12 @@ export class UserService {
     const conditions = [isNull(users.deletedAt)];
     if (role)   conditions.push(eq(users.role,   role));
     if (status) conditions.push(eq(users.status, status));
-    if (search) conditions.push(like(users.email, `%${search}%`));
+    if (search) conditions.push(
+      or(
+        ilike(users.name,  `%${search}%`),
+        ilike(users.email, `%${search}%`)
+      )!
+    );
     const where = and(...conditions);
 
     const [rows, [{ total }]] = await Promise.all([

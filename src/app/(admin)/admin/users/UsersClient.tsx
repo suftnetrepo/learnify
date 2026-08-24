@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { UserPlus } from "lucide-react";
+import { useState, useCallback, useRef, useTransition } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { UserPlus, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserDrawer } from "./UserDrawer";
 
@@ -18,7 +19,10 @@ interface User {
 }
 
 interface Props {
-  users: User[];
+  users:       User[];
+  total:       number;
+  currentPage: number;
+  pageSize:    number;
 }
 
 const ROLE_STYLES: Record<UserRole, string> = {
@@ -57,15 +61,41 @@ function initials(name: string | null, email: string) {
   return email[0].toUpperCase();
 }
 
-export function UsersClient({ users }: Props) {
+export function UsersClient({ users, total, currentPage, pageSize }: Props) {
+  const router       = useRouter();
+  const pathname     = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [drawerMode,     setDrawerMode]     = useState<"view" | "create">("view");
   const [drawerOpen,     setDrawerOpen]     = useState(false);
+  const [searchInput,    setSearchInput]    = useState(searchParams.get("q") ?? "");
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Derived (not stored) — once router.refresh() brings back fresh rows
   // (triggered inside the useUsers hook on a successful save/suspend), the
   // open drawer automatically shows current data instead of a stale snapshot.
   const selectedUser = selectedUserId ? users.find((u) => u.id === selectedUserId) ?? null : null;
+
+  const updateParam = useCallback((key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set(key, value);
+    else params.delete(key);
+    // Reset to page 1 whenever a filter changes — but not when the caller
+    // IS the pagination control itself (that would make Next/prev/page
+    // numbers unable to ever navigate anywhere but page 1).
+    if (key !== "page") params.delete("page");
+    startTransition(() => router.push(`${pathname}?${params.toString()}`));
+  }, [searchParams, pathname, router]);
+
+  // Debounced search — updating the URL (and triggering a server refetch) on
+  // every keystroke would hammer the DB; wait for a pause in typing instead.
+  function handleSearchChange(value: string) {
+    setSearchInput(value);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => updateParam("q", value), 350);
+  }
 
   const openUser = useCallback((user: User) => {
     setSelectedUserId(user.id);
@@ -79,9 +109,15 @@ export function UsersClient({ users }: Props) {
     setDrawerOpen(true);
   }, []);
 
-  const adminCount   = users.filter((u) => u.role === "admin").length;
-  const tutorCount   = users.filter((u) => u.role === "tutor").length;
-  const studentCount = users.filter((u) => u.role === "student").length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1)
+    .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+    .reduce<(number | "...")[]>((acc, p, i, arr) => {
+      if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("...");
+      acc.push(p);
+      return acc;
+    }, []);
 
   return (
     <>
@@ -90,7 +126,7 @@ export function UsersClient({ users }: Props) {
         <div>
           <h1 className="font-display text-2xl font-extrabold text-gray-900">Users</h1>
           <p className="text-sm text-gray-400 mt-0.5">
-            {users.length} total · {adminCount} admin{adminCount !== 1 ? "s" : ""} · {tutorCount} tutor{tutorCount !== 1 ? "s" : ""} · {studentCount} student{studentCount !== 1 ? "s" : ""}
+            {total} total user{total !== 1 ? "s" : ""}
           </p>
         </div>
         <button
@@ -101,8 +137,47 @@ export function UsersClient({ users }: Props) {
         </button>
       </div>
 
+      {/* Search + filter bar */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Search by name or email..."
+            className="w-full rounded-xl border border-surface-200 bg-white pl-9 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 outline-none transition-all"
+          />
+        </div>
+
+        <select
+          defaultValue={searchParams.get("role") ?? ""}
+          onChange={(e) => updateParam("role", e.target.value)}
+          className="rounded-xl border border-surface-200 bg-white px-3 py-2 text-sm text-gray-600 focus:border-brand-400 outline-none"
+        >
+          <option value="">All roles</option>
+          <option value="admin">Admin</option>
+          <option value="tutor">Tutor</option>
+          <option value="student">Student</option>
+        </select>
+
+        <select
+          defaultValue={searchParams.get("status") ?? ""}
+          onChange={(e) => updateParam("status", e.target.value)}
+          className="rounded-xl border border-surface-200 bg-white px-3 py-2 text-sm text-gray-600 focus:border-brand-400 outline-none"
+        >
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+          <option value="pending">Pending</option>
+          <option value="invited">Invited</option>
+        </select>
+      </div>
+
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-surface-100 bg-white">
+      <div className={cn(
+        "overflow-x-auto rounded-2xl border border-surface-100 bg-white transition-opacity",
+        isPending && "opacity-60"
+      )}>
         <table className="w-full min-w-[600px]">
           <thead>
             <tr className="border-b border-surface-100 bg-surface-50">
@@ -169,6 +244,49 @@ export function UsersClient({ users }: Props) {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-xs text-gray-400">
+            Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, total)} of {total} users
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => updateParam("page", String(currentPage - 1))}
+              disabled={currentPage <= 1}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-surface-200 text-sm text-gray-500 hover:bg-surface-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              ‹
+            </button>
+            {pageNumbers.map((p, i) =>
+              p === "..." ? (
+                <span key={`ellipsis-${i}`} className="px-1 text-xs text-gray-400">…</span>
+              ) : (
+                <button
+                  key={p}
+                  onClick={() => updateParam("page", String(p))}
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-lg text-xs font-medium transition-colors",
+                    p === currentPage
+                      ? "bg-brand-500 text-white"
+                      : "border border-surface-200 text-gray-500 hover:bg-surface-50"
+                  )}
+                >
+                  {p}
+                </button>
+              )
+            )}
+            <button
+              onClick={() => updateParam("page", String(currentPage + 1))}
+              disabled={currentPage >= totalPages}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-surface-200 text-sm text-gray-500 hover:bg-surface-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Drawer */}
       {drawerOpen && (
