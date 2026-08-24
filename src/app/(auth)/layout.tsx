@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import Image from "next/image";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -34,8 +34,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             {/* Logo */}
             <div className="relative z-10 p-8">
               <Link href="/" className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 shadow-glow-brand">
-                  <Sparkles size={16} className="text-white" />
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-glow-brand">
+                  <Image src="/logo.png" alt="Learnify" width={48} height={48} className="rounded-md" />
                 </div>
                 <span className="font-display text-base font-bold text-white">Learnify</span>
               </Link>
@@ -131,17 +131,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="flex flex-1 flex-col justify-center bg-white px-8 py-10 sm:px-10">
             {/* Mobile logo */}
             <Link href="/" className="mb-6 flex items-center gap-2 lg:hidden">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500">
-                <Sparkles size={15} className="text-white" />
-              </div>
+              <Image src="/logo.png" alt="Learnify" width={32} height={32} className="flex-shrink-0" />
               <span className="font-display text-base font-bold text-gray-900">Learnify</span>
             </Link>
 
             {/* Desktop logo inside form */}
             <Link href="/" className="mb-6 hidden items-center gap-2 lg:flex">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 shadow-glow-brand">
-                <Sparkles size={15} className="text-white" />
-              </div>
+              <Image src="/logo.png" alt="Learnify" width={32} height={32} className="flex-shrink-0" />
               <span className="font-display text-base font-bold text-gray-900">Learnify</span>
             </Link>
 

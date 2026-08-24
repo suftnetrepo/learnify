@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -9,9 +9,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500">
-                <Sparkles size={14} className="text-white" />
-              </div>
+              <Image src="/logo.png" alt="Learnify" width={48} height={48} className="flex-shrink-0" />
               <span className="font-display font-bold text-gray-900">Learnify</span>
             </Link>
             <p className="text-xs text-gray-400 leading-relaxed">

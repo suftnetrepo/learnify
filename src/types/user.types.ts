@@ -1,5 +1,5 @@
 export type UserRole   = "student" | "tutor" | "admin";
-export type UserStatus = "active" | "pending" | "suspended";
+export type UserStatus = "active" | "pending" | "suspended" | "invited";
 
 export interface User {
   id:                     string;
@@ -39,9 +39,18 @@ export interface UserFilters {
 
 export interface UpdateUserPayload {
   name?:   string;
+  email?:  string;
   bio?:    string;
   status?: UserStatus;
   role?:   UserRole;
+}
+
+export interface CreateUserPayload {
+  name:      string;
+  email:     string;
+  role:      UserRole;
+  status?:   UserStatus;
+  password?: string;
 }
 
 export interface Pagination {

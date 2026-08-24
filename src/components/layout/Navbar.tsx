@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
-import { Sparkles, Menu, X, LayoutDashboard, BookOpen, GraduationCap, ChevronDown } from "lucide-react";
+import { Menu, X, LayoutDashboard, BookOpen, GraduationCap, ChevronDown } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
@@ -24,9 +25,7 @@ export function Navbar({ session }: NavbarProps) {
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500">
-            <Sparkles size={16} className="text-white" />
-          </div>
+          <Image src="/logo.png" alt="Learnify" width={48} height={48} className="flex-shrink-0" priority />
           <span className="font-display text-lg font-bold text-gray-900">Learnify</span>
         </Link>
 

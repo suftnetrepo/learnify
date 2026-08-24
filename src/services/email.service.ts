@@ -366,4 +366,25 @@ export const EmailService = {
     );
     await send(to, `📝 Course needs changes: "${data.courseTitle}"`, html);
   },
+
+  /** Sent when an admin creates a new account (student/tutor/admin) directly. */
+  async adminInvitation(to: string, data: {
+    inviterName:  string;
+    loginUrl:     string;
+    tempPassword: string;
+  }) {
+    const html = baseTemplate(
+      h1("You've been invited to Learnify") +
+      p(`${data.inviterName} has invited you to join the Learnify platform.`) +
+      `<div style="background:#f8f8fc;border-radius:10px;padding:16px;margin:16px 0">
+        <p style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em">Your login details</p>
+        <p style="font-size:13px;color:#374151;margin-bottom:4px">Email: <strong>${to}</strong></p>
+        <p style="font-size:13px;color:#374151">Password: <strong style="font-family:monospace">${data.tempPassword}</strong></p>
+      </div>` +
+      p("Please log in and change your password immediately from Account Settings.") +
+      btn("Log in →", data.loginUrl),
+      "You've been invited to Learnify"
+    );
+    await send(to, "You've been invited to Learnify", html);
+  },
 };

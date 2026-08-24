@@ -89,9 +89,10 @@ export class UserService {
    * Update name, status, or role.
    */
   static async update(id: string, payload: UpdateUserPayload): Promise<User> {
-    const { name, bio, status, role } = payload;
+    const { name, email, bio, status, role } = payload;
     const updateData: Record<string, unknown> = { updatedAt: new Date() };
     if (name   !== undefined) updateData.name   = name;
+    if (email  !== undefined) updateData.email  = email;
     if (bio    !== undefined) updateData.bio    = bio;
     if (status !== undefined) updateData.status = status;
     if (role   !== undefined) updateData.role   = role;
@@ -99,7 +100,22 @@ export class UserService {
       .update(users)
       .set(updateData)
       .where(eq(users.id, id))
-      .returning();
+      .returning({
+        id:                     users.id,
+        name:                   users.name,
+        email:                  users.email,
+        role:                   users.role,
+        status:                 users.status,
+        bio:                    users.bio,
+        avatarUrl:              users.avatarUrl,
+        createdAt:              users.createdAt,
+        updatedAt:              users.updatedAt,
+        lastLoginAt:            users.lastLoginAt,
+        stripeOnboardingStatus: users.stripeOnboardingStatus,
+        stripePayoutsEnabled:   users.stripePayoutsEnabled,
+        stripeChargesEnabled:   users.stripeChargesEnabled,
+        stripeAccountId:        users.stripeAccountId,
+      });
 
     log.info("User updated", { userId: id, changes: Object.keys(payload) });
     return updated as User;

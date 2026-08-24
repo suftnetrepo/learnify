@@ -60,13 +60,14 @@ function patch<T>(url: string, body?: unknown)  { return request<T>(url, { metho
 function del<T = void>(url: string)             { return request<T>(url, { method: "DELETE" }); }
 
 // ─── Users ─────────────────────────────────────────────────────────────────────
-import type { UserListResult, UserFilters, UpdateUserPayload, User } from "@/types";
+import type { UserListResult, UserFilters, UpdateUserPayload, CreateUserPayload, User } from "@/types";
 
 export const usersApi = {
   list:   (filters?: UserFilters) => {
     const p = new URLSearchParams(filters as Record<string, string>);
     return get<UserListResult>(`/api/users?${p}`);
   },
+  create: (payload: CreateUserPayload)             => post<User>("/api/users", payload),
   update: (id: string, payload: UpdateUserPayload) => patch<User>(`/api/users/${id}`, payload),
   remove: (id: string)                             => del(`/api/users/${id}`),
 };
