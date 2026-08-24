@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { Upload, X, CheckCircle2, Loader2, Film, Image as ImageIcon, FileText } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 type UploadType   = "video" | "image" | "document";
@@ -147,7 +148,15 @@ export function CloudinaryUploader({
         {preview && status !== "uploading" && (
           <div className="mb-4 w-full max-w-xs">
             {type === "image" && (
-              <img src={preview} alt="Preview" className="rounded-xl w-full object-cover max-h-40" />
+              <div className="relative w-full max-h-40 overflow-hidden rounded-xl">
+                <Image
+                  src={preview}
+                  alt="Preview"
+                  width={600}
+                  height={160}
+                  className="w-full object-cover max-h-40"
+                />
+              </div>
             )}
             {type === "video" && (
               <div className="rounded-xl bg-gray-900 flex items-center justify-center h-24">
