@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
   X, Pencil, Ban, Trash2, CheckCircle2,
-  Shield,
+  Shield, ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUsers } from "@/hooks/useUsers";
@@ -249,15 +249,18 @@ export function UserDrawer({ user, mode, onClose, onSave }: Props) {
                 )}
                 <div>
                   <label className="form-label">Role</label>
-                  <select
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as UserRole)}
-                    className="form-input"
-                  >
-                    <option value="student">Student</option>
-                    <option value="tutor">Tutor / Instructor</option>
-                    <option value="admin">Admin</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={role}
+                      onChange={(e) => setRole(e.target.value as UserRole)}
+                      className="form-input appearance-none pr-9"
+                    >
+                      <option value="student">Student</option>
+                      <option value="tutor">Tutor / Instructor</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  </div>
                   {role === "admin" && (
                     <p className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-600">
                       <Shield size={12} />
@@ -267,15 +270,18 @@ export function UserDrawer({ user, mode, onClose, onSave }: Props) {
                 </div>
                 <div>
                   <label className="form-label">Status</label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value as UserStatus)}
-                    className="form-input"
-                  >
-                    <option value="active">Active</option>
-                    <option value="pending">Pending</option>
-                    <option value="suspended">Suspended</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value as UserStatus)}
+                      className="form-input appearance-none pr-9"
+                    >
+                      <option value="active">Active</option>
+                      <option value="pending">Pending</option>
+                      <option value="suspended">Suspended</option>
+                    </select>
+                    <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  </div>
                 </div>
               </div>
             )}

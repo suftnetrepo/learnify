@@ -35,6 +35,17 @@ function FloatingInput({
           onChange={onChange}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
+          // Browser autofill sets the DOM value directly without firing a
+          // real input event, so this controlled field's own state — and
+          // the floating label's "has a value" check below — never learns
+          // about it. The animationstart event (see globals.css) fires the
+          // moment :-webkit-autofill actually matches, giving us a real
+          // hook to sync state from the DOM.
+          onAnimationStart={(e) => {
+            if (e.animationName === "onAutoFillStart" && e.currentTarget.value !== value) {
+              onChange({ target: e.currentTarget } as React.ChangeEvent<HTMLInputElement>);
+            }
+          }}
           autoComplete={autoComplete}
           required={required}
           disabled={disabled}

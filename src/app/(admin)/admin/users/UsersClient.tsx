@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { UserPlus, Search } from "lucide-react";
+import { UserPlus, Search, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserDrawer } from "./UserDrawer";
 
@@ -149,28 +149,34 @@ export function UsersClient({ users, total, currentPage, pageSize }: Props) {
           />
         </div>
 
-        <select
-          defaultValue={searchParams.get("role") ?? ""}
-          onChange={(e) => updateParam("role", e.target.value)}
-          className="rounded-xl border border-surface-200 bg-white px-3 py-2 text-sm text-gray-600 focus:border-brand-400 outline-none"
-        >
-          <option value="">All roles</option>
-          <option value="admin">Admin</option>
-          <option value="tutor">Tutor</option>
-          <option value="student">Student</option>
-        </select>
+        <div className="relative">
+          <select
+            defaultValue={searchParams.get("role") ?? ""}
+            onChange={(e) => updateParam("role", e.target.value)}
+            className="appearance-none rounded-xl border border-surface-200 bg-white pl-3 pr-9 py-2 text-sm text-gray-600 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 outline-none transition-all"
+          >
+            <option value="">All roles</option>
+            <option value="admin">Admin</option>
+            <option value="tutor">Tutor</option>
+            <option value="student">Student</option>
+          </select>
+          <ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        </div>
 
-        <select
-          defaultValue={searchParams.get("status") ?? ""}
-          onChange={(e) => updateParam("status", e.target.value)}
-          className="rounded-xl border border-surface-200 bg-white px-3 py-2 text-sm text-gray-600 focus:border-brand-400 outline-none"
-        >
-          <option value="">All statuses</option>
-          <option value="active">Active</option>
-          <option value="suspended">Suspended</option>
-          <option value="pending">Pending</option>
-          <option value="invited">Invited</option>
-        </select>
+        <div className="relative">
+          <select
+            defaultValue={searchParams.get("status") ?? ""}
+            onChange={(e) => updateParam("status", e.target.value)}
+            className="appearance-none rounded-xl border border-surface-200 bg-white pl-3 pr-9 py-2 text-sm text-gray-600 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 outline-none transition-all"
+          >
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="pending">Pending</option>
+            <option value="invited">Invited</option>
+          </select>
+          <ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        </div>
       </div>
 
       {/* Table */}

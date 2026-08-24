@@ -142,3 +142,21 @@
     @apply nav-link bg-brand-50 text-brand-700 hover:bg-brand-100 hover:text-brand-700;
   }
 }
+
+/* ─── Autofill detection ─────────────────────────────────────
+   Browser autofill (e.g. the browser remembering an email right
+   after logout → revisiting /login) sets an input's value at the
+   DOM level without firing the events React listens for, so a
+   controlled input's own state — and anything derived from it,
+   like a floating label's "has a value" check — never finds out.
+   This no-op animation only runs while :-webkit-autofill matches,
+   giving React a real, listenable event (animationstart) to sync
+   state from the DOM the moment autofill actually happens. */
+@keyframes onAutoFillStart {
+  from { opacity: 1; }
+  to   { opacity: 1; }
+}
+input:-webkit-autofill {
+  animation-name: onAutoFillStart;
+  animation-duration: 0.001s;
+}

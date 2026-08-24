@@ -40,7 +40,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
         { label: "Admin", href: "/admin" },
         { label: "Users" },
       ]} />
-      <div className="p-4 sm:p-6 max-w-5xl">
+      <div className="p-4 sm:p-6">
         <Suspense fallback={<div className="h-96 rounded-2xl bg-surface-100 animate-pulse" />}>
           <UsersClient
             users={users.map((u) => ({
