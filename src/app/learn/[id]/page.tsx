@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { CourseViewer } from "./CourseViewer";
 import { ReviewForm } from "@/app/(dashboard)/dashboard/courses/[id]/ReviewForm";
 import { EnrollmentService } from "@/services/enrollment.service";
+import { loadStudyMindCourseData } from "@/lib/studymind";
 
 interface Props {
   params:       Promise<{ id: string }>;
@@ -27,6 +28,10 @@ export default async function LearnPage({ params, searchParams }: Props) {
   if (!data) redirect(`/checkout/${courseId}`);
 
   const { enrollment, course, sectionsWithLectures, progressMap, hasReviewed, totalLectures } = data;
+  // AI tutor is optional — the course player works without StudyMind configured
+  const studyMindCourse = process.env.STUDYMIND_API_KEY
+    ? await loadStudyMindCourseData(courseId)
+    : null;
   const allLectures   = sectionsWithLectures.flatMap((s) => s.lectures);
   const activeLecture = lectureParam
     ? allLectures.find((l) => l.id === lectureParam) ?? allLectures[0] ?? null
@@ -43,6 +48,7 @@ export default async function LearnPage({ params, searchParams }: Props) {
         activeProgress={activeProgress}
         progressMap={progressMap}
         totalLectures={totalLectures}
+        studyMindCourse={studyMindCourse}
       />
       {!hasReviewed && enrollment.completedAt && (
         <ReviewForm courseId={courseId} existingReview={undefined} progress={Number(enrollment.progress)} />

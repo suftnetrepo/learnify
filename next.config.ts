@@ -41,7 +41,7 @@ const nextConfig: NextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://images.unsplash.com",
               "media-src 'self' https://res.cloudinary.com https://*.cloudinary.com blob:",
-              "connect-src 'self' https://api.cloudinary.com https://api.stripe.com https://o*.ingest.sentry.io",
+              "connect-src 'self' https://api.cloudinary.com https://api.stripe.com https://o*.ingest.sentry.io https://api.aismartlearner.com",
               "frame-src https://js.stripe.com https://hooks.stripe.com",
             ].join("; "),
           },

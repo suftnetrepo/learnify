@@ -9,6 +9,8 @@ import { SectionsManager } from "@/app/(admin)/admin/courses/[id]/sections/Secti
 import { SubmitForApprovalButton } from "./SubmitForApprovalButton";
 import { CourseForm } from "@/components/shared/CourseForm";
 import { cn } from "@/lib/utils";
+import { loadStudyMindCourseData } from "@/lib/studymind";
+import { StudyMindMaterials } from "@/components/studymind/StudyMindMaterials";
 import Link from "next/link";
 
 interface Props {
@@ -39,6 +41,11 @@ export default async function InstructorCourseEditPage({ params }: Props) {
     CourseService.getCategories(),
   ]);
   if (!course) notFound();
+
+  // Same outline the course player sends, so StudyMind indexes it once (see loadStudyMindCourseData)
+  const studyMindCourse = process.env.STUDYMIND_API_KEY
+    ? await loadStudyMindCourseData(courseId)
+    : null;
 
   // Only a manager-level tutor (or an admin) can actually submit for review —
   // showing the button to an editor-only tutor would just 403 when clicked.
@@ -165,6 +172,11 @@ export default async function InstructorCourseEditPage({ params }: Props) {
         }
         tutors={null}
         sessions={null}
+        aiMaterials={
+          studyMindCourse && (
+            <StudyMindMaterials courseId={course.id} courseData={studyMindCourse} />
+          )
+        }
       />
     </div>
   );
