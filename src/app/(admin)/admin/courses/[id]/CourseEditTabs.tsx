@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { BookOpen, Users, Calendar, Settings, Sparkles } from "lucide-react";
+import { BookOpen, Users, Calendar, Settings } from "lucide-react";
 
 const TABS = [
   { id: "overview",    label: "Overview",    icon: Settings  },
   { id: "curriculum",  label: "Curriculum",  icon: BookOpen  },
   { id: "tutors",      label: "Tutors",      icon: Users     },
   { id: "sessions",    label: "Sessions",    icon: Calendar  },
-  { id: "aiMaterials", label: "AI Materials", icon: Sparkles },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
@@ -19,22 +18,19 @@ interface Props {
   curriculum:  React.ReactNode;
   tutors:      React.ReactNode | null;
   sessions:    React.ReactNode | null;
-  /** StudyMind AI materials — the tab is only shown when this is provided. */
-  aiMaterials?: React.ReactNode | null;
   defaultTab?: TabId;
   role?:       "admin" | "tutor"; // default "admin"
 }
 
-export function CourseEditTabs({ overview, curriculum, tutors, sessions, aiMaterials = null, defaultTab = "overview", role = "admin" }: Props) {
+export function CourseEditTabs({ overview, curriculum, tutors, sessions, defaultTab = "overview", role = "admin" }: Props) {
   const [active, setActive] = useState<TabId>(defaultTab);
 
   const visibleTabs = TABS.filter((t) => {
     if (role === "tutor" && (t.id === "tutors" || t.id === "sessions")) return false;
-    if (t.id === "aiMaterials" && !aiMaterials) return false;
     return true;
   });
 
-  const panels = { overview, curriculum, tutors, sessions, aiMaterials };
+  const panels = { overview, curriculum, tutors, sessions };
 
   // This page lives inside DashboardShell, which already owns the page's one
   // scroll container (`<main><div className="overflow-y-auto">`). Making the

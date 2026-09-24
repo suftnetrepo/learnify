@@ -8,6 +8,8 @@ import { CourseStatusBadge } from "@/components/ui/Badge";
 import { SessionsManager } from "@/components/sessions/SessionsManager";
 import { SectionsManager } from "./sections/SectionsManager";
 import { CourseEditTabs } from "./CourseEditTabs";
+import { StudyMindDrawer } from "@/components/studymind/StudyMindDrawer";
+import { loadStudyMindCourseData } from "@/lib/studymind";
 
 export const metadata: Metadata = { title: "Edit Course" };
 
@@ -22,6 +24,11 @@ export default async function EditCoursePage({ params }: Props) {
   ]);
   if (!result) notFound();
   const { course, categories: allCategories, sessions } = result;
+
+  // Same outline the course player sends, so StudyMind indexes it once (see loadStudyMindCourseData)
+  const studyMindCourse = process.env.STUDYMIND_API_KEY
+    ? await loadStudyMindCourseData(id)
+    : null;
 
   return (
     <div>
@@ -80,6 +87,8 @@ export default async function EditCoursePage({ params }: Props) {
           />
         }
       />
+
+      {studyMindCourse && <StudyMindDrawer courseId={course.id} courseData={studyMindCourse} />}
     </div>
   );
 }

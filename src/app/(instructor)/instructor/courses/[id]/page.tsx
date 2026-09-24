@@ -10,7 +10,7 @@ import { SubmitForApprovalButton } from "./SubmitForApprovalButton";
 import { CourseForm } from "@/components/shared/CourseForm";
 import { cn } from "@/lib/utils";
 import { loadStudyMindCourseData } from "@/lib/studymind";
-import { StudyMindMaterials } from "@/components/studymind/StudyMindMaterials";
+import { StudyMindDrawer } from "@/components/studymind/StudyMindDrawer";
 import Link from "next/link";
 
 interface Props {
@@ -172,12 +172,9 @@ export default async function InstructorCourseEditPage({ params }: Props) {
         }
         tutors={null}
         sessions={null}
-        aiMaterials={
-          studyMindCourse && (
-            <StudyMindMaterials courseId={course.id} courseData={studyMindCourse} />
-          )
-        }
       />
+
+      {studyMindCourse && <StudyMindDrawer courseId={course.id} courseData={studyMindCourse} />}
     </div>
   );
 }
