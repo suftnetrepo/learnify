@@ -1232,7 +1232,7 @@
 
 "@studymind/react@github:suftnetrepo/studymind-react":
   version "0.1.0"
-  resolved "git+https://github.com/suftnetrepo/studymind-react.git#cd393f6fb5c870b1d33ae042c08f3744d2146b46"
+  resolved "git+https://github.com/suftnetrepo/studymind-react.git#5e7b1a24c1e785312784e9efbbb188fbfe7fbfee"
 
 "@svta/cml-608@1.0.2":
   version "1.0.2"
