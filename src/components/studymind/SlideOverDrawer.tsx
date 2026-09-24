@@ -59,7 +59,7 @@ export function SlideOverDrawer({
         aria-modal="true"
         aria-label={title}
         aria-hidden={!open}
-        className={`fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out sm:w-[420px] ${
+        className={`fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out sm:w-[480px] md:w-[520px] lg:w-[580px] ${
           open ? "translate-x-0" : "pointer-events-none translate-x-full"
         }`}
       >

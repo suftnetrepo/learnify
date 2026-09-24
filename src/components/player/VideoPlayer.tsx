@@ -88,7 +88,15 @@ export function VideoPlayer({
     const handler = (e: KeyboardEvent) => {
       const video = videoRef.current;
       if (!video) return;
-      if ((e.target as HTMLElement).tagName === "INPUT") return;
+      // Shortcuts are page-wide (window listener), so leave keys alone when the user is typing
+      // (notes textarea, AI tutor chat), using a focused control (Space already "clicks" it),
+      // working inside a dialog/drawer, or pressing a browser shortcut.
+      const target = e.target as HTMLElement | null;
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (target?.closest?.(
+        'input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="dialog"]'
+      )) return;
+      if (e.key === " " && target?.closest?.("button, a[href]")) return;
 
       switch (e.key) {
         case " ":         e.preventDefault(); togglePlay(); break;
