@@ -10,8 +10,6 @@ import {
   Archive, ExternalLink, Radio, MapPin,
 } from "lucide-react";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
-import { StudyMindSidebar } from "@/components/studymind/StudyMindSidebar";
-import type { CourseData } from "@studymind/react";
 import { cn, formatDuration } from "@/lib/utils";
 import { resourcesApi, notesApi } from "@/lib/api-client";
 import type { LectureResource, LectureResourceType } from "@/types";
@@ -66,8 +64,6 @@ interface Props {
   activeProgress:  ProgressRow | null;
   progressMap:     Record<string, ProgressRow>;
   totalLectures:   number;
-  /** Course outline for the StudyMind AI tutor; null hides the AI Tutor toggle. */
-  studyMindCourse: CourseData | null;
 }
 
 type TabKey = "overview" | "transcript" | "notes" | "resources";
@@ -129,7 +125,7 @@ function formatClockTime(t: string) {
 export function CourseViewer({
   course, enrollment, sections,
   activeLecture: initialLecture, activeProgress,
-  progressMap: initialProgressMap, totalLectures, studyMindCourse,
+  progressMap: initialProgressMap, totalLectures,
 }: Props) {
   const router   = useRouter();
   const pathname = usePathname();
@@ -137,15 +133,6 @@ export function CourseViewer({
   const [activeLecture, setActiveLecture] = useState(initialLecture);
   const [progressMap,   setProgressMap]   = useState(initialProgressMap);
   const [activeTab,     setActiveTab]     = useState<TabKey>("overview");
-
-  // ─ Right sidebar: curriculum or AI tutor. The AI panel mounts on first open and
-  //   then stays mounted (hidden) so switching back and forth keeps the chat.
-  const [sidebarView, setSidebarView] = useState<"curriculum" | "ai">("curriculum");
-  const [aiOpened,    setAiOpened]    = useState(false);
-  const showSidebar = (view: "curriculum" | "ai") => {
-    setSidebarView(view);
-    if (view === "ai") setAiOpened(true);
-  };
 
   // ─ Resources — feeds the Resources tab AND the "Watch Recording" quick-view
   //   in the video area, so this fetches on every lecture change, not just
@@ -587,29 +574,6 @@ export function CourseViewer({
 
           {/* ── RIGHT CURRICULUM SIDEBAR ──────────────────────────────────── */}
           <aside className="w-[320px] lg:w-[360px] xl:w-[400px] 2xl:w-[440px] flex-shrink-0 border-l border-surface-100 flex flex-col overflow-hidden bg-white">
-          {studyMindCourse && (
-            <div className="flex flex-shrink-0 border-b border-surface-100">
-              {([
-                { view: "curriculum", label: "Curriculum", icon: <AlignLeft size={14} /> },
-                { view: "ai",         label: "AI Tutor",   icon: <Sparkles  size={14} /> },
-              ] as const).map(({ view, label, icon }) => (
-                <button
-                  key={view}
-                  onClick={() => showSidebar(view)}
-                  className={cn(
-                    "-mb-px flex flex-1 items-center justify-center gap-1.5 border-b-2 py-3 text-xs font-semibold transition-colors",
-                    sidebarView === view
-                      ? "border-brand-500 text-brand-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700"
-                  )}
-                >
-                  {icon} {label}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {sidebarView === "curriculum" && (<>
           <div className="flex-shrink-0 border-b border-surface-100 px-5 py-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
               <AlignLeft size={16} /> Course content
@@ -715,13 +679,6 @@ export function CourseViewer({
               >
                 <Download size={13} /> Download Certificate
               </a>
-            </div>
-          )}
-          </>)}
-
-          {studyMindCourse && aiOpened && (
-            <div className={cn("flex min-h-0 flex-1 flex-col", sidebarView !== "ai" && "hidden")}>
-              <StudyMindSidebar courseId={course.id} courseData={studyMindCourse} />
             </div>
           )}
         </aside>

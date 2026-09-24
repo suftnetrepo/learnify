@@ -5,6 +5,7 @@ import { CourseViewer } from "./CourseViewer";
 import { ReviewForm } from "@/app/(dashboard)/dashboard/courses/[id]/ReviewForm";
 import { EnrollmentService } from "@/services/enrollment.service";
 import { loadStudyMindCourseData } from "@/lib/studymind";
+import { StudentStudyMindDrawer } from "@/components/studymind/StudentStudyMindDrawer";
 
 interface Props {
   params:       Promise<{ id: string }>;
@@ -48,8 +49,16 @@ export default async function LearnPage({ params, searchParams }: Props) {
         activeProgress={activeProgress}
         progressMap={progressMap}
         totalLectures={totalLectures}
-        studyMindCourse={studyMindCourse}
       />
+      {studyMindCourse && (
+        <StudentStudyMindDrawer
+          courseId={courseId}
+          courseData={studyMindCourse}
+          // Sits just left of CourseViewer's curriculum sidebar (w-[320px] lg:360 xl:400 2xl:440)
+          // so it never covers the lecture list or the certificate button
+          buttonPositionClassName="bottom-6 right-[344px] lg:right-[384px] xl:right-[424px] 2xl:right-[464px]"
+        />
+      )}
       {!hasReviewed && enrollment.completedAt && (
         <ReviewForm courseId={courseId} existingReview={undefined} progress={Number(enrollment.progress)} />
       )}
