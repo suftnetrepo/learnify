@@ -82,7 +82,7 @@ export default async function EarningsPage() {
         </div>
 
         {/* Two column layout */}
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_280px]">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_680px]">
 
           {/* Recent transactions */}
           <div className="rounded-2xl border border-surface-100 bg-white p-5">

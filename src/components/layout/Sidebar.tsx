@@ -29,11 +29,11 @@ const NAV_ITEMS: NavItem[] = [
   // Admin
   { label: "Dashboard",  href: "/admin",                 icon: <LayoutDashboard size={18} />, roles: ["admin"] },
   { label: "Courses",    href: "/admin/courses",         icon: <BookOpen        size={18} />, roles: ["admin"] },
-  { label: "Pending Review", href: "/admin/courses/pending", icon: <Clock       size={18} />, roles: ["admin"] },
-  { label: "Users",      href: "/admin/users",           icon: <Users           size={18} />, roles: ["admin"] },
   { label: "Tutors",     href: "/admin/tutors",          icon: <GraduationCap   size={18} />, roles: ["admin"] },
   { label: "Analytics",  href: "/admin/analytics",       icon: <BarChart3       size={18} />, roles: ["admin"] },
   { label: "Payments",   href: "/admin/payments",        icon: <CreditCard      size={18} />, roles: ["admin"] },
+  { label: "Review", href: "/admin/courses/pending", icon: <Clock       size={18} />, roles: ["admin"] },
+  { label: "Users",      href: "/admin/users",           icon: <Users           size={18} />, roles: ["admin"] },
   // Instructor
   { label: "Dashboard",  href: "/instructor",            icon: <LayoutDashboard size={18} />, roles: ["tutor"] },
   { label: "My Courses", href: "/instructor/courses",    icon: <BookOpen        size={18} />, roles: ["tutor"] },
