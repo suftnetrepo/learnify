@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, BookOpen, Users, GraduationCap, Calendar,
   BarChart3, CreditCard, LogOut, X,
-  Award, Settings, Trophy, Clock, CalendarDays,
+  Award, Settings, Clock, CalendarDays,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard",    href: "/dashboard",                icon: <LayoutDashboard size={18} />, roles: ["student"] },
   { label: "My Courses",   href: "/dashboard/my-courses",     icon: <BookOpen        size={18} />, roles: ["student"] },
   { label: "Certificates", href: "/dashboard/certificates",   icon: <Award           size={18} />, roles: ["student"] },
-  { label: "Achievements", href: "/dashboard/achievements",   icon: <Trophy          size={18} />, roles: ["student"] },
   { label: "Calendar",     href: "/dashboard/calendar",       icon: <Calendar        size={18} />, roles: ["student"] },
   { label: "Settings",     href: "/dashboard/settings",       icon: <Settings        size={18} />, roles: ["student"] },
   // Admin

@@ -12,6 +12,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "npx tsx src/db/seed.ts",
+    "db:seed:programming-foundations": "npx tsx src/db/seed-programming-foundations.ts",
     "db:drop": "drizzle-kit drop"
   },
   "dependencies": {

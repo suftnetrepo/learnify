@@ -69,9 +69,9 @@ export default async function DashboardPage() {
       href: "/dashboard/my-courses",
     },
     {
-      label: "Lessons Completed", value: stats.completed,
+      label: "Completed Courses", value: stats.completed,
       icon: Trophy, iconBg: "bg-emerald-50", iconColor: "text-emerald-600",
-      href: "/dashboard/my-courses",
+      href: "/dashboard/my-courses?filter=completed",
     },
     {
       label: "Certificates", value: stats.completed,
@@ -79,9 +79,9 @@ export default async function DashboardPage() {
       href: "/dashboard/certificates",
     },
     {
-      label: "Hours Watched", value: "—",
+      label: "In Progress", value: stats.inProgress,
       icon: Clock, iconBg: "bg-violet-50",  iconColor: "text-violet-600",
-      href: "/dashboard/achievements",
+      href: "/dashboard/my-courses?filter=in-progress",
     },
   ];
 

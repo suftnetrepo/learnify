@@ -6,12 +6,11 @@ import {
   CheckCircle2, Circle, ChevronDown, ChevronRight, ChevronLeft,
   Download, PlayCircle, Sparkles, Maximize2,
   Video, Clock, FileText, Code2, AlignLeft, StickyNote,
-  LayoutDashboard, BookOpen, Award, Trophy, Calendar, Settings, LogOut,
+  LayoutDashboard, BookOpen, Award, Calendar, Settings, LogOut,
 } from "lucide-react";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
 import { cn, formatDuration } from "@/lib/utils";
 import Link from "next/link";
-import Image from "next/image";
 import { signOut } from "next-auth/react";
 
 interface Lecture {
@@ -28,6 +27,7 @@ interface Lecture {
 interface Section {
   id:       string;
   title:    string;
+  description: string | null;
   lectures: Lecture[];
 }
 
@@ -63,7 +63,6 @@ const NAV_ITEMS = [
   { label: "Dashboard",    href: "/dashboard",              icon: <LayoutDashboard size={18} /> },
   { label: "My Courses",   href: "/dashboard/my-courses",   icon: <BookOpen        size={18} /> },
   { label: "Certificates", href: "/dashboard/certificates", icon: <Award           size={18} /> },
-  { label: "Achievements", href: "/dashboard/achievements", icon: <Trophy          size={18} /> },
   { label: "Calendar",     href: "/dashboard/calendar",     icon: <Calendar        size={18} /> },
   { label: "Settings",     href: "/dashboard/settings",     icon: <Settings        size={18} /> },
 ];
@@ -91,6 +90,25 @@ function parseWhatYouLearn(json?: string | null): string[] {
   }
 }
 
+function LessonContent({ content }: { content: string }) {
+  return (
+    <div className="space-y-5">
+      {content.split(/\n{2,}/).map((block, index) => {
+        const trimmed = block.trim();
+        const isHeading = !trimmed.includes("\n") && /^[A-Z0-9 &/—-]+$/.test(trimmed);
+        if (isHeading) {
+          return <h4 key={index} className="text-xs font-bold uppercase tracking-[0.12em] text-brand-600">{trimmed}</h4>;
+        }
+        return (
+          <p key={index} className="whitespace-pre-line text-[15px] leading-7 text-gray-600">
+            {trimmed}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export function CourseViewer({
   course, enrollment, sections,
   activeLecture: initialLecture, activeProgress,
@@ -102,6 +120,7 @@ export function CourseViewer({
   const [activeLecture, setActiveLecture] = useState(initialLecture);
   const [progressMap,   setProgressMap]   = useState(initialProgressMap);
   const [activeTab,     setActiveTab]     = useState<TabKey>("overview");
+  const [markingComplete, setMarkingComplete] = useState(false);
 
   const allLectures    = sections.flatMap((s) => s.lectures);
   const initialSection = sections.find((s) =>
@@ -137,6 +156,34 @@ export function CourseViewer({
     const next = allLectures[idx + 1];
     if (next) setTimeout(() => goToLecture(next), 1500);
   }, [activeLecture, allLectures, goToLecture]);
+
+  const markTextLessonComplete = useCallback(async () => {
+    if (!activeLecture || markingComplete || progressMap[activeLecture.id]?.isCompleted) return;
+    setMarkingComplete(true);
+    try {
+      const response = await fetch(`/api/lectures/${activeLecture.id}/progress`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          watchedSeconds: activeLecture.videoDuration ?? 0,
+          isCompleted: true,
+        }),
+      });
+      if (!response.ok) throw new Error("Unable to save lesson progress");
+      setProgressMap((previous) => ({
+        ...previous,
+        [activeLecture.id]: {
+          watchedSeconds: activeLecture.videoDuration ?? 0,
+          isCompleted: true,
+        },
+      }));
+      const index = allLectures.findIndex((lecture) => lecture.id === activeLecture.id);
+      const next = allLectures[index + 1];
+      if (next) setTimeout(() => goToLecture(next), 700);
+    } finally {
+      setMarkingComplete(false);
+    }
+  }, [activeLecture, allLectures, goToLecture, markingComplete, progressMap]);
 
   const activeIndex      = activeLecture ? allLectures.findIndex((l) => l.id === activeLecture.id) : -1;
   const previousLecture  = activeIndex > 0 ? allLectures[activeIndex - 1] : null;
@@ -251,8 +298,9 @@ export function CourseViewer({
         <div className="flex flex-1 flex-col overflow-hidden min-w-0">
           {activeLecture ? (
             <>
-              {/* Video / thumbnail */}
-              {activeLecture.videoUrl ? (
+              {/* Only render media when this lesson has an actual video. Written
+                  lessons start directly with their title and content. */}
+              {activeLecture.videoUrl && (
                 <div className="aspect-video w-full flex-shrink-0 bg-black">
                   <VideoPlayer
                     lectureId={activeLecture.id}
@@ -263,36 +311,12 @@ export function CourseViewer({
                     className="h-full w-full"
                   />
                 </div>
-              ) : (
-                <div className="relative aspect-video w-full flex-shrink-0 bg-gray-900">
-                  {course.thumbnailUrl && (
-                    <Image
-                      src={course.thumbnailUrl}
-                      alt={course.title}
-                      fill
-                      priority
-                      className="object-cover"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10 flex flex-col justify-center px-12">
-                    <p className="text-sm text-white/70 mb-2">Welcome to</p>
-                    <h1 className="max-w-2xl text-4xl font-bold leading-tight text-white mb-3">
-                      {course.title}
-                    </h1>
-                    {course.shortDescription && (
-                      <p className="max-w-xl text-sm text-white/80">{course.shortDescription}</p>
-                    )}
-                  </div>
-                </div>
               )}
 
               {/* Lecture info bar */}
               <div className="flex flex-shrink-0 items-center justify-between border-b border-surface-100 px-6 py-4">
                 <div className="min-w-0">
                   <h2 className="truncate text-xl font-bold text-gray-900">{activeLecture.title}</h2>
-                  {activeLecture.description && (
-                    <p className="truncate text-sm text-gray-500">{activeLecture.description}</p>
-                  )}
                 </div>
                 <div className="ml-4 flex flex-shrink-0 items-center gap-2">
                   <button
@@ -321,7 +345,8 @@ export function CourseViewer({
                     : "--"}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-lg border border-surface-200 px-3 py-1.5 text-xs text-gray-500">
-                  <Video size={13} /> Video
+                  {activeLecture.videoUrl ? <Video size={13} /> : <BookOpen size={13} />}
+                  {activeLecture.videoUrl ? "Video" : "Guided lesson"}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-lg border border-surface-200 px-3 py-1.5 text-xs text-gray-500">
                   Lesson {activeIndex + 1} of {allLectures.length}
@@ -351,9 +376,23 @@ export function CourseViewer({
                 {activeTab === "overview" && (
                   <div className="max-w-3xl">
                     <h3 className="text-sm font-semibold text-gray-900 mb-2">About this lesson</h3>
-                    <p className="text-sm leading-relaxed text-gray-500 mb-6">
-                      {activeLecture.description ?? "No description available for this lesson yet."}
-                    </p>
+                    <div className="mb-8">
+                      {activeLecture.description
+                        ? <LessonContent content={activeLecture.description} />
+                        : <p className="text-sm leading-relaxed text-gray-500">No description available for this lesson yet.</p>}
+                    </div>
+                    {!activeLecture.videoUrl && (
+                      <button
+                        onClick={markTextLessonComplete}
+                        disabled={markingComplete || progressMap[activeLecture.id]?.isCompleted}
+                        className="mb-8 inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-default disabled:bg-emerald-500"
+                      >
+                        <CheckCircle2 size={16} />
+                        {progressMap[activeLecture.id]?.isCompleted
+                          ? "Lesson completed"
+                          : markingComplete ? "Saving…" : "Mark lesson complete"}
+                      </button>
+                    )}
                     {whatYouLearn.length > 0 && (
                       <>
                         <h3 className="text-sm font-semibold text-gray-900 mb-3">What you&apos;ll learn</h3>
@@ -439,6 +478,9 @@ export function CourseViewer({
                       <p className="truncate text-sm font-semibold text-gray-900">
                         {sIdx + 1}. {section.title}
                       </p>
+                      {section.description && (
+                        <p className="mt-1 line-clamp-2 text-xs leading-4 text-gray-400">{section.description}</p>
+                      )}
                     </div>
                     <div className="flex flex-shrink-0 items-center gap-2">
                       <span className="text-xs text-gray-400">

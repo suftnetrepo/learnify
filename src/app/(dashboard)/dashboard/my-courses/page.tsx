@@ -53,7 +53,7 @@ export default async function MyCoursesPage({ searchParams }: PageProps) {
       />
 
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 sm:p-6 space-y-6 max-w-6xl">
+        <div className="w-full p-4 sm:p-6 space-y-6">
           {/* Header */}
           <div>
             <h1 className="font-display text-2xl font-extrabold text-gray-900">My Courses</h1>

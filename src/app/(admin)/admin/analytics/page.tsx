@@ -32,6 +32,21 @@ export default async function AnalyticsPage() {
           <StatCard label="Avg. Rating"       value={`${stats.avgRating} / 5`}                delta={`${stats.totalReviews} reviews · ${stats.publishedCourses} courses live`} deltaType="neutral" icon={<Star size={20} />} />
         </div>
 
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { icon: <BarChart3 size={18} className="text-brand-500" />,   label: "Conversion rate",       value: stats.totalStudents > 0 ? `${((stats.totalEnrollments / stats.totalStudents) * 100).toFixed(1)}%` : "—", sub: "Enrollments per student" },
+            { icon: <Award    size={18} className="text-emerald-500" />,  label: "Avg. revenue / student", value: stats.totalStudents > 0 ? formatCurrency(stats.totalRevenue / stats.totalStudents) : "—",              sub: "Lifetime value" },
+            { icon: <BookOpen size={18} className="text-amber-500" />,    label: "Published courses",      value: String(stats.publishedCourses), sub: "Live in catalogue" },
+            { icon: <Star     size={18} className="text-violet-500" />,   label: "Reviews collected",      value: String(stats.totalReviews),     sub: `Avg ${stats.avgRating} stars` },
+          ].map(({ icon, label, value, sub }) => (
+            <div key={label} className="card p-5">
+              <div className="flex items-center gap-2 mb-3">{icon}<span className="text-xs font-semibold uppercase tracking-wider text-gray-400">{label}</span></div>
+              <p className="font-display text-2xl font-bold text-gray-900">{value}</p>
+              <p className="mt-1 text-xs text-gray-400">{sub}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
           <div className="xl:col-span-3">
             <h2 className="heading-3 text-gray-900 mb-4">Top Performing Courses</h2>
@@ -72,23 +87,6 @@ export default async function AnalyticsPage() {
           </div>
         </div>
 
-        <div>
-          <h2 className="heading-3 text-gray-900 mb-4">Platform Health</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { icon: <BarChart3 size={18} className="text-brand-500" />,   label: "Conversion rate",       value: stats.totalStudents > 0 ? `${((stats.totalEnrollments / stats.totalStudents) * 100).toFixed(1)}%` : "—", sub: "Enrollments per student" },
-              { icon: <Award    size={18} className="text-emerald-500" />,  label: "Avg. revenue / student", value: stats.totalStudents > 0 ? formatCurrency(stats.totalRevenue / stats.totalStudents) : "—",              sub: "Lifetime value" },
-              { icon: <BookOpen size={18} className="text-amber-500" />,    label: "Published courses",      value: String(stats.publishedCourses), sub: "Live in catalogue" },
-              { icon: <Star     size={18} className="text-violet-500" />,   label: "Reviews collected",      value: String(stats.totalReviews),     sub: `Avg ${stats.avgRating} stars` },
-            ].map(({ icon, label, value, sub }) => (
-              <div key={label} className="card p-5">
-                <div className="flex items-center gap-2 mb-3">{icon}<span className="text-xs font-semibold uppercase tracking-wider text-gray-400">{label}</span></div>
-                <p className="font-display text-2xl font-bold text-gray-900">{value}</p>
-                <p className="mt-1 text-xs text-gray-400">{sub}</p>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

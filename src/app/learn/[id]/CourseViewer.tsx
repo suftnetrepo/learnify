@@ -6,15 +6,14 @@ import {
   CheckCircle2, Circle, ChevronDown, ChevronRight, ChevronLeft,
   Download, PlayCircle, Sparkles, Maximize2,
   Video, Clock, FileText, Code2, AlignLeft, StickyNote,
-  LayoutDashboard, BookOpen, Award, Trophy, Calendar, Settings, LogOut,
-  Archive, ExternalLink, Radio, MapPin,
+  LayoutDashboard, BookOpen, Award, Calendar, Settings, LogOut,
+  Archive, ExternalLink,
 } from "lucide-react";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
 import { cn, formatDuration } from "@/lib/utils";
 import { resourcesApi, notesApi } from "@/lib/api-client";
 import type { LectureResource, LectureResourceType } from "@/types";
 import Link from "next/link";
-import Image from "next/image";
 import { signOut } from "next-auth/react";
 
 interface Lecture {
@@ -72,7 +71,6 @@ const NAV_ITEMS = [
   { label: "Dashboard",    href: "/dashboard",              icon: <LayoutDashboard size={18} /> },
   { label: "My Courses",   href: "/dashboard/my-courses",   icon: <BookOpen        size={18} /> },
   { label: "Certificates", href: "/dashboard/certificates", icon: <Award           size={18} /> },
-  { label: "Achievements", href: "/dashboard/achievements", icon: <Trophy          size={18} /> },
   { label: "Calendar",     href: "/dashboard/calendar",     icon: <Calendar        size={18} /> },
   { label: "Settings",     href: "/dashboard/settings",     icon: <Settings        size={18} /> },
 ];
@@ -100,18 +98,6 @@ function parseWhatYouLearn(json?: string | null): string[] {
   } catch {
     return [];
   }
-}
-
-// Lectures don't carry a format field of their own — live/in-person meeting
-// slots live in the curriculum as regular lecture rows with no video attached.
-// Course-level scheduling (courseSessions) doesn't map to a specific lecture
-// row either, so until lectures carry an explicit format, detect it from the
-// title as a best-effort signal.
-function getLectureFormat(lecture: Lecture): "video" | "live" | "in_person" {
-  const t = lecture.title.toLowerCase();
-  if (t.includes("live") || t.includes("q&a") || t.includes("session")) return "live";
-  if (t.includes("workshop") || t.includes("in-person") || t.includes("in person")) return "in_person";
-  return "video";
 }
 
 // scheduledStart/scheduledEnd are plain "HH:MM:SS" clock times (no date, no
@@ -210,7 +196,6 @@ export function CourseViewer({
   const previousLecture  = activeIndex > 0 ? allLectures[activeIndex - 1] : null;
   const nextLecture      = activeIndex >= 0 ? allLectures[activeIndex + 1] ?? null : null;
   const whatYouLearn     = parseWhatYouLearn(course.whatYouLearn);
-  const activeFmt        = activeLecture ? getLectureFormat(activeLecture) : "video";
 
   // A "link" or "video" resource on a lecture with no video of its own is
   // treated as a recording (e.g. the Zoom/Teams recording URL for a live
@@ -291,19 +276,11 @@ export function CourseViewer({
         <header className="h-[52px] flex-shrink-0 flex items-center justify-between border-b border-surface-100 bg-white px-6">
           <Link
             href="/dashboard/my-courses"
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+            className="flex min-w-0 items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
           >
-            <ChevronLeft size={16} /> My Courses
+            <ChevronLeft size={16} className="flex-shrink-0 text-gray-400" />
+            <span className="truncate">{course.title}</span>
           </Link>
-
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-brand-500">
-              <Sparkles size={12} className="text-white" />
-            </div>
-            <span className="truncate text-sm font-semibold text-gray-900 max-w-md">
-              {course.title}
-            </span>
-          </div>
 
           <div className="flex flex-shrink-0 items-center gap-3">
             <span className="text-xs text-gray-500">Your progress</span>
@@ -327,7 +304,8 @@ export function CourseViewer({
           <div className="flex-1 flex flex-col overflow-hidden min-w-0 min-h-0">
             {activeLecture ? (
               <>
-                {/* Video / thumbnail */}
+                {/* Render media only when the lesson has real playable or
+                    scheduled media. Written lessons start with their content. */}
                 {activeLecture.videoUrl ? (
                   <div className="flex-shrink-0 w-full h-[42%] bg-black">
                     <VideoPlayer
@@ -367,65 +345,7 @@ export function CourseViewer({
                       </p>
                     </div>
                   </div>
-                ) : activeFmt === "live" ? (
-                  <div className="flex flex-shrink-0 w-full h-[42%] flex-col items-center justify-center gap-4 bg-surface-50">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 border border-brand-200">
-                      <Radio size={28} className="text-brand-500" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-base font-semibold text-gray-900">Live Session</p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        This lecture is delivered live via video call.
-                      </p>
-                    </div>
-                    {/* The conferenceUrl would come from session data — for now link to calendar */}
-                    <Link
-                      href="/dashboard/calendar"
-                      className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
-                    >
-                      <ExternalLink size={15} /> View session details & join link
-                    </Link>
-                  </div>
-                ) : activeFmt === "in_person" ? (
-                  <div className="flex flex-shrink-0 w-full h-[42%] flex-col items-center justify-center gap-4 bg-surface-50">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 border border-amber-200">
-                      <MapPin size={28} className="text-amber-500" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-base font-semibold text-gray-900">In-Person Session</p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        This session takes place at a physical location.
-                      </p>
-                    </div>
-                    <Link
-                      href="/dashboard/calendar"
-                      className="inline-flex items-center gap-2 rounded-xl border border-surface-200 px-6 py-3 text-sm font-semibold text-gray-700 hover:border-brand-300 hover:text-brand-600 transition-colors"
-                    >
-                      <MapPin size={15} /> View location & directions
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="relative flex-shrink-0 w-full h-[42%] bg-gray-900">
-                    {course.thumbnailUrl && (
-                      <Image
-                        src={course.thumbnailUrl}
-                        alt={course.title}
-                        fill
-                        priority
-                        className="object-cover"
-                      />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10 flex flex-col justify-center px-12">
-                      <p className="text-sm text-white/70 mb-2">Welcome to</p>
-                      <h1 className="max-w-2xl text-4xl font-bold leading-tight text-white mb-3">
-                        {course.title}
-                      </h1>
-                      {course.shortDescription && (
-                        <p className="max-w-xl text-sm text-white/80">{course.shortDescription}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
+                ) : null}
 
                 {/* Lecture info panel — scrolls independently below the fixed-height video */}
                 <div className="flex-1 overflow-y-auto min-h-0 px-5 py-4">
@@ -434,9 +354,6 @@ export function CourseViewer({
                   <div className="flex items-center justify-between border-b border-surface-100 pb-4">
                     <div className="min-w-0">
                       <h2 className="truncate text-xl font-bold text-gray-900">{activeLecture.title}</h2>
-                      {activeLecture.description && (
-                        <p className="truncate text-sm text-gray-500">{activeLecture.description}</p>
-                      )}
                     </div>
                     <div className="ml-4 flex flex-shrink-0 items-center gap-2">
                       <button
@@ -465,7 +382,8 @@ export function CourseViewer({
                         : "--"}
                     </span>
                     <span className="inline-flex items-center gap-1.5 rounded-lg border border-surface-200 px-3 py-1.5 text-xs text-gray-500">
-                      <Video size={13} /> Video
+                      {activeLecture.videoUrl ? <Video size={13} /> : <BookOpen size={13} />}
+                      {activeLecture.videoUrl ? "Video" : "Guided lesson"}
                     </span>
                     <span className="inline-flex items-center gap-1.5 rounded-lg border border-surface-200 px-3 py-1.5 text-xs text-gray-500">
                       Lesson {activeIndex + 1} of {allLectures.length}
@@ -500,7 +418,7 @@ export function CourseViewer({
                     {activeTab === "overview" && (
                       <div className="max-w-3xl">
                         <h3 className="text-sm font-semibold text-gray-900 mb-2">About this lesson</h3>
-                        <p className="text-sm leading-relaxed text-gray-500 mb-6">
+                        <p className="whitespace-pre-line text-sm leading-relaxed text-gray-500 mb-6">
                           {activeLecture.description ?? "No description available for this lesson yet."}
                         </p>
                         {whatYouLearn.length > 0 && (

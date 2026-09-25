@@ -10,7 +10,7 @@ import { revalidatePath } from "next/cache";
 import type {
   CourseListResult, CourseFilters, CourseDetail,
   CreateCoursePayload, UpdateCoursePayload,
-  CourseSection, CourseLecture,
+  CourseSection,
 } from "@/types";
 
 export class CourseService {
@@ -180,6 +180,7 @@ export class CourseService {
     return sectionRows.map((s) => ({
       id:        s.id,
       title:     s.title,
+      description: s.description,
       sortOrder: s.sortOrder,
       scheduledStart: s.scheduledStart,
       scheduledEnd:   s.scheduledEnd,
@@ -188,6 +189,7 @@ export class CourseService {
         .map((l) => ({
           id:            l.id,
           title:         l.title,
+          description:   l.description,
           videoUrl:      l.videoUrl,
           videoDuration: l.videoDuration,
           videoPublicId: l.videoPublicId,

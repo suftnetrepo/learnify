@@ -92,7 +92,7 @@ export function MyCoursesList({ enrolled, allSessions, now }: Props) {
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {enrolled.map((e) => {
           const gradient      = THUMB_GRADIENTS[hashStr(e.courseId) % THUMB_GRADIENTS.length];
           const progress      = Number(e.progress);
@@ -111,7 +111,7 @@ export function MyCoursesList({ enrolled, allSessions, now }: Props) {
                     src={e.courseThumbnail}
                     alt={e.courseTitle ?? ""}
                     fill
-                    sizes="(max-width: 640px) 100vw, 33vw"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover"
                   />
                 ) : (

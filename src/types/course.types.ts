@@ -60,6 +60,7 @@ export interface CourseDetail extends Course {
 export interface CourseSection {
   id:        string;
   title:     string;
+  description: string | null;
   sortOrder: number;
   lectures:  CourseLecture[];
   // "HH:MM:SS" clock time, no date/timezone — the section's time slot in the
@@ -71,6 +72,7 @@ export interface CourseSection {
 export interface CourseLecture {
   id:            string;
   title:         string;
+  description:   string | null;
   videoUrl:      string | null;
   videoDuration: number | null;
   videoPublicId: string | null;
@@ -112,10 +114,11 @@ export interface CreateCoursePayload {
   language?:        string;
 }
 
-export interface UpdateCoursePayload extends Partial<CreateCoursePayload> {}
+export type UpdateCoursePayload = Partial<CreateCoursePayload>;
 
 export interface CreateSectionPayload {
   title:     string;
+  description?: string;
   sortOrder?: number;
   scheduledStart?: string | null; // "HH:MM" clock time — for in-person/hybrid courses
   scheduledEnd?:   string | null;
@@ -123,6 +126,7 @@ export interface CreateSectionPayload {
 
 export interface CreateLecturePayload {
   title:         string;
+  description?:  string;
   videoUrl?:     string;
   videoPublicId?: string;
   videoDuration?: number;
@@ -132,7 +136,7 @@ export interface CreateLecturePayload {
   sortOrder?:    number;
 }
 
-export interface UpdateLecturePayload extends Partial<CreateLecturePayload> {}
+export type UpdateLecturePayload = Partial<CreateLecturePayload>;
 
 // ─── Lecture resources ─────────────────────────────────────────────────────────
 export type LectureResourceType = "pdf" | "zip" | "github" | "link" | "video";

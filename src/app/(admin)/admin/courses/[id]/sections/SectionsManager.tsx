@@ -4,11 +4,12 @@ import type {
   LectureResource, LectureResourceType, CourseFormat,
 } from "@/types/course.types";
 
-import { useState, useEffect, useOptimistic, useTransition } from "react";
+import { useState, useEffect } from "react";
 import {
   Plus, ChevronDown, ChevronRight, Pencil,
   Trash2, GripVertical, Video, FileText,
   Archive, Code2, Link as LinkIcon, Clock,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -22,12 +23,12 @@ import { useSections, useLectures } from "@/hooks/useCourses";
 import { resourcesApi } from "@/lib/api-client";
 
 interface Lecture {
-  id: string; title: string; videoUrl: string | null; videoDuration: number | null;
+  id: string; title: string; description: string | null; videoUrl: string | null; videoDuration: number | null;
   isFree: boolean; isPublished: boolean; sortOrder: number;
   thumbnailUrl: string | null; videoPublicId: string | null;
 }
 interface Section {
-  id: string; title: string; sortOrder: number; lectures: Lecture[];
+  id: string; title: string; description: string | null; sortOrder: number; lectures: Lecture[];
   // Plain "HH:MM:SS" clock time — no date/timezone component. A section is a
   // time slot in the day for in-person/hybrid courses (e.g. "Morning
   // Session, 09:00–11:00"); the lectures inside it are just topics covered
@@ -344,7 +345,9 @@ interface LectureModalProps {
 }
 
 function LectureModal({ open, onClose, onSave, lecture }: LectureModalProps) {
+  const [activeTab,     setActiveTab]     = useState<"content" | "media" | "resources" | "access">("content");
   const [title,         setTitle]         = useState(lecture?.title ?? "");
+  const [description,   setDescription]   = useState(lecture?.description ?? "");
   const [videoUrl,      setVideoUrl]      = useState(lecture?.videoUrl ?? "");
   const [videoPublicId, setVideoPublicId] = useState(lecture?.videoPublicId ?? "");
   const [videoDuration, setVideoDuration] = useState(lecture?.videoDuration ?? 0);
@@ -358,7 +361,7 @@ function LectureModal({ open, onClose, onSave, lecture }: LectureModalProps) {
 
   // ─ Resources (only meaningful once the lecture exists) ──────────────────────
   const [resources,        setResources]        = useState<LectureResource[]>([]);
-  const [loadingResources, setLoadingResources]  = useState(false);
+  const [loadingResources, setLoadingResources]  = useState(!!lecture?.id);
   const [resourceType,     setResourceType]     = useState<LectureResourceType>("pdf");
   const [resourceLabel,    setResourceLabel]    = useState("");
   const [resourceUrl,      setResourceUrl]      = useState("");
@@ -366,7 +369,6 @@ function LectureModal({ open, onClose, onSave, lecture }: LectureModalProps) {
 
   useEffect(() => {
     if (!lecture?.id) return;
-    setLoadingResources(true);
     resourcesApi.list(lecture.id)
       .then(setResources)
       .catch((err) => toastError("Failed to load resources", err instanceof Error ? err.message : undefined))
@@ -403,11 +405,16 @@ function LectureModal({ open, onClose, onSave, lecture }: LectureModalProps) {
   }
 
   async function handleSave() {
-    if (!title.trim()) { setTitleError("Lecture title is required"); return; }
+    if (!title.trim()) {
+      setTitleError("Lecture title is required");
+      setActiveTab("content");
+      return;
+    }
     setSaving(true);
     await onSave({
       id: lecture?.id,
       title: title.trim(),
+      description: description.trim() || undefined,
       videoUrl:      videoUrl      || undefined,
       videoPublicId: videoPublicId || undefined,
       videoDuration: videoDuration || undefined,
@@ -419,107 +426,193 @@ function LectureModal({ open, onClose, onSave, lecture }: LectureModalProps) {
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={lecture ? "Edit Lecture" : "Add Lecture"} size="lg">
-      <div className="space-y-4">
-        <Input label="Lecture Title" value={title}
-          onChange={(e) => { setTitle(e.target.value); setTitleError(""); }}
-          placeholder="e.g. Introduction and setup" error={titleError} required autoFocus />
-
-        <CloudinaryUploader type="video" folder="lectures" label="Lecture Video"
-          currentUrl={videoUrl || undefined}
-          onSuccess={(result) => {
-            setVideoUrl(result.secureUrl);
-            setVideoPublicId(result.publicId);
-            if (result.duration) setVideoDuration(Math.round(result.duration));
-            if (result.thumbnailUrl) setThumbnailUrl(result.thumbnailUrl);
-          }} />
-
-        {/* Resources — needs a real lecture id, so hidden while adding a new lecture */}
-        {lecture?.id && (
-          <div className="space-y-3 border-t border-surface-100 pt-4">
-            <p className="form-label">Resources</p>
-
-            {loadingResources ? (
-              <p className="text-xs text-gray-400">Loading resources…</p>
-            ) : resources.length === 0 ? (
-              <p className="text-xs text-gray-400">No resources added yet.</p>
-            ) : (
-              <div className="space-y-1.5">
-                {resources.map((r) => (
-                  <div key={r.id}
-                    className="flex items-center gap-2.5 rounded-lg border border-surface-200 px-3 py-2">
-                    <span className="flex-shrink-0 text-gray-400">{RESOURCE_TYPE_ICONS[r.type]}</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate">{r.label}</p>
-                      <p className="text-xs text-gray-400 truncate">{r.url}</p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteResource(r.id)}
-                      className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors"
-                      aria-label="Delete resource">
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Add resource */}
-            <div className="space-y-3 rounded-xl border border-dashed border-surface-200 p-3">
-              <div className="grid grid-cols-2 gap-3">
-                <Select label="Type" value={resourceType} options={RESOURCE_TYPE_OPTIONS}
-                  onChange={(e) => setResourceType(e.target.value as LectureResourceType)} />
-                <Input label="Label" placeholder="e.g. Week 1 Exercise Files"
-                  value={resourceLabel} onChange={(e) => setResourceLabel(e.target.value)} />
-              </div>
-
-              {resourceType === "github" || resourceType === "link" ? (
-                <Input label="URL" placeholder="https://…"
-                  value={resourceUrl} onChange={(e) => setResourceUrl(e.target.value)} />
-              ) : (
-                <CloudinaryUploader
-                  type={resourceType === "video" ? "video" : "document"}
-                  folder="resources"
-                  label="File"
-                  currentUrl={resourceUrl || undefined}
-                  onSuccess={(result) => setResourceUrl(result.secureUrl)} />
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={lecture ? "Edit Lecture" : "Add Lecture"}
+      size="2xl"
+      className="max-h-[92vh] overflow-hidden"
+    >
+      <div className="flex h-[min(720px,calc(100vh-9rem))] flex-col">
+        <nav className="flex flex-shrink-0 gap-1 overflow-x-auto border-b border-surface-100" aria-label="Lecture editor sections">
+          {([
+            { id: "content", label: "Content", icon: FileText },
+            { id: "media", label: "Media", icon: Video },
+            { id: "resources", label: "Resources", icon: Archive },
+            { id: "access", label: "Access & status", icon: SlidersHorizontal },
+          ] as const).map(({ id, label, icon: TabIcon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setActiveTab(id)}
+              className={cn(
+                "flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition-colors",
+                activeTab === id
+                  ? "border-brand-500 text-brand-600"
+                  : "border-transparent text-gray-400 hover:text-gray-700",
               )}
+            >
+              <TabIcon size={15} /> {label}
+              {id === "resources" && resources.length > 0 && (
+                <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] text-brand-600">{resources.length}</span>
+              )}
+            </button>
+          ))}
+        </nav>
 
-              <Button size="sm" variant="secondary" leftIcon={<Plus size={13} />}
-                onClick={handleAddResource} loading={addingResource}
-                disabled={!resourceLabel.trim() || !resourceUrl}>
-                Add resource
-              </Button>
-            </div>
-          </div>
-        )}
+        <div className="min-h-0 flex-1 overflow-y-auto py-5 pr-2">
+          {activeTab === "content" && (
+            <div className="space-y-5">
+              <Input label="Lecture Title" value={title}
+                onChange={(e) => { setTitle(e.target.value); setTitleError(""); }}
+                placeholder="e.g. Introduction and setup" error={titleError} required autoFocus />
 
-        <div className="flex items-center gap-6 pt-1">
-          <label className="flex items-center gap-2.5 cursor-pointer">
-            <div onClick={() => setIsFree(!isFree)}
-              className={cn("flex h-5 w-5 items-center justify-center rounded border-2 transition-all",
-                isFree ? "bg-brand-500 border-brand-500" : "border-surface-300")}>
-              {isFree && <svg width="10" height="8" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              <div>
+                <label className="form-label">Learning content</label>
+                <textarea
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  rows={15}
+                  placeholder="Add the lesson explanation, examples, activities and success criteria…"
+                  className="form-input resize-y font-mono text-sm leading-relaxed"
+                />
+                <p className="form-hint">Use blank lines to separate sections. This content appears in the student lesson view.</p>
+              </div>
+
+              <div>
+                <label className="form-label">Estimated learning time</label>
+                <div className="relative max-w-[240px]">
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={videoDuration ? Math.round(videoDuration / 60) : ""}
+                    onChange={(event) => setVideoDuration(Number(event.target.value) * 60)}
+                    placeholder="e.g. 45"
+                    className="form-input pr-16"
+                  />
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">minutes</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <span className="text-sm font-medium text-gray-700">Free preview</span>
-              <p className="text-xs text-gray-400">Visible before purchase</p>
+          )}
+
+          {activeTab === "media" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">Lecture video</h3>
+                <p className="mt-1 text-xs text-gray-400">Upload or replace the primary video for this lesson.</p>
+              </div>
+              <CloudinaryUploader type="video" folder="lectures" label="Video file"
+                currentUrl={videoUrl || undefined}
+                onSuccess={(result) => {
+                  setVideoUrl(result.secureUrl);
+                  setVideoPublicId(result.publicId);
+                  if (result.duration) setVideoDuration(Math.round(result.duration));
+                  if (result.thumbnailUrl) setThumbnailUrl(result.thumbnailUrl);
+                }} />
             </div>
-          </label>
-          <label className="flex items-center gap-2.5 cursor-pointer">
-            <div onClick={() => setIsPublished(!isPublished)}
-              className={cn("flex h-5 w-5 items-center justify-center rounded border-2 transition-all",
-                isPublished ? "bg-brand-500 border-brand-500" : "border-surface-300")}>
-              {isPublished && <svg width="10" height="8" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+          )}
+
+          {activeTab === "resources" && (
+            <div className="space-y-4">
+              {!lecture?.id ? (
+                <div className="rounded-2xl border border-dashed border-surface-200 bg-surface-50 p-8 text-center">
+                  <Archive size={24} className="mx-auto mb-3 text-gray-300" />
+                  <p className="text-sm font-semibold text-gray-700">Save the lecture first</p>
+                  <p className="mt-1 text-xs text-gray-400">Resources can be attached after the lecture has been created.</p>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">Lesson resources</h3>
+                    <p className="mt-1 text-xs text-gray-400">Attach downloads, repositories, useful links or supporting videos.</p>
+                  </div>
+
+                  {loadingResources ? (
+                    <p className="text-xs text-gray-400">Loading resources…</p>
+                  ) : resources.length === 0 ? (
+                    <p className="rounded-xl bg-surface-50 p-4 text-xs text-gray-400">No resources added yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {resources.map((r) => (
+                        <div key={r.id}
+                          className="flex items-center gap-2.5 rounded-xl border border-surface-200 px-3 py-2.5">
+                          <span className="flex-shrink-0 text-gray-400">{RESOURCE_TYPE_ICONS[r.type]}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">{r.label}</p>
+                            <p className="text-xs text-gray-400 truncate">{r.url}</p>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteResource(r.id)}
+                            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors"
+                            aria-label="Delete resource">
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="space-y-3 rounded-xl border border-dashed border-surface-200 p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Add a resource</p>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <Select label="Type" value={resourceType} options={RESOURCE_TYPE_OPTIONS}
+                        onChange={(e) => setResourceType(e.target.value as LectureResourceType)} />
+                      <Input label="Label" placeholder="e.g. Week 1 Exercise Files"
+                        value={resourceLabel} onChange={(e) => setResourceLabel(e.target.value)} />
+                    </div>
+
+                    {resourceType === "github" || resourceType === "link" ? (
+                      <Input label="URL" placeholder="https://…"
+                        value={resourceUrl} onChange={(e) => setResourceUrl(e.target.value)} />
+                    ) : (
+                      <CloudinaryUploader
+                        type={resourceType === "video" ? "video" : "document"}
+                        folder="resources"
+                        label="File"
+                        currentUrl={resourceUrl || undefined}
+                        onSuccess={(result) => setResourceUrl(result.secureUrl)} />
+                    )}
+
+                    <Button size="sm" variant="secondary" leftIcon={<Plus size={13} />}
+                      onClick={handleAddResource} loading={addingResource}
+                      disabled={!resourceLabel.trim() || !resourceUrl}>
+                      Add resource
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
-            <div>
-              <span className="text-sm font-medium text-gray-700">Published</span>
-              <p className="text-xs text-gray-400">Visible to enrolled students</p>
+          )}
+
+          {activeTab === "access" && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <button type="button" onClick={() => setIsFree(!isFree)}
+                className={cn(
+                  "flex items-start gap-3 rounded-2xl border p-5 text-left transition-colors",
+                  isFree ? "border-brand-300 bg-brand-50" : "border-surface-200 hover:border-brand-200",
+                )}>
+                <div className={cn("mt-0.5 flex h-5 w-5 items-center justify-center rounded border-2", isFree ? "border-brand-500 bg-brand-500" : "border-surface-300")}>
+                  {isFree && <svg width="10" height="8" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </div>
+                <div><span className="text-sm font-semibold text-gray-800">Free preview</span><p className="mt-1 text-xs leading-relaxed text-gray-400">Make this lesson available before a student purchases the course.</p></div>
+              </button>
+              <button type="button" onClick={() => setIsPublished(!isPublished)}
+                className={cn(
+                  "flex items-start gap-3 rounded-2xl border p-5 text-left transition-colors",
+                  isPublished ? "border-emerald-300 bg-emerald-50" : "border-surface-200 hover:border-emerald-200",
+                )}>
+                <div className={cn("mt-0.5 flex h-5 w-5 items-center justify-center rounded border-2", isPublished ? "border-emerald-500 bg-emerald-500" : "border-surface-300")}>
+                  {isPublished && <svg width="10" height="8" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </div>
+                <div><span className="text-sm font-semibold text-gray-800">Published</span><p className="mt-1 text-xs leading-relaxed text-gray-400">Show this lesson to students who are enrolled in the course.</p></div>
+              </button>
             </div>
-          </label>
+          )}
         </div>
 
-        <div className="flex justify-end gap-3 pt-2 border-t border-surface-100">
+        <div className="flex flex-shrink-0 justify-end gap-3 border-t border-surface-100 pt-4">
           <Button variant="ghost" onClick={onClose} disabled={saving}>Cancel</Button>
           <Button onClick={handleSave} loading={saving} disabled={!title.trim()}>
             {lecture ? "Save Changes" : "Add Lecture"}
@@ -541,6 +634,7 @@ interface SectionModalProps {
 
 function SectionModal({ open, onClose, onSave, section, format }: SectionModalProps) {
   const [title,         setTitle]         = useState(section?.title ?? "");
+  const [description,   setDescription]   = useState(section?.description ?? "");
   const [scheduledStart, setScheduledStart] = useState(section?.scheduledStart?.slice(0, 5) ?? "");
   const [scheduledEnd,   setScheduledEnd]   = useState(section?.scheduledEnd?.slice(0, 5)   ?? "");
   const [saving,        setSaving]        = useState(false);
@@ -552,6 +646,7 @@ function SectionModal({ open, onClose, onSave, section, format }: SectionModalPr
     await onSave({
       id: section?.id,
       title: title.trim(),
+      description: description.trim() || undefined,
       scheduledStart: scheduledStart || undefined,
       scheduledEnd:   scheduledEnd   || undefined,
     });
@@ -565,6 +660,17 @@ function SectionModal({ open, onClose, onSave, section, format }: SectionModalPr
           onChange={(e) => { setTitle(e.target.value); setTitleError(""); }}
           placeholder="e.g. Introduction to TypeScript" error={titleError} required autoFocus
           onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }} />
+
+        <div>
+          <label className="form-label">Module overview</label>
+          <textarea
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            rows={3}
+            placeholder="Summarise the module goals and learning timeline…"
+            className="form-input resize-y"
+          />
+        </div>
 
         {(format === "in_person" || format === "hybrid") && (
           <div className="rounded-xl border border-surface-200 bg-surface-50 p-4 space-y-3">
