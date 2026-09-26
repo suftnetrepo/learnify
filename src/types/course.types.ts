@@ -112,6 +112,8 @@ export interface CreateCoursePayload {
   categoryId?:      string;
   level?:           CourseLevel;
   language?:        string;
+  handoutUrl?:      string;
+  handoutName?:     string;
 }
 
 export type UpdateCoursePayload = Partial<CreateCoursePayload>;

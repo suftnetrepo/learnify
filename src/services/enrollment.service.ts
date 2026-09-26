@@ -162,7 +162,12 @@ export class EnrollmentService {
         watchedSeconds: lectureProgress.watchedSeconds,
       })
       .from(lectureProgress)
-      .where(eq(lectureProgress.userId, studentId));
+      .innerJoin(lectures, eq(lectureProgress.lectureId, lectures.id))
+      .innerJoin(courseSections, eq(lectures.sectionId, courseSections.id))
+      .where(and(
+        eq(lectureProgress.userId, studentId),
+        eq(courseSections.courseId, courseId)
+      ));
   }
 
   /**
@@ -189,7 +194,7 @@ export class EnrollmentService {
    */
   static async getDashboardData(studentId: string) {
     const { enrollments, courses, categories, purchases } = await import("@/db/schema");
-    const { eq, and, desc, count, isNull } = await import("drizzle-orm");
+    const { eq, and, desc, count } = await import("drizzle-orm");
 
     const [enrolled, [{ totalSpent }], [{ totalCourses }]] = await Promise.all([
       db.select({
@@ -199,6 +204,8 @@ export class EnrollmentService {
         courseSlug:      courses.slug,
         courseThumbnail: courses.thumbnailUrl,
         courseFormat:    courses.format,
+        handoutUrl:      courses.handoutUrl,
+        handoutName:     courses.handoutName,
         totalDuration:   courses.totalDuration,
         categoryName:    categories.name,
         progress:        enrollments.progress,

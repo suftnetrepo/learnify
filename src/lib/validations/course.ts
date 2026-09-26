@@ -19,6 +19,8 @@ export const createCourseSchema = z.object({
   language: z.string().max(50).default("English"),
   requirements: z.array(z.string()).optional(),
   whatYouLearn: z.array(z.string()).optional(),
+  handoutUrl: z.union([z.string().url(), z.literal("")]).optional(),
+  handoutName: z.string().max(255).optional(),
 });
 
 export const updateCourseSchema = createCourseSchema.partial().extend({

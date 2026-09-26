@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { Upload, X, CheckCircle2, Loader2, Film, Image as ImageIcon, FileText } from "lucide-react";
+import { X, CheckCircle2, Loader2, Film, Image as ImageIcon, FileText } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +15,7 @@ interface UploadResult {
   bytes:       number;
   format:      string;
   thumbnailUrl?: string;
+  originalFilename?: string;
 }
 
 interface CloudinaryUploaderProps {
@@ -95,6 +96,7 @@ export function CloudinaryUploader({
         bytes:      uploadResult.bytes as number,
         format:     uploadResult.format as string,
         duration:   uploadResult.duration as number | undefined,
+        originalFilename: uploadResult.original_filename as string | undefined,
         thumbnailUrl: type === "video"
           ? (uploadResult.secure_url as string).replace(/\.[^/.]+$/, ".jpg")
           : undefined,

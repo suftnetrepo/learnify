@@ -5,7 +5,6 @@ import {
   text,
   decimal,
   integer,
-  boolean,
   timestamp,
   index,
 } from "drizzle-orm/pg-core";
@@ -55,6 +54,8 @@ export const courses = pgTable(
     status: courseStatusEnum("status").default("draft").notNull(),
     thumbnailUrl: text("thumbnail_url"),
     previewVideoUrl: text("preview_video_url"),
+    handoutUrl: text("handout_url"),
+    handoutName: varchar("handout_name", { length: 255 }),
     // Metadata
     totalDuration: integer("total_duration"),         // minutes
     totalLectures: integer("total_lectures").default(0),

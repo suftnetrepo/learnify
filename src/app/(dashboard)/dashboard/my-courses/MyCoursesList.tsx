@@ -6,7 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   BookOpen, Trophy, Award, PlayCircle, Clock, Calendar,
-  ExternalLink, MapPin, Video, Info,
+  ExternalLink, MapPin, Video, Info, Download,
 } from "lucide-react";
 import { CourseDetailsDrawer } from "./CourseDetailsDrawer";
 import type { SessionService } from "@/services/session.service";
@@ -20,6 +20,8 @@ export interface EnrolledCourse {
   courseThumbnail: string | null;
   categoryName:    string | null;
   courseFormat:    string | null;
+  handoutUrl:      string | null;
+  handoutName:     string | null;
   progress:        string | number;
   enrolledAt:      Date;
   completedAt:     Date | null;
@@ -245,6 +247,19 @@ export function MyCoursesList({ enrolled, allSessions, now }: Props) {
                     <PlayCircle size={15} />
                     {progress > 0 ? "Continue learning" : "Start learning"}
                   </Link>
+                  {e.handoutUrl && (
+                    <a
+                      href={e.handoutUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download={e.handoutName || undefined}
+                      className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-surface-200 text-gray-400 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600"
+                      title={`Download ${e.handoutName || "course handout"}`}
+                      aria-label={`Download ${e.handoutName || "course handout"}`}
+                    >
+                      <Download size={16} />
+                    </a>
+                  )}
                   <button
                     onClick={() => setSelected({ enrollment: e, session: getCourseSession(e.courseId, allSessions, now) })}
                     className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-surface-200 text-gray-400 hover:border-brand-300 hover:text-brand-500 hover:bg-brand-50 transition-colors"

@@ -27,6 +27,8 @@ interface CourseEnrollment {
   courseThumbnail: string | null;
   categoryName:    string | null;
   courseFormat:    string | null;
+  handoutUrl:      string | null;
+  handoutName:     string | null;
   progress:        number;
   enrolledAt:      Date;
   completedAt:     Date | null;

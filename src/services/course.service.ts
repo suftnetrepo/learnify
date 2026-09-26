@@ -539,6 +539,8 @@ export class CourseService {
     if (payload.categoryId       !== undefined) updateData.categoryId       = payload.categoryId;
     if (payload.level            !== undefined) updateData.level            = payload.level;
     if (payload.language         !== undefined) updateData.language         = payload.language;
+    if (payload.handoutUrl       !== undefined) updateData.handoutUrl       = payload.handoutUrl || null;
+    if (payload.handoutName      !== undefined) updateData.handoutName      = payload.handoutName || null;
 
     const [updated] = await db
       .update(courses)

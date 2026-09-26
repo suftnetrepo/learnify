@@ -66,6 +66,8 @@ export default async function EditCoursePage({ params }: Props) {
               categoryId:       course.categoryId ?? undefined,
               level:            course.level ?? undefined,
               language:         course.language ?? undefined,
+              handoutUrl:       course.handoutUrl ?? undefined,
+              handoutName:      course.handoutName ?? undefined,
             }}
           />
         }

@@ -10,8 +10,10 @@ import { useToast } from "@/components/ui/Toast";
 import {
   BookOpen, DollarSign, Tag, Globe, MapPin,
   Eye, Archive, FileEdit, CheckCircle2, Info,
+  FileText, Copy, ExternalLink, Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CloudinaryUploader } from "@/components/course/CloudinaryUploader";
 
 interface Category { id: string; name: string }
 
@@ -29,6 +31,8 @@ interface CourseFormProps {
     categoryId?:       string;
     level?:            string;
     language?:         string;
+    handoutUrl?:       string;
+    handoutName?:      string;
   };
   mode: "create" | "edit";
   /** Hide the publication-status picker — for manager-tutors, who can edit
@@ -86,7 +90,7 @@ function SectionCard({ icon, title, sub, children }: {
 export function CourseForm({ categories, initialData, mode, hidePublish, hideStatus }: CourseFormProps) {
   const showPublishSection = !(hidePublish || hideStatus);
   const router = useRouter();
-  const { success } = useToast();
+  const { success, error: showError } = useToast();
   const { save, loading, error } = useCourseForm(initialData?.id);
 
   const [format,           setFormat]           = useState(initialData?.format ?? "online");
@@ -94,6 +98,8 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
   const [description,      setDescription]      = useState(initialData?.description ?? "");
   const [shortDescription, setShortDescription] = useState(initialData?.shortDescription ?? "");
   const [fieldErrors,      setFieldErrors]      = useState<Record<string, string>>({});
+  const [handoutUrl,       setHandoutUrl]       = useState(initialData?.handoutUrl ?? "");
+  const [handoutName,      setHandoutName]      = useState(initialData?.handoutName ?? "");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -115,6 +121,8 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
       categoryId:  (fd.get("categoryId") as string) || undefined,
       level:       (fd.get("level") as "beginner" | "intermediate" | "advanced") || undefined,
       language:    fd.get("language") as string,
+      handoutUrl,
+      handoutName,
     });
 
     if (res && mode === "edit") {
@@ -251,6 +259,78 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
         <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs text-amber-700">
           Publishing is handled by the platform admin — submit this course for approval from the banner above once it&apos;s ready.
         </div>
+      )}
+
+      {mode === "edit" && (
+        <SectionCard
+          icon={<FileText size={16} />}
+          title="Course Handout"
+          sub="Upload the complete course book or handout for instructors to access and share."
+        >
+          {handoutUrl ? (
+            <div className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white">
+              <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                  <FileText size={22} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-bold text-gray-900">{handoutName || "Course handout"}</p>
+                    <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">Ready</span>
+                  </div>
+                  <p className="mt-1 truncate text-xs text-gray-400">{handoutUrl}</p>
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(handoutUrl);
+                      success("Handout link copied");
+                    }}
+                    className="flex h-9 items-center gap-1.5 rounded-xl border border-surface-200 bg-white px-3 text-xs font-semibold text-gray-600 transition hover:border-brand-200 hover:text-brand-600"
+                  >
+                    <Copy size={13} /> Copy link
+                  </button>
+                  <a href={handoutUrl} target="_blank" rel="noopener noreferrer" className="flex h-9 items-center gap-1.5 rounded-xl border border-surface-200 bg-white px-3 text-xs font-semibold text-gray-600 transition hover:border-brand-200 hover:text-brand-600">
+                    <ExternalLink size={13} /> Open
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => { setHandoutUrl(""); setHandoutName(""); }}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-white text-red-400 transition hover:bg-red-50 hover:text-red-600"
+                    title="Remove handout"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+              <div className="border-t border-emerald-100 px-5 py-3 text-xs text-emerald-700">
+                Save changes after replacing or removing the handout.
+              </div>
+            </div>
+          ) : (
+            <div>
+              <CloudinaryUploader
+                type="document"
+                folder="resources"
+                label="Full course handout"
+                accept="application/pdf,.doc,.docx,.ppt,.pptx"
+                maxSizeMb={100}
+                onSuccess={(result) => {
+                  setHandoutUrl(result.secureUrl);
+                  setHandoutName(result.originalFilename
+                    ? `${result.originalFilename}.${result.format}`
+                    : `Course handout.${result.format}`);
+                  success("Handout uploaded", "Save changes to attach it to this course.");
+                }}
+                onError={(message) => showError("Upload failed", message)}
+              />
+              <p className="mt-3 text-xs leading-5 text-gray-400">
+                Accepted formats: PDF, DOC, DOCX, PPT and PPTX. The secure link becomes available immediately after upload.
+              </p>
+            </div>
+          )}
+        </SectionCard>
       )}
 
       {/* Actions */}
