@@ -19,10 +19,14 @@ const messageSchema = z.object({
   message: z.string().trim().min(2).max(10_000),
 });
 
-async function requireAdmin() {
+async function requireSessionManager(sessionId: string) {
   const session = await auth();
   if (!session?.user) return { response: unauthorized() };
-  if (session.user.role !== "admin") return { response: forbidden() };
+  if (session.user.role === "admin") return { session };
+  if (session.user.role !== "tutor") return { response: forbidden() };
+  if (!(await SessionService.tutorCanManageSession(session.user.id, sessionId))) {
+    return { response: forbidden("You are not assigned to this session") };
+  }
   return { session };
 }
 
@@ -30,11 +34,11 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const access = await requireAdmin();
+  const { id } = await params;
+  const access = await requireSessionManager(id);
   if ("response" in access) return access.response;
 
   try {
-    const { id } = await params;
     const result = await SessionService.getCandidates(id);
     if (!result) return notFound("Session");
     return successResponse(result);
@@ -48,7 +52,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const access = await requireAdmin();
+  const { id } = await params;
+  const access = await requireSessionManager(id);
   if ("response" in access) return access.response;
 
   try {
@@ -57,7 +62,6 @@ export async function POST(
       return validationError(parsed.error.flatten().fieldErrors as Record<string, string[]>);
     }
 
-    const { id } = await params;
     const result = await SessionService.getCandidates(id);
     if (!result) return notFound("Session");
 

@@ -356,6 +356,40 @@ export class SessionService {
     return { session, candidates };
   }
 
+  static async tutorCanManageSession(tutorId: string, sessionId: string): Promise<boolean> {
+    const { tutorAssignments } = await import("@/db/schema");
+    const [assignment] = await db
+      .select({ id: tutorAssignments.id })
+      .from(tutorAssignments)
+      .innerJoin(courseSessions, eq(tutorAssignments.courseId, courseSessions.courseId))
+      .where(and(
+        eq(tutorAssignments.tutorId, tutorId),
+        eq(tutorAssignments.status, "active"),
+        eq(courseSessions.id, sessionId)
+      ))
+      .limit(1);
+    return Boolean(assignment);
+  }
+
+  static async getInstructorJoinLink(sessionId: string, userId: string, isAdmin = false): Promise<
+    | null
+    | { allowed: false; message: string }
+    | { allowed: true; url: string }
+  > {
+    const session = await SessionService.findById(sessionId);
+    if (!session) return null;
+    if (!isAdmin && !(await SessionService.tutorCanManageSession(userId, sessionId))) {
+      return { allowed: false, message: "You are not assigned to this session" };
+    }
+    if (!session.conferenceUrl) return { allowed: false, message: "This session has no online meeting link" };
+
+    const now = Date.now();
+    const opensAt = session.startDatetime.getTime() - 20 * 60 * 1000;
+    if (now < opensAt) return { allowed: false, message: "The join link opens 20 minutes before the session starts" };
+    if (now > session.endDatetime.getTime()) return { allowed: false, message: "This session has ended" };
+    return { allowed: true, url: session.conferenceUrl };
+  }
+
   /** Get a student's enrolled session for a course. */
   static async getStudentSession(studentId: string, courseId: string): Promise<SessionWithStats | null> {
     const [enrollment] = await db
@@ -427,7 +461,12 @@ export class SessionService {
         enrolledCount:    courseSessions.enrolledCount,
         status:           courseSessions.status,
         conferencePlatform: courseSessions.conferencePlatform,
-        conferenceUrl:    courseSessions.conferenceUrl,
+        conferenceUrl:    sql<string | null>`CASE
+          WHEN ${courseSessions.startDatetime} <= NOW() + INTERVAL '20 minutes'
+           AND ${courseSessions.endDatetime} >= NOW()
+          THEN ${courseSessions.conferenceUrl}
+          ELSE NULL
+        END`,
         venueAddress:     courseSessions.venueAddress,
         venueCity:        courseSessions.venueCity,
         courseTitle:      courses.title,

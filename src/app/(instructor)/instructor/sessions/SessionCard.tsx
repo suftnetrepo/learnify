@@ -1,8 +1,11 @@
 "use client";
 
-import { Calendar, Clock, MapPin, Video, Users, Copy, Mail } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Calendar, Clock, MapPin, Video, Users, Copy, Mail, LockKeyhole } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { InstructorSession } from "@/services/session.service";
+import { CandidateEmailPanel } from "@/components/sessions/CandidateEmailPanel";
+import { useToast } from "@/components/ui/Toast";
 
 function formatSessionDate(d: Date | string) {
   const now = new Date();
@@ -18,8 +21,12 @@ function formatTime(start: Date | string, end: Date | string) {
 }
 
 export function SessionCard({ s, variant }: { s: InstructorSession; variant: "live" | "upcoming" | "past" }) {
+  const { success, error } = useToast();
+  const [now, setNow] = useState(() => Date.now());
+  const [showCandidates, setShowCandidates] = useState(false);
+  const [opening, setOpening] = useState(false);
   const isInPerson = !!s.venueAddress;
-  const isOnline   = !!s.conferenceUrl;
+  const isOnline   = !!s.conferencePlatform;
   const mapUrl     = s.venueAddress
     ? `https://maps.google.com/?q=${encodeURIComponent(`${s.venueAddress} ${s.venueCity ?? ""}`)}`
     : null;
@@ -27,10 +34,47 @@ export function SessionCard({ s, variant }: { s: InstructorSession; variant: "li
   const enrolled  = s.enrolledCount ?? 0;
   const capacity  = s.capacity ?? 0;
   const fillPct   = capacity > 0 ? Math.round((enrolled / capacity) * 100) : 0;
+  const opensAt = new Date(s.startDatetime).getTime() - 20 * 60 * 1000;
+  const endsAt = new Date(s.endDatetime).getTime();
+  const canJoin = isOnline && now >= opensAt && now <= endsAt;
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  async function getJoinUrl(): Promise<string | null> {
+    try {
+      const response = await fetch(`/api/sessions/${s.id}/join`);
+      const json = await response.json();
+      if (!response.ok || !json.success) throw new Error(json.message ?? "Join link unavailable");
+      return json.data.url;
+    } catch (reason) {
+      error("Unable to join", reason instanceof Error ? reason.message : "Please try again");
+      return null;
+    }
+  }
+
+  async function joinSession() {
+    const popup = window.open("about:blank", "_blank");
+    if (popup) popup.opener = null;
+    setOpening(true);
+    const url = await getJoinUrl();
+    setOpening(false);
+    if (url && popup) popup.location.href = url;
+    else popup?.close();
+  }
+
+  async function copyLink() {
+    const url = await getJoinUrl();
+    if (!url) return;
+    await navigator.clipboard.writeText(url);
+    success("Meeting link copied");
+  }
 
   return (
     <div className={cn(
-      "rounded-2xl border p-5 transition-all",
+      "flex h-full flex-col rounded-2xl border p-5 transition-all",
       variant === "live"
         ? "border-red-200 bg-red-50/50"
         : "border-surface-100 bg-white hover:border-brand-200 hover:shadow-sm"
@@ -83,7 +127,7 @@ export function SessionCard({ s, variant }: { s: InstructorSession; variant: "li
       </div>
 
       {/* Footer */}
-      <div className="space-y-3">
+      <div className="mt-auto space-y-3">
         {/* Attendee count + bar */}
         <div className="flex items-center gap-2">
           <Users size={13} className="text-gray-400 flex-shrink-0" />
@@ -100,22 +144,24 @@ export function SessionCard({ s, variant }: { s: InstructorSession; variant: "li
 
         {/* Action buttons */}
         <div className="flex flex-wrap gap-2">
-          {isOnline && s.conferenceUrl && (
+          {isOnline && (
             <>
               <button
-                onClick={() => navigator.clipboard.writeText(s.conferenceUrl!)}
-                className="flex items-center gap-1.5 rounded-xl border border-surface-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-surface-50 transition-colors"
+                onClick={copyLink}
+                disabled={!canJoin}
+                className="flex items-center gap-1.5 rounded-xl border border-surface-200 px-3 py-2 text-xs font-medium text-gray-600 transition-colors hover:bg-surface-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Copy size={12} /> Copy link
               </button>
-              <a
-                href={s.conferenceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-xl bg-brand-500 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-600 transition-colors"
+              <button
+                onClick={joinSession}
+                disabled={!canJoin || opening}
+                title={!canJoin && now < opensAt ? "Available 20 minutes before the session" : undefined}
+                className="flex items-center gap-1.5 rounded-xl bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-surface-200 disabled:text-gray-400"
               >
-                <Video size={12} /> Join session
-              </a>
+                {canJoin ? <Video size={12} /> : <LockKeyhole size={12} />}
+                {opening ? "Opening…" : canJoin ? "Join session" : variant === "past" ? "Session ended" : "Opens 20 min before"}
+              </button>
             </>
           )}
           {isInPerson && (
@@ -130,13 +176,14 @@ export function SessionCard({ s, variant }: { s: InstructorSession; variant: "li
                   <MapPin size={12} /> Directions
                 </a>
               )}
-              <button className="flex items-center gap-1.5 rounded-xl border border-surface-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-surface-50 transition-colors">
-                <Mail size={12} /> Email students
-              </button>
             </>
           )}
+          <button onClick={() => setShowCandidates(true)} className="flex items-center gap-1.5 rounded-xl border border-surface-200 px-3 py-2 text-xs font-medium text-gray-600 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600 transition-colors">
+            <Mail size={12} /> Email students
+          </button>
         </div>
       </div>
+      {showCandidates && <CandidateEmailPanel sessionId={s.id} onClose={() => setShowCandidates(false)} />}
     </div>
   );
 }

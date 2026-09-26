@@ -49,7 +49,7 @@ export default async function InstructorSessionsPage() {
               <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
               <h2 className="font-display text-base font-bold text-gray-900">Happening now</h2>
             </div>
-            <div className="space-y-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {live.map((s) => <SessionCard key={s.id} s={s} variant="live" />)}
             </div>
           </section>
@@ -58,7 +58,7 @@ export default async function InstructorSessionsPage() {
         {upcoming.length > 0 && (
           <section>
             <h2 className="font-display text-base font-bold text-gray-900 mb-3">Upcoming</h2>
-            <div className="space-y-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {upcoming.map((s) => <SessionCard key={s.id} s={s} variant="upcoming" />)}
             </div>
           </section>
@@ -67,8 +67,8 @@ export default async function InstructorSessionsPage() {
         {past.length > 0 && (
           <section>
             <h2 className="font-display text-base font-bold text-gray-900 mb-3">Past sessions</h2>
-            <div className="space-y-3 opacity-60">
-              {past.slice(0, 5).map((s) => <SessionCard key={s.id} s={s} variant="past" />)}
+            <div className="grid gap-4 opacity-60 md:grid-cols-2 xl:grid-cols-3">
+              {past.map((s) => <SessionCard key={s.id} s={s} variant="past" />)}
             </div>
           </section>
         )}
