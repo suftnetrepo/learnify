@@ -9,13 +9,13 @@ import { Footer } from "@/components/layout/Footer";
 import { CheckoutButton } from "@/app/checkout/[courseId]/CheckoutButton";
 import {
   BookOpen, Clock, BarChart, Globe, Users, Star,
-  CheckCircle2, Lock, PlayCircle, Award, MapPin,
+  CheckCircle2, PlayCircle, Award, MapPin,
   Video, Shield, Zap, ChevronRight,
 } from "lucide-react";
-import { formatCurrency, formatDuration } from "@/lib/utils";
-import { PreviewModal } from "./PreviewModal";
+import { formatCurrency } from "@/lib/utils";
 import { CourseDetailTabs } from "./CourseDetailTabs";
 import { CourseService } from "@/services";
+import { SessionService } from "@/services/session.service";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -44,9 +44,15 @@ export default async function CourseDetailPage({ params }: Props) {
   const result = await CourseService.getDetailBySlug(slug);
   if (!result) notFound();
   const { course, sectionsWithLectures, assignment, reviews } = result;
+  const upcomingSessions = await SessionService.getUpcomingForCourse(course.id);
+  const requiresSession = upcomingSessions.length > 0 || course.format === "in_person" || course.format === "hybrid";
+  const sessionOptions = upcomingSessions.map((item) => ({
+    ...item,
+    startDatetime: item.startDatetime.toISOString(),
+    endDatetime: item.endDatetime.toISOString(),
+  }));
 
   let isEnrolled = false;
-  let enrollmentId = "";
   if (session?.user?.role === "student") {
     const [enrol] = await db
       .select({ id: enrollments.id })
@@ -54,7 +60,6 @@ export default async function CourseDetailPage({ params }: Props) {
       .where(and(eq(enrollments.studentId, session.user.id), eq(enrollments.courseId, course.id)))
       .limit(1);
     isEnrolled   = !!enrol;
-    enrollmentId = enrol?.id ?? "";
   }
 
   const safeParse = (raw: string | null | undefined): string[] => {
@@ -251,7 +256,11 @@ export default async function CourseDetailPage({ params }: Props) {
                 ) : session.user.role !== "student" ? (
                   <p className="text-center text-xs text-gray-400 py-2">Only students can purchase courses.</p>
                 ) : (
-                  <CheckoutButton courseId={course.id} price={Number(course.price)} isFree={Number(course.price) === 0} />
+                  <CheckoutButton
+                    courseId={course.id}
+                    sessions={sessionOptions}
+                    requiresSession={requiresSession}
+                  />
                 )}
 
                 <div className="border-t border-surface-100 pt-4 space-y-2">
@@ -317,8 +326,13 @@ export default async function CourseDetailPage({ params }: Props) {
               className="flex h-11 items-center rounded-xl bg-brand-500 px-6 text-sm font-bold text-white">
               Enrol now
             </Link>
+          ) : session.user.role === "student" && requiresSession ? (
+            <Link href={`/checkout/${course.id}`}
+              className="flex h-11 items-center rounded-xl bg-brand-500 px-6 text-sm font-bold text-white">
+              Choose session
+            </Link>
           ) : session.user.role === "student" ? (
-            <CheckoutButton courseId={course.id} price={Number(course.price)} isFree={Number(course.price) === 0} />
+            <CheckoutButton courseId={course.id} />
           ) : null}
         </div>
       </div>

@@ -49,6 +49,17 @@ export async function POST(req: NextRequest) {
 
     if (!course) return notFound("Course");
 
+    const { SessionService } = await import("@/services/session.service");
+    const upcomingSessions = await SessionService.getUpcomingForCourse(courseId);
+    const requiresSession = upcomingSessions.length > 0 || course.format === "in_person" || course.format === "hybrid";
+    if (requiresSession && !sessionId) {
+      return validationError({ sessionId: [
+        upcomingSessions.length
+          ? "Choose a session before enrolling"
+          : "There are no active sessions available for this course",
+      ] });
+    }
+
     // Check not already enrolled
     const [existingEnrollment] = await db
       .select({ id: enrollments.id })
@@ -62,12 +73,12 @@ export async function POST(req: NextRequest) {
 
     // Validate session if provided
     if (sessionId) {
-      const { SessionService } = await import("@/services/session.service");
       const sess = await SessionService.findById(sessionId);
       if (!sess) return notFound("Session");
       if (sess.courseId !== courseId) return validationError({ sessionId: ["Session does not belong to this course"] });
       if (sess.isFull)  return conflict("This session is full. Please choose another.");
       if (sess.status !== "scheduled") return conflict("This session is no longer available.");
+      if (sess.startDatetime <= new Date()) return conflict("This session has already started. Please choose another.");
     }
 
     // Short-circuit: free courses get instant enrollment without Stripe
@@ -81,7 +92,6 @@ export async function POST(req: NextRequest) {
       // the student is enrolled and sessionId is set on their enrollment.
       if (sessionId) {
         try {
-          const { SessionService } = await import("@/services/session.service");
           await SessionService.reserveSeat(sessionId);
         } catch (seatErr) {
           log.warn("Seat reservation failed for free enrollment", { sessionId, seatErr });

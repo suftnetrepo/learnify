@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import {
-  Plus, Calendar, Clock, Users, MapPin, Video,
-  ChevronDown, ChevronUp, Trash2, Edit2, X, Check,
-  AlertCircle, CheckCircle2, Ban,
+  Plus, Calendar, Clock, MapPin, Video,
+  ChevronDown, ChevronUp, Trash2, X, Check,
+  Ban, Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { cn, formatDate } from "@/lib/utils";
+import { CandidateEmailPanel } from "@/components/sessions/CandidateEmailPanel";
+import { cn } from "@/lib/utils";
 
 interface Session {
   id:                 string;
@@ -42,13 +43,14 @@ const PLATFORM_LABELS: Record<string, string> = {
   webex: "Cisco Webex", other: "Other",
 };
 
-function SessionCard({ s, courseId, onRefresh }: {
-  s: Session; courseId: string; onRefresh: () => void;
+function SessionCard({ s, onRefresh }: {
+  s: Session; onRefresh: () => void;
 }) {
   const { success, error } = useToast();
   const [expanded,  setExpanded]  = useState(false);
   const [deleting,  setDeleting]  = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [showCandidates, setShowCandidates] = useState(false);
 
   const start = new Date(s.startDatetime);
   const end   = new Date(s.endDatetime);
@@ -158,6 +160,11 @@ function SessionCard({ s, courseId, onRefresh }: {
 
         {/* Actions */}
         <div className="flex items-center gap-1 flex-shrink-0">
+          <button onClick={() => setShowCandidates(true)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-brand-50 hover:text-brand-600 transition-colors"
+            title="View and email candidates">
+            <Mail size={14} />
+          </button>
           {s.status === "scheduled" && (
             <button onClick={handleCancel} disabled={cancelling}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
@@ -207,6 +214,7 @@ function SessionCard({ s, courseId, onRefresh }: {
           )}
         </div>
       )}
+      {showCandidates && <CandidateEmailPanel sessionId={s.id} onClose={() => setShowCandidates(false)} />}
     </div>
   );
 }
@@ -395,7 +403,7 @@ export function SessionsManager({ courseId, format, sessions: initial }: Props) 
       ) : (
         <div className="space-y-3">
           {scheduled.map((s) => (
-            <SessionCard key={s.id} s={s} courseId={courseId} onRefresh={refresh} />
+            <SessionCard key={s.id} s={s} onRefresh={refresh} />
           ))}
         </div>
       )}
@@ -406,7 +414,7 @@ export function SessionsManager({ courseId, format, sessions: initial }: Props) 
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Past & Cancelled</p>
           <div className="space-y-3">
             {past.map((s) => (
-              <SessionCard key={s.id} s={s} courseId={courseId} onRefresh={refresh} />
+              <SessionCard key={s.id} s={s} onRefresh={refresh} />
             ))}
           </div>
         </div>

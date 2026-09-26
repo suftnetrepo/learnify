@@ -17,19 +17,18 @@ interface Session {
 
 interface Props {
   courseId:    string;
-  price:       number;
-  isFree?:     boolean;
   sessions?:   Session[];
+  requiresSession?: boolean;
 }
 
-export function CheckoutButton({ courseId, price, isFree = false, sessions = [] }: Props) {
+export function CheckoutButton({ courseId, sessions = [], requiresSession = false }: Props) {
   const { startCheckout, loading, error } = useCheckout();
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
     sessions.length === 1 ? sessions[0].id : null
   );
 
   const hasSessions    = sessions.length > 0;
-  const needsSelection = hasSessions && !selectedSessionId;
+  const needsSelection = requiresSession && !selectedSessionId;
   const selectedFull   = selectedSessionId
     ? sessions.find((s) => s.id === selectedSessionId)?.isFull
     : false;
@@ -41,7 +40,7 @@ export function CheckoutButton({ courseId, price, isFree = false, sessions = [] 
   return (
     <div className="space-y-4">
       {/* Session picker */}
-      {hasSessions && (
+      {requiresSession && (
         <div>
           <p className="text-sm font-semibold text-gray-900 mb-2">Choose a session</p>
           <SessionPicker
@@ -62,6 +61,7 @@ export function CheckoutButton({ courseId, price, isFree = false, sessions = [] 
         leftIcon={<Lock size={15} />}
       >
         {loading          ? "Preparing checkout…" :
+         !hasSessions     ? "No sessions available" :
          needsSelection   ? "Select a session to continue" :
          "Enrol now"}
       </Button>

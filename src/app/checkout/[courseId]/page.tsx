@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { formatCurrency } from "@/lib/utils";
 import { CheckoutButton } from "./CheckoutButton";
@@ -8,7 +8,6 @@ import { BookOpen, Clock, BarChart, Globe, Users, CheckCircle2, ArrowLeft } from
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { SessionPicker } from "@/components/sessions/SessionPicker";
 import { CourseService } from "@/services";
 import { SessionService } from "@/services/session.service";
 import { EnrollmentService } from "@/services/enrollment.service";
@@ -39,7 +38,12 @@ export default async function CheckoutPage({ params }: Props) {
   ]);
 
   const assignment     = assignments[0] ?? null;
-  const isSessionCourse = upcomingSessions.length > 0;
+  const isSessionCourse = upcomingSessions.length > 0 || course.format === "in_person" || course.format === "hybrid";
+  const sessionOptions = upcomingSessions.map((item) => ({
+    ...item,
+    startDatetime: item.startDatetime.toISOString(),
+    endDatetime: item.endDatetime.toISOString(),
+  }));
 
   return (
     <div className="min-h-screen bg-surface-50">
@@ -140,22 +144,6 @@ export default async function CheckoutPage({ params }: Props) {
                 )}
               </div>
 
-              {/* Session picker */}
-              {isSessionCourse && !isEnrolled && session?.user?.role === "student" && (
-                <div>
-                  <p className="text-sm font-semibold text-gray-900 mb-2">Choose a session</p>
-                  <SessionPicker
-                    sessions={upcomingSessions.map((s) => ({
-                      ...s,
-                      startDatetime: s.startDatetime.toISOString(),
-                      endDatetime:   s.endDatetime.toISOString(),
-                    }))}
-                    selectedSessionId={null}
-                    onSelect={() => {}}
-                  />
-                </div>
-              )}
-
               {isEnrolled ? (
                 <div className="space-y-3">
                   <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm font-medium text-emerald-700 text-center">
@@ -181,8 +169,8 @@ export default async function CheckoutPage({ params }: Props) {
               ) : (
                 <CheckoutButton
                   courseId={courseId}
-                  price={Number(course.price)}
-                  isFree={Number(course.price) === 0}
+                  sessions={sessionOptions}
+                  requiresSession={isSessionCourse}
                 />
               )}
 

@@ -1,7 +1,8 @@
 import { db } from "@/db";
-import { courseSessions, courseSessionWaitlist, enrollments, courses } from "@/db/schema";
-import { eq, and, gt, gte, asc, count, sql } from "drizzle-orm";
+import { courseSessions, courseSessionWaitlist, enrollments, courses, users } from "@/db/schema";
+import { eq, and, gt, asc, count, sql, isNull } from "drizzle-orm";
 import { log } from "@/lib/logger";
+import { EmailService } from "@/services/email.service";
 import type { CourseSession, WaitlistEntry } from "@/db/schema";
 
 export interface CreateSessionPayload {
@@ -119,6 +120,8 @@ export class SessionService {
 
   /** Update an existing session. */
   static async update(id: string, payload: UpdateSessionPayload, updatedBy: string): Promise<CourseSession> {
+    const existing = await SessionService.findById(id);
+    if (!existing) throw new Error("Session not found");
     const updateData: Record<string, unknown> = { updatedAt: new Date() };
 
     if (payload.title              !== undefined) updateData.title              = payload.title;
@@ -142,6 +145,9 @@ export class SessionService {
       .returning();
 
     log.info("Session updated", { sessionId: id, by: updatedBy });
+    if (payload.status === "cancelled" && existing.status !== "cancelled") {
+      await SessionService.notifySessionCancellation(updated);
+    }
     return updated;
   }
 
@@ -162,12 +168,7 @@ export class SessionService {
 
   /** Cancel a session — marks it cancelled and all linked enrollments remain but are flagged. */
   static async cancel(id: string, cancelledBy: string): Promise<void> {
-    await db
-      .update(courseSessions)
-      .set({ status: "cancelled", updatedAt: new Date() })
-      .where(eq(courseSessions.id, id));
-
-    log.info("Session cancelled", { sessionId: id, by: cancelledBy });
+    await SessionService.update(id, { status: "cancelled" }, cancelledBy);
   }
 
   /**
@@ -208,6 +209,33 @@ export class SessionService {
         updatedAt:     new Date(),
       })
       .where(eq(courseSessions.id, sessionId));
+
+    const [waiting] = await db
+      .select({
+        waitlistId: courseSessionWaitlist.id,
+        email: users.email,
+        studentName: users.name,
+        sessionTitle: courseSessions.title,
+        courseTitle: courses.title,
+      })
+      .from(courseSessionWaitlist)
+      .innerJoin(users, eq(courseSessionWaitlist.studentId, users.id))
+      .innerJoin(courseSessions, eq(courseSessionWaitlist.sessionId, courseSessions.id))
+      .innerJoin(courses, eq(courseSessions.courseId, courses.id))
+      .where(and(eq(courseSessionWaitlist.sessionId, sessionId), isNull(courseSessionWaitlist.notifiedAt)))
+      .orderBy(asc(courseSessionWaitlist.position))
+      .limit(1);
+
+    if (waiting) {
+      await db.update(courseSessionWaitlist)
+        .set({ notifiedAt: new Date() })
+        .where(eq(courseSessionWaitlist.id, waiting.waitlistId));
+      await EmailService.waitlistSeatAvailable(waiting.email, {
+        studentName: waiting.studentName ?? "there",
+        courseTitle: waiting.courseTitle,
+        sessionTitle: waiting.sessionTitle,
+      });
+    }
   }
 
   // ─── Waitlist ────────────────────────────────────────────────────────────────
@@ -239,7 +267,51 @@ export class SessionService {
       .values({ sessionId, studentId, position: (maxPos ?? 0) + 1 })
       .returning();
 
+    const [details] = await db
+      .select({
+        email: users.email,
+        studentName: users.name,
+        sessionTitle: courseSessions.title,
+        courseTitle: courses.title,
+      })
+      .from(courseSessions)
+      .innerJoin(courses, eq(courseSessions.courseId, courses.id))
+      .innerJoin(users, eq(users.id, studentId))
+      .where(eq(courseSessions.id, sessionId))
+      .limit(1);
+
+    if (details) {
+      await EmailService.waitlistJoined(details.email, {
+        studentName: details.studentName ?? "there",
+        courseTitle: details.courseTitle,
+        sessionTitle: details.sessionTitle,
+        position: entry.position,
+      });
+    }
+
     return entry;
+  }
+
+  private static async notifySessionCancellation(session: CourseSession): Promise<void> {
+    const recipients = await db
+      .select({ email: users.email, studentName: users.name, courseTitle: courses.title })
+      .from(enrollments)
+      .innerJoin(users, eq(enrollments.studentId, users.id))
+      .innerJoin(courses, eq(enrollments.courseId, courses.id))
+      .where(eq(enrollments.sessionId, session.id));
+
+    const startDate = new Intl.DateTimeFormat("en-GB", {
+      dateStyle: "full",
+      timeStyle: "short",
+      timeZone: "Europe/London",
+    }).format(session.startDatetime);
+
+    await Promise.all(recipients.map((recipient) => EmailService.sessionCancelled(recipient.email, {
+      studentName: recipient.studentName ?? "there",
+      courseTitle: recipient.courseTitle,
+      sessionTitle: session.title,
+      startDate,
+    })));
   }
 
   /** Get waitlist for a session ordered by position. */
@@ -249,6 +321,39 @@ export class SessionService {
       .from(courseSessionWaitlist)
       .where(eq(courseSessionWaitlist.sessionId, sessionId))
       .orderBy(asc(courseSessionWaitlist.position));
+  }
+
+  /** Candidate directory for an administrator managing one session. */
+  static async getCandidates(sessionId: string) {
+    const [session] = await db
+      .select({
+        id: courseSessions.id,
+        title: courseSessions.title,
+        capacity: courseSessions.capacity,
+        courseTitle: courses.title,
+      })
+      .from(courseSessions)
+      .innerJoin(courses, eq(courseSessions.courseId, courses.id))
+      .where(eq(courseSessions.id, sessionId))
+      .limit(1);
+
+    if (!session) return null;
+
+    const candidates = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        avatarUrl: users.avatarUrl,
+        enrolledAt: enrollments.enrolledAt,
+        progress: enrollments.progress,
+      })
+      .from(enrollments)
+      .innerJoin(users, eq(enrollments.studentId, users.id))
+      .where(eq(enrollments.sessionId, sessionId))
+      .orderBy(asc(users.name), asc(users.email));
+
+    return { session, candidates };
   }
 
   /** Get a student's enrolled session for a course. */
@@ -300,8 +405,8 @@ export class SessionService {
    * Instructor sessions page — all sessions for a tutor's assigned courses.
    */
   static async getInstructorSessions(tutorId: string) {
-    const { tutorAssignments, courseSessions, courses, enrollments, users } = await import("@/db/schema");
-    const { eq, and, asc, desc, inArray } = await import("drizzle-orm");
+    const { tutorAssignments, courseSessions, courses } = await import("@/db/schema");
+    const { eq, and, asc, inArray } = await import("drizzle-orm");
 
     const assignments = await db
       .select({ courseId: tutorAssignments.courseId })

@@ -1,8 +1,5 @@
-import { Resend } from "resend";
-import { log } from "@/lib/logger";
+import { sendEmail } from "@/lib/email";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM   = process.env.EMAIL_FROM ?? "noreply@learnify.dev";
 const APP    = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -67,18 +64,18 @@ function p(text: string): string {
   return `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151">${text}</p>`;
 }
 
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character] ?? character);
+}
+
 async function send(to: string, subject: string, html: string) {
-  if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === "re_placeholder") {
-    log.warn("Email not sent — RESEND_API_KEY not configured", { to, subject });
-    return;
-  }
-  try {
-    await resend.emails.send({ from: FROM, to, subject, html });
-    log.info("Email sent", { to, subject });
-  } catch (err) {
-    // Non-fatal — log but don't throw
-    log.error("Email send failed", { to, subject, err });
-  }
+  await sendEmail(to, subject, html);
 }
 
 // ─── Public API ────────────────────────────────────────────────────────────────
@@ -386,5 +383,81 @@ export const EmailService = {
       "You've been invited to Learnify"
     );
     await send(to, "You've been invited to Learnify", html);
+  },
+
+  /** Sent after a student joins a full session's waitlist. */
+  async waitlistJoined(to: string, data: {
+    studentName: string;
+    courseTitle: string;
+    sessionTitle: string;
+    position: number;
+  }) {
+    const html = baseTemplate(
+      h1("You're on the waitlist") +
+      p(`Hi ${data.studentName}, we've added you to the waitlist for <strong>${data.courseTitle}</strong>.`) +
+      `<div style="background:#f8f8fc;border:1px solid #e4e4ef;border-radius:10px;padding:16px;margin:16px 0">
+        <p style="font-size:14px;font-weight:600;color:#13131f;margin:0 0 6px">${data.sessionTitle}</p>
+        <p style="font-size:13px;color:#6b7280;margin:0">Current position: <strong>#${data.position}</strong></p>
+      </div>` +
+      p("We'll email you if a seat becomes available."),
+      `Waitlist confirmed for ${data.courseTitle}`
+    );
+    await send(to, `Waitlist confirmed: ${data.courseTitle}`, html);
+  },
+
+  /** Sent to the next waiting student when a seat becomes available. */
+  async waitlistSeatAvailable(to: string, data: {
+    studentName: string;
+    courseTitle: string;
+    sessionTitle: string;
+  }) {
+    const html = baseTemplate(
+      h1("A seat is now available") +
+      p(`Hi ${data.studentName}, a seat has opened for <strong>${data.courseTitle}</strong> — ${data.sessionTitle}.`) +
+      p("Sign in to Learnify to secure it. Availability is not guaranteed until checkout is complete.") +
+      btn("View course", `${APP}/courses`),
+      `A seat is available for ${data.courseTitle}`
+    );
+    await send(to, `Seat available: ${data.courseTitle}`, html);
+  },
+
+  /** Sent to enrolled students when an administrator cancels their session. */
+  async sessionCancelled(to: string, data: {
+    studentName: string;
+    courseTitle: string;
+    sessionTitle: string;
+    startDate: string;
+  }) {
+    const html = baseTemplate(
+      h1("Your course session has been cancelled") +
+      p(`Hi ${data.studentName}, the <strong>${data.sessionTitle}</strong> session for <strong>${data.courseTitle}</strong>, scheduled for ${data.startDate}, has been cancelled.`) +
+      p("Please visit your dashboard for the latest course information. If payment was taken, the support team will contact you about the next steps.") +
+      btn("Go to dashboard", `${APP}/dashboard`),
+      `Session cancelled: ${data.courseTitle}`
+    );
+    await send(to, `Session cancelled: ${data.courseTitle}`, html);
+  },
+
+  /** Administrator-authored message sent privately to session candidates. */
+  async sessionCandidateMessage(to: string, data: {
+    candidateName: string;
+    courseTitle: string;
+    sessionTitle: string;
+    subject: string;
+    message: string;
+  }) {
+    const safeMessage = escapeHtml(data.message).replace(/\r?\n/g, "<br/>");
+    const html = baseTemplate(
+      h1(escapeHtml(data.subject)) +
+      p(`Hi ${escapeHtml(data.candidateName)},`) +
+      `<div style="font-size:15px;line-height:1.7;color:#374151;margin:8px 0 24px">${safeMessage}</div>` +
+      `<div style="background:#f8f8fc;border:1px solid #e4e4ef;border-radius:10px;padding:14px 16px">
+        <p style="margin:0 0 4px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280">Regarding</p>
+        <p style="margin:0;font-size:14px;font-weight:600;color:#13131f">${escapeHtml(data.courseTitle)}</p>
+        <p style="margin:3px 0 0;font-size:13px;color:#6b7280">${escapeHtml(data.sessionTitle)}</p>
+      </div>`,
+      data.subject
+    );
+    await send(to, data.subject, html);
   },
 };

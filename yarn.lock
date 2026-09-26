@@ -1220,11 +1220,6 @@
     color "^5.0.2"
     text-hex "1.0.x"
 
-"@stablelib/base64@^1.0.0":
-  version "1.0.1"
-  resolved "https://registry.npmjs.org/@stablelib/base64/-/base64-1.0.1.tgz"
-  integrity sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==
-
 "@stripe/stripe-js@^9.13.0":
   version "9.13.0"
   resolved "https://registry.npmjs.org/@stripe/stripe-js/-/stripe-js-9.13.0.tgz"
@@ -1232,7 +1227,7 @@
 
 "@studymind/react@github:suftnetrepo/studymind-react":
   version "0.1.0"
-  resolved "git+https://github.com/suftnetrepo/studymind-react.git#da9695dbfb43856ce3b9a23d91e8001516673ab1"
+  resolved "git+ssh://git@github.com/suftnetrepo/studymind-react.git#da9695dbfb43856ce3b9a23d91e8001516673ab1"
 
 "@svta/cml-608@1.0.2":
   version "1.0.2"
@@ -2917,11 +2912,6 @@ fast-levenshtein@^2.0.6:
   resolved "https://registry.npmjs.org/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz"
   integrity sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==
 
-fast-sha256@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.npmjs.org/fast-sha256/-/fast-sha256-1.3.0.tgz"
-  integrity sha512-n11RGP/lrWEFI/bWdygLxhI+pVeo1ZYIVwvvPkW7azl/rOy+F3HYRZ2K5zeE9mmkhQppyv9sQFx0JM9UabnpPQ==
-
 fast-uri@^3.0.1:
   version "3.1.5"
   resolved "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.5.tgz"
@@ -4206,11 +4196,6 @@ possible-typed-array-names@^1.0.0, possible-typed-array-names@^1.1.0:
   resolved "https://registry.npmjs.org/possible-typed-array-names/-/possible-typed-array-names-1.1.0.tgz"
   integrity sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==
 
-postal-mime@2.7.5:
-  version "2.7.5"
-  resolved "https://registry.npmjs.org/postal-mime/-/postal-mime-2.7.5.tgz"
-  integrity sha512-GNEXKvWFQnbgO5NlrGzVa0FmWzBZ24PersAWErttSg1Hjpf0ATxTwS5DOMGaOpTG6bUh5cTr7xi0jAD942wCJA==
-
 postcss-import@^15.1.0:
   version "15.1.0"
   resolved "https://registry.npmjs.org/postcss-import/-/postcss-import-15.1.0.tgz"
@@ -4490,14 +4475,6 @@ require-in-the-middle@^8.0.0:
   dependencies:
     debug "^4.3.5"
     module-details-from-path "^1.0.3"
-
-resend@^6.20.0:
-  version "6.20.0"
-  resolved "https://registry.npmjs.org/resend/-/resend-6.20.0.tgz"
-  integrity sha512-fXDFt7jVMuka6ruS79DzaQFKPyxOAUtoYUGSl3dTUyOnFK9klmUULxADQRzFFtHfHRipYyy62jYcm4cMKqvtjw==
-  dependencies:
-    postal-mime "2.7.5"
-    standardwebhooks "1.0.0"
 
 resolve-from@^4.0.0:
   version "4.0.0"
@@ -4833,14 +4810,6 @@ stacktrace-parser@^0.1.11:
   integrity sha512-WjlahMgHmCJpqzU8bIBy4qtsZdU9lRlcZE3Lvyej6t4tuOuv1vk57OW3MBrj6hXBFx/nNoC9MPMTcr5YA7NQbg==
   dependencies:
     type-fest "^0.7.1"
-
-standardwebhooks@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/standardwebhooks/-/standardwebhooks-1.0.0.tgz"
-  integrity sha512-BbHGOQK9olHPMvQNHWul6MYlrRTAOKn03rOe4A8O3CLWhNf4YHBqq2HJKKC+sfqpxiBY52pNeesD6jIiLDz8jg==
-  dependencies:
-    "@stablelib/base64" "^1.0.0"
-    fast-sha256 "^1.3.0"
 
 stop-iteration-iterator@^1.1.0:
   version "1.1.0"

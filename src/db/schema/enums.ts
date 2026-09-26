@@ -83,3 +83,10 @@ export const conferencePlatformEnum = pgEnum("conference_platform", [
   "webex",
   "other",
 ]);
+
+// ─── Email delivery ──────────────────────────────────────────────────────────
+export const emailQueueStatusEnum = pgEnum("email_queue_status", [
+  "pending",
+  "sent",
+  "failed",
+]);

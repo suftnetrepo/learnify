@@ -5,7 +5,7 @@
 - **Database**: Neon PostgreSQL (serverless-friendly)
 - **Media**: Cloudinary
 - **Payments**: Stripe
-- **Email**: Resend
+- **Email**: Brevo
 
 ---
 
@@ -53,13 +53,14 @@
 
 ---
 
-## 4. Resend
+## 4. Brevo
 
-1. Create account at [resend.com](https://resend.com)
+1. Create an account at [brevo.com](https://brevo.com)
 2. Verify your sending domain
-3. Create API key → `RESEND_API_KEY`
-4. Set `EMAIL_FROM` to a verified sender
+3. Create an API key → `BREVO_API_KEY`
+4. Set `BREVO_FROM_EMAIL` to a verified sender and optionally set `BREVO_FROM_NAME`
 5. Set `ADMIN_EMAIL` for admin alert emails
+6. Generate `CRON_SECRET` and schedule an authenticated GET request to `/api/cron/email` to retry queued email
 
 ---
 
@@ -79,9 +80,11 @@
 | `CLOUDINARY_API_KEY` | Yes | |
 | `CLOUDINARY_API_SECRET` | Yes | |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Yes | Same as CLOUDINARY_CLOUD_NAME |
-| `RESEND_API_KEY` | Yes | |
-| `EMAIL_FROM` | Yes | `noreply@yourdomain.com` |
+| `BREVO_API_KEY` | Yes | Brevo transactional email API key |
+| `BREVO_FROM_EMAIL` | Yes | Verified sender, e.g. `noreply@yourdomain.com` |
+| `BREVO_FROM_NAME` | No | Defaults to `Learnify` |
 | `ADMIN_EMAIL` | Yes | Receives admin alerts |
+| `CRON_SECRET` | Yes | Secures the queued-email retry endpoint |
 
 ---
 
@@ -115,7 +118,8 @@ Or connect GitHub repo in Vercel dashboard. Build settings are auto-detected.
 - [ ] `AUTH_SECRET` is a securely generated 32+ char string
 - [ ] `DATABASE_URL` uses pooler URL (port 6543)
 - [ ] `ADMIN_EMAIL` set and tested
-- [ ] Resend domain verified — test email delivered
+- [ ] Brevo domain verified — test email delivered
+- [ ] Email retry cron configured and authenticated with `CRON_SECRET`
 - [ ] Sitemap submitted to Google Search Console
 - [ ] Forgot password flow tested end-to-end
 - [ ] Mobile checkout tested on real device

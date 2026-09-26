@@ -16,6 +16,7 @@ export * from "./courseSessions";
 // ─── Learning ─────────────────────────────────────────────────────────────────
 export * from "./enrollments";
 export * from "./purchases";
+export * from "./emailQueue";
 export * from "./lectureProgress";
 export * from "./lectureResources";
 export * from "./lectureNotes";
