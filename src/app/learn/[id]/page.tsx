@@ -6,7 +6,8 @@ import { ReviewForm } from "@/app/(dashboard)/dashboard/courses/[id]/ReviewForm"
 import { EnrollmentService } from "@/services/enrollment.service";
 import { loadStudyMindCourseData } from "@/lib/studymind";
 import { StudentStudyMindDrawer } from "@/components/studymind/StudentStudyMindDrawer";
-import { ChatDrawer } from "@/components/messaging/ChatDrawer";
+import { UnifiedMessagingDrawer } from "@/components/messaging/UnifiedMessagingDrawer";
+import { CourseMessagingService } from "@/services";
 
 interface Props {
   params:       Promise<{ id: string }>;
@@ -34,6 +35,8 @@ export default async function LearnPage({ params, searchParams }: Props) {
   const studyMindCourse = process.env.STUDYMIND_API_KEY
     ? await loadStudyMindCourseData(courseId)
     : null;
+  // Live Q&A opens while one of the course's sessions is running (the drawer re-checks while open)
+  const liveSession = await CourseMessagingService.activeSession(courseId, session.user.id);
   const allLectures   = sectionsWithLectures.flatMap((s) => s.lectures);
   const activeLecture = lectureParam
     ? allLectures.find((l) => l.id === lectureParam) ?? allLectures[0] ?? null
@@ -60,10 +63,17 @@ export default async function LearnPage({ params, searchParams }: Props) {
           buttonPositionClassName="bottom-6 right-[344px] lg:right-[384px] xl:right-[424px] 2xl:right-[464px]"
         />
       )}
-      <ChatDrawer
+      <UnifiedMessagingDrawer
         courseId={courseId}
-        courseTitle={course.title}
-        viewerId={session.user.id}
+        courseName={course.title}
+        currentUserId={session.user.id}
+        currentRole={session.user.role}
+        liveSession={liveSession && {
+          id:            liveSession.id,
+          title:         liveSession.title,
+          startDatetime: liveSession.startDatetime.toISOString(),
+          endDatetime:   liveSession.endDatetime.toISOString(),
+        }}
         // Bottom-left of the lecture area, clear of CourseViewer's 220px left nav (sign-out / profile)
         buttonPositionClassName="bottom-6 left-[244px]"
       />

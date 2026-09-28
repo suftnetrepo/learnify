@@ -85,7 +85,9 @@ export function MessagesInbox({ viewerId, viewerRole }: { viewerId: string; view
         <div className="flex-shrink-0 border-b border-surface-100 px-4 py-4">
           <h1 className="font-display text-lg font-bold text-gray-900">Messages</h1>
           <p className="text-xs text-gray-400">
-            {readOnly ? "All student ↔ tutor conversations (read-only)" : "Questions from students on your courses"}
+            {readOnly
+              ? "All private student ↔ tutor conversations (read-only)"
+              : "Private questions from students. Notices and Live Q&A are in each course’s Messages drawer."}
           </p>
           {courses.length > 1 && (
             <select

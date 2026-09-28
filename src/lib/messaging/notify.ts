@@ -9,18 +9,31 @@ type Listener = () => void;
 const g = globalThis as unknown as { __learnifyMessageListeners?: Map<string, Set<Listener>> };
 const listeners: Map<string, Set<Listener>> = (g.__learnifyMessageListeners ??= new Map());
 
-export function onConversationChange(conversationId: string, listener: Listener): () => void {
-  let set = listeners.get(conversationId);
-  if (!set) listeners.set(conversationId, (set = new Set()));
+/** Channel names — one per private conversation, and per course for announcements / live Q&A. */
+export const channels = {
+  conversation:  (conversationId: string) => `conversation:${conversationId}`,
+  announcements: (courseId: string)       => `announcements:${courseId}`,
+  groupChat:     (courseId: string)       => `group:${courseId}`,
+};
+
+export function onChannel(channel: string, listener: Listener): () => void {
+  let set = listeners.get(channel);
+  if (!set) listeners.set(channel, (set = new Set()));
   set.add(listener);
   return () => {
     set!.delete(listener);
-    if (set!.size === 0) listeners.delete(conversationId);
+    if (set!.size === 0) listeners.delete(channel);
   };
 }
 
-export function notifyConversationChange(conversationId: string): void {
-  listeners.get(conversationId)?.forEach((listener: Listener) => {
+export function notifyChannel(channel: string): void {
+  listeners.get(channel)?.forEach((listener: Listener) => {
     try { listener(); } catch { /* a closed stream — it unsubscribes itself */ }
   });
 }
+
+export const onConversationChange = (conversationId: string, listener: Listener) =>
+  onChannel(channels.conversation(conversationId), listener);
+
+export const notifyConversationChange = (conversationId: string) =>
+  notifyChannel(channels.conversation(conversationId));

@@ -8,3 +8,4 @@ export { SessionService } from "./session.service";
 export { ResourceService } from "./resource.service";
 export { NoteService }     from "./note.service";
 export { MessagingService, MessagingError } from "./messaging.service";
+export { CourseMessagingService } from "./course-messaging.service";

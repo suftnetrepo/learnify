@@ -11,6 +11,8 @@ import { CourseForm } from "@/components/shared/CourseForm";
 import { cn } from "@/lib/utils";
 import { loadStudyMindCourseData } from "@/lib/studymind";
 import { StudyMindDrawer } from "@/components/studymind/StudyMindDrawer";
+import { UnifiedMessagingDrawer } from "@/components/messaging/UnifiedMessagingDrawer";
+import { CourseMessagingService } from "@/services";
 import Link from "next/link";
 
 interface Props {
@@ -32,13 +34,14 @@ export default async function InstructorCourseEditPage({ params }: Props) {
   );
   if (!allowed) redirect("/instructor/courses");
 
-  const [course, sectionsWithLectures, assignment, categories] = await Promise.all([
+  const [course, sectionsWithLectures, assignment, categories, liveSession] = await Promise.all([
     CourseService.findById(courseId),
     CourseService.getSectionsWithLectures(courseId),
     session.user.role === "tutor"
       ? TutorService.getActiveAssignment(session.user.id, courseId)
       : Promise.resolve(null),
     CourseService.getCategories(),
+    CourseMessagingService.activeSession(courseId),
   ]);
   if (!course) notFound();
 
@@ -178,6 +181,22 @@ export default async function InstructorCourseEditPage({ params }: Props) {
       />
 
       {studyMindCourse && <StudyMindDrawer courseId={course.id} courseData={studyMindCourse} />}
+
+      {/* Notices (compose here), Live Q&A during sessions, and this course's private threads */}
+      <UnifiedMessagingDrawer
+        courseId={course.id}
+        courseName={course.title}
+        currentUserId={session.user.id}
+        currentRole={session.user.role === "admin" ? "admin" : "tutor"}
+        liveSession={liveSession && {
+          id:            liveSession.id,
+          title:         liveSession.title,
+          startDatetime: liveSession.startDatetime.toISOString(),
+          endDatetime:   liveSession.endDatetime.toISOString(),
+        }}
+        // Clear of the dashboard sidebar (w-60) on desktop
+        buttonPositionClassName="bottom-6 left-6 lg:left-[264px]"
+      />
     </div>
   );
 }
