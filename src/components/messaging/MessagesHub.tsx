@@ -151,9 +151,9 @@ function ListHeader({ title, hint, action }: { title: string; hint: string; acti
   );
 }
 
-function ListRow({ title, subtitle, preview, time, unread, selected, onClick, initial, tone = "emerald", avatarClassName }: {
+function ListRow({ title, subtitle, preview, time, unread, selected, onClick, initial, avatarClassName = "bg-emerald-100 text-emerald-700" }: {
   title: string; subtitle?: string | null; preview: string; time: string | null; unread: number;
-  selected: boolean; onClick: () => void; initial: string; tone?: "emerald" | "purple";
+  selected: boolean; onClick: () => void; initial: string;
   /** Colour classes for the avatar (people get their own colour; see avatarColor) */
   avatarClassName?: string;
 }) {
@@ -167,7 +167,7 @@ function ListRow({ title, subtitle, preview, time, unread, selected, onClick, in
     >
       <div className={cn(
         "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold",
-        avatarClassName ?? (tone === "purple" ? "bg-purple-100 text-purple-700" : "bg-emerald-100 text-emerald-700"),
+        avatarClassName,
       )}>
         {initial}
       </div>
@@ -419,6 +419,9 @@ function StaffPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewerR
   useEffect(() => { selectedRef.current = selected; }, [selected]);
   const isViewing = useCallback(() => !!selectedRef.current, []);
   const staff = useStaffChat(selected?.courseId ?? "", !!selected, viewerId, isViewing);
+  // Each course its own colour (no repeats in the list), same in the list and the header
+  const colors = avatarColors((rows ?? []).map((r) => r.courseId));
+  const colorFor = (courseId: string) => colors.get(courseId) ?? avatarColor(courseId);
 
   const open = (course: CourseOption) => {
     setPicking(false);
@@ -498,7 +501,7 @@ function StaffPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewerR
                 selected={r.courseId === selected?.courseId}
                 onClick={() => open(r)}
                 initial={(r.courseTitle[0] ?? "C").toUpperCase()}
-                tone="purple" />
+                avatarClassName={colorFor(r.courseId)} />
             ))}
           </div>
         </>
@@ -509,6 +512,7 @@ function StaffPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewerR
             title={`${selected.courseTitle}${statusNote(selected.courseStatus)}`}
             subtitle={isAdmin ? `Course staff · ${tutorsLabel(selected.tutorNames)}` : "Course staff — tutors and admins only"}
             icon={<Shield size={16} />}
+            iconClassName={colorFor(selected.courseId)}
             onBack={() => setSelected(null)} />
           <ConversationView
             key={selected.courseId}
