@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { handoutDisplayName, handoutDownloadPath } from "@/lib/handout";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -249,13 +250,10 @@ export function MyCoursesList({ enrolled, allSessions, now }: Props) {
                   </Link>
                   {e.handoutUrl && (
                     <a
-                      href={e.handoutUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download={e.handoutName || undefined}
+                      href={handoutDownloadPath(e.courseId)}
                       className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-surface-200 text-gray-400 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600"
-                      title={`Download ${e.handoutName || "course handout"}`}
-                      aria-label={`Download ${e.handoutName || "course handout"}`}
+                      title={`Download ${handoutDisplayName(e.handoutName, e.handoutUrl)}`}
+                      aria-label={`Download course handbook: ${handoutDisplayName(e.handoutName, e.handoutUrl)}`}
                     >
                       <Download size={16} />
                     </a>

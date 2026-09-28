@@ -152,6 +152,9 @@ export default async function InstructorCourseEditPage({ params }: Props) {
                 categoryId:       course.categoryId ?? undefined,
                 level:            course.level ?? undefined,
                 language:         course.language ?? undefined,
+                // Must be passed: the form always submits these, so omitting them would clear the handout
+                handoutUrl:       course.handoutUrl ?? undefined,
+                handoutName:      course.handoutName ?? undefined,
               }}
               hidePublish
               hideStatus

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { X, MapPin, Clock, Calendar, Users, Download, Share2, ExternalLink, Award } from "lucide-react";
+import { X, MapPin, Clock, Calendar, Users, Download, Share2, ExternalLink, Award, FileText } from "lucide-react";
+import { handoutDisplayName, handoutDownloadPath } from "@/lib/handout";
 import { cn } from "@/lib/utils";
 
 interface Session {
@@ -227,6 +228,25 @@ export function CourseDetailsDrawer({ enrollment, session, onClose }: Props) {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Course handbook */}
+          {enrollment.handoutUrl && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Course handbook</p>
+              <a
+                href={handoutDownloadPath(enrollment.courseId)}
+                className="flex items-center gap-3 rounded-xl border border-surface-100 p-4 transition-colors hover:border-emerald-200 hover:bg-emerald-50"
+              >
+                <FileText size={18} className="flex-shrink-0 text-emerald-600" />
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-900">
+                  {handoutDisplayName(enrollment.handoutName, enrollment.handoutUrl)}
+                </span>
+                <span className="flex flex-shrink-0 items-center gap-1 text-xs font-semibold text-emerald-700">
+                  <Download size={13} /> Download
+                </span>
+              </a>
             </div>
           )}
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { handoutDisplayName, handoutDownloadPath, handoutNameForUpload } from "@/lib/handout";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -100,6 +101,8 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
   const [fieldErrors,      setFieldErrors]      = useState<Record<string, string>>({});
   const [handoutUrl,       setHandoutUrl]       = useState(initialData?.handoutUrl ?? "");
   const [handoutName,      setHandoutName]      = useState(initialData?.handoutName ?? "");
+  // The download route serves what's saved, so only offer it for the saved file
+  const handoutSaved = !!handoutUrl && handoutUrl === (initialData?.handoutUrl ?? "");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -275,25 +278,30 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-bold text-gray-900">{handoutName || "Course handout"}</p>
+                    <p className="truncate text-sm font-bold text-gray-900">{handoutDisplayName(handoutName, handoutUrl)}</p>
                     <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">Ready</span>
                   </div>
-                  <p className="mt-1 truncate text-xs text-gray-400">{handoutUrl}</p>
+                  <p className="mt-1 truncate text-xs text-gray-400">
+                    {handoutSaved ? "Enrolled students can download this from their course." : "Not saved yet — save changes to publish it to students."}
+                  </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-2">
+                  {handoutSaved && initialData?.id && (<>
                   <button
                     type="button"
                     onClick={async () => {
-                      await navigator.clipboard.writeText(handoutUrl);
-                      success("Handout link copied");
+                      // The raw Cloudinary URL isn't downloadable; share the access-checked link
+                      await navigator.clipboard.writeText(`${window.location.origin}${handoutDownloadPath(initialData.id!)}`);
+                      success("Handout link copied", "Works for enrolled students, the course's tutors and admins.");
                     }}
                     className="flex h-9 items-center gap-1.5 rounded-xl border border-surface-200 bg-white px-3 text-xs font-semibold text-gray-600 transition hover:border-brand-200 hover:text-brand-600"
                   >
                     <Copy size={13} /> Copy link
                   </button>
-                  <a href={handoutUrl} target="_blank" rel="noopener noreferrer" className="flex h-9 items-center gap-1.5 rounded-xl border border-surface-200 bg-white px-3 text-xs font-semibold text-gray-600 transition hover:border-brand-200 hover:text-brand-600">
-                    <ExternalLink size={13} /> Open
+                  <a href={handoutDownloadPath(initialData.id!)} className="flex h-9 items-center gap-1.5 rounded-xl border border-surface-200 bg-white px-3 text-xs font-semibold text-gray-600 transition hover:border-brand-200 hover:text-brand-600">
+                    <ExternalLink size={13} /> Download
                   </a>
+                  </>)}
                   <button
                     type="button"
                     onClick={() => { setHandoutUrl(""); setHandoutName(""); }}
@@ -318,9 +326,8 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
                 maxSizeMb={100}
                 onSuccess={(result) => {
                   setHandoutUrl(result.secureUrl);
-                  setHandoutName(result.originalFilename
-                    ? `${result.originalFilename}.${result.format}`
-                    : `Course handout.${result.format}`);
+                  // Raw uploads (PDF/DOC/PPT) have no `format` — take the extension from the URL
+                  setHandoutName(handoutNameForUpload(result.originalFilename, result.format, result.secureUrl));
                   success("Handout uploaded", "Save changes to attach it to this course.");
                 }}
                 onError={(message) => showError("Upload failed", message)}

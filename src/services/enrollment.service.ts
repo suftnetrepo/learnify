@@ -272,6 +272,8 @@ export class EnrollmentService {
         thumbnailUrl:     courses.thumbnailUrl,
         shortDescription: courses.shortDescription,
         whatYouLearn:     courses.whatYouLearn,
+        handoutUrl:       courses.handoutUrl,
+        handoutName:      courses.handoutName,
       })
       .from(courses)
       .where(eq(courses.id, courseId))

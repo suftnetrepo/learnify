@@ -15,6 +15,8 @@ export interface Course {
   status:           CourseStatus;
   level:            CourseLevel | null;
   language:         string | null;
+  handoutUrl:       string | null;
+  handoutName:      string | null;
   location:         string | null;
   thumbnailUrl:     string | null;
   totalDuration:    number | null;

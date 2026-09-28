@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
 import { cn, formatDuration } from "@/lib/utils";
+import { handoutDisplayName, handoutDownloadPath } from "@/lib/handout";
 import { resourcesApi, notesApi } from "@/lib/api-client";
 import type { LectureResource, LectureResourceType } from "@/types";
 import Link from "next/link";
@@ -51,6 +52,8 @@ interface Props {
     thumbnailUrl:       string | null;
     shortDescription?:  string | null;
     whatYouLearn?:      string | null;
+    handoutUrl?:        string | null;
+    handoutName?:       string | null;
   };
   enrollment: {
     id:             string;
@@ -500,6 +503,22 @@ export function CourseViewer({
               <span className="text-gray-500">{completedCount} / {totalLectures} lectures</span>
               <span className="font-semibold text-brand-600">{overallProgress}%</span>
             </div>
+            {course.handoutUrl && (
+              <a
+                href={handoutDownloadPath(course.id)}
+                className="mt-3 flex items-center gap-2.5 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2.5 transition-colors hover:border-emerald-200 hover:bg-emerald-100"
+                title="Download the course handbook"
+              >
+                <FileText size={16} className="flex-shrink-0 text-emerald-600" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-xs font-semibold text-emerald-800">Course handbook</span>
+                  <span className="block truncate text-[11px] text-emerald-700/80">
+                    {handoutDisplayName(course.handoutName, course.handoutUrl)}
+                  </span>
+                </span>
+                <Download size={14} className="flex-shrink-0 text-emerald-700" />
+              </a>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto min-h-0">
