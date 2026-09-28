@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       sessionToken: data.session_token,
       expiresAt:    data.expires_at,
+      expiresIn:    data.expires_in ?? TOKEN_TTL_SECONDS,   // seconds — lets clients ignore clock skew
       apiUrl,
       userId:       session.user.id,
       role,

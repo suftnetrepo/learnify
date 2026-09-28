@@ -32,8 +32,8 @@ export function StudyMindDrawer({ courseId, courseData }: Props) {
       }
       description={
         <>
-          Upload course notes and PDFs in the <strong>Materials</strong> tab. Students enrolled in
-          this course can ask the AI tutor about anything in them.
+          Upload course notes and PDFs here. Students enrolled in this course can ask the AI tutor
+          about anything in them.
         </>
       }
     >

@@ -46,6 +46,7 @@ export function StudyMindMaterials({ courseId, courseData }: Props) {
       courseData={courseData}
       sessionToken={session.sessionToken}
       apiUrl={session.apiUrl}
+      defaultTab="materials"
       className="!h-full !min-w-0 !max-w-none !rounded-none !border-0 !shadow-none"
       onError={(e) => console.error("StudyMind error:", e)}
     />
