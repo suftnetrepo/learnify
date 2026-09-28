@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
   // path for real. Affects both certificate and booking-confirmation PDFs.
   serverExternalPackages: ["pdfkit"],
 
+  // Render's build machines report ~47 CPUs but have far less memory. Next starts one
+  // "Collecting page data" worker per CPU, and 47 copies of the app run out of memory and the
+  // build is killed. Cap the workers there (Render sets RENDER=true during builds).
+  experimental: process.env.RENDER ? { cpus: 2 } : {},
+
   // ── Images ──────────────────────────────────────────────────────────────────
   images: {
     remotePatterns: [
