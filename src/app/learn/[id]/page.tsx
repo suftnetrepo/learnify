@@ -15,7 +15,7 @@ const FLOATING_RIGHT = "right-4 lg:right-[384px] xl:right-[424px] 2xl:right-[464
 
 interface Props {
   params:       Promise<{ id: string }>;
-  searchParams: Promise<{ lecture?: string }>;
+  searchParams: Promise<{ lecture?: string; messages?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -29,7 +29,7 @@ export default async function LearnPage({ params, searchParams }: Props) {
   if (!session?.user) redirect("/login");
 
   const { id: courseId }         = await params;
-  const { lecture: lectureParam } = await searchParams;
+  const { lecture: lectureParam, messages: messagesParam } = await searchParams;
 
   const data = await EnrollmentService.getCourseViewerData(session.user.id, courseId);
   if (!data) redirect(`/checkout/${courseId}`);
@@ -82,6 +82,8 @@ export default async function LearnPage({ params, searchParams }: Props) {
           startDatetime: liveSession.startDatetime.toISOString(),
           endDatetime:   liveSession.endDatetime.toISOString(),
         }}
+        // ?messages=private (dashboard Messages card) opens the drawer on that tab
+        openOnTab={messagesParam === "private" || messagesParam === "announcements" || messagesParam === "live" ? messagesParam : undefined}
         // Stacked just above the AI Tutor button (same offset)
         buttonPositionClassName={`${studyMindCourse ? "bottom-20" : "bottom-6"} ${FLOATING_RIGHT}`}
       />

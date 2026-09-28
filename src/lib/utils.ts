@@ -1,34 +1,13 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import bcrypt from "bcryptjs";
-import crypto from "crypto";
+
+// Browser-safe helpers only — client components import this file (for cn), so anything that
+// needs Node (crypto, bcrypt) lives in ./server-utils instead. Importing crypto here used to
+// ship crypto-browserify + stream/buffer/events polyfills and bcryptjs to every page.
 
 // ─── Tailwind ─────────────────────────────────────────────────────────────────
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
-}
-
-// ─── Password ─────────────────────────────────────────────────────────────────
-const SALT_ROUNDS = 12;
-
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, SALT_ROUNDS);
-}
-
-export async function verifyPassword(
-  password: string,
-  hash: string
-): Promise<boolean> {
-  return bcrypt.compare(password, hash);
-}
-
-// ─── Tokens ───────────────────────────────────────────────────────────────────
-export function generateSecureToken(bytes = 32): string {
-  return crypto.randomBytes(bytes).toString("hex");
-}
-
-export function generateTokenExpiry(hours = 24): Date {
-  return new Date(Date.now() + hours * 60 * 60 * 1000);
 }
 
 // ─── Slugs ────────────────────────────────────────────────────────────────────
@@ -42,12 +21,6 @@ export function slugify(text: string): string {
     .replace(/--+/g, "-")
     .replace(/^-+/, "")
     .replace(/-+$/, "");
-}
-
-export function generateUniqueSlug(title: string): string {
-  const base = slugify(title);
-  const suffix = crypto.randomBytes(3).toString("hex");
-  return `${base}-${suffix}`;
 }
 
 // ─── Formatting ───────────────────────────────────────────────────────────────

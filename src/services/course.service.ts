@@ -4,7 +4,7 @@ import { courses, categories, courseSections, lectures } from "@/db/schema";
 import {
   eq, and, like, desc, asc, count, gte, lte, sql, inArray,
 } from "drizzle-orm";
-import { generateUniqueSlug } from "@/lib/utils";
+import { generateUniqueSlug } from "@/lib/server-utils";
 import { log } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
 import type {

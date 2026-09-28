@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
-  SkipForward, CheckCircle2, Loader2,
+  SkipForward, CheckCircle2, Loader2, AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +43,7 @@ export function VideoPlayer({
   const [fullscreen, setFullscreen] = useState(false);
   const [completed,  setCompleted]  = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [videoError, setVideoError] = useState(false);   // the file couldn't be loaded/played
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Save progress to API every 10 seconds
@@ -56,7 +57,9 @@ export function VideoPlayer({
     } catch { /* non-fatal */ }
   }, [lectureId]);
 
-  // Set initial position
+  // Set initial position, and pick up errors. The <video> is server-rendered and starts loading
+  // before React attaches its handlers, so "loadedmetadata"/"error" may already have fired —
+  // check the element's current state too, or the spinner (or a broken video) would hang forever.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -65,8 +68,19 @@ export function VideoPlayer({
       setDuration(video.duration);
       setLoading(false);
     };
+    const handleError = () => {
+      setVideoError(true);
+      setLoading(false);
+      setPlaying(false);
+    };
     video.addEventListener("loadedmetadata", handleLoaded);
-    return () => video.removeEventListener("loadedmetadata", handleLoaded);
+    video.addEventListener("error", handleError);
+    if (video.error) handleError();
+    else if (video.readyState >= 1) handleLoaded();
+    return () => {
+      video.removeEventListener("loadedmetadata", handleLoaded);
+      video.removeEventListener("error", handleError);
+    };
   }, [initialSeconds]);
 
   // Auto-save every 10s while playing
@@ -184,6 +198,28 @@ export function VideoPlayer({
         onWaiting={() => setLoading(true)}
         onPlaying={() => setLoading(false)}
       />
+
+      {/* Load/playback failure — the file is missing, blocked or the connection dropped */}
+      {videoError && (
+        <div
+          role="alert"
+          onClick={(e) => e.stopPropagation()}
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-gray-900 text-white"
+        >
+          <AlertCircle className="h-10 w-10 text-gray-400" />
+          <p className="text-sm text-gray-400">Video unavailable</p>
+          <button
+            onClick={() => {
+              setVideoError(false);
+              setLoading(true);
+              videoRef.current?.load();   // fetch the source again
+            }}
+            className="text-xs text-indigo-400 hover:text-indigo-300"
+          >
+            Try again
+          </button>
+        </div>
+      )}
 
       {/* Loading spinner */}
       {loading && (

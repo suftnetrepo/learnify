@@ -352,6 +352,8 @@ export function CourseViewer({
                 {activeLecture.videoUrl ? (
                   <div className="aspect-video w-full flex-shrink-0 bg-black lg:aspect-auto lg:h-[42%]">
                     <VideoPlayer
+                      // New player per lecture: resets error / loading / "Completed" state
+                      key={activeLecture.id}
                       lectureId={activeLecture.id}
                       videoUrl={activeLecture.videoUrl}
                       title={activeLecture.title}

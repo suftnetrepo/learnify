@@ -3,8 +3,9 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { EnrollmentService } from "@/services/enrollment.service";
 import { SessionService } from "@/services/session.service";
+import { MessagingService } from "@/services/messaging.service";
 import {
-  Search, Bell, ChevronDown, BookOpen, Award, Clock, Trophy,
+  Search, Bell, ChevronDown, BookOpen, Award, Clock, Trophy, MessageCircle, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -36,10 +37,16 @@ export default async function DashboardPage() {
 
   const userId = session.user.id;
 
-  const [{ enrolled, stats }, allSessions] = await Promise.all([
+  const [{ enrolled, stats }, allSessions, conversations] = await Promise.all([
     EnrollmentService.getDashboardData(userId),
     SessionService.getStudentSessions(userId),
+    // Private threads with course tutors (newest first) — drives the Messages card
+    MessagingService.list({ id: userId, role: "student" }).catch(() => []),
   ]);
+
+  const unreadMessages = conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0);
+  // Link to the course with the newest unread reply, else the latest conversation
+  const messagesTarget = conversations.find((c) => (c.unreadCount ?? 0) > 0) ?? conversations[0] ?? null;
 
   const now      = new Date();
   const todayStr = now.toDateString();
@@ -138,6 +145,37 @@ export default async function DashboardPage() {
               </div>
             ))}
           </div>
+
+          {/* Messages from tutors */}
+          <Link
+            href={messagesTarget ? `/learn/${messagesTarget.courseId}?messages=private` : "/dashboard/my-courses"}
+            className={cn(
+              "flex items-center gap-4 rounded-2xl border bg-white p-4 transition-colors sm:p-5",
+              unreadMessages > 0 ? "border-indigo-200 hover:border-indigo-300" : "border-surface-100 hover:border-surface-200",
+            )}
+          >
+            <div className="relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-50">
+              <MessageCircle size={20} className="text-indigo-600" />
+              {unreadMessages > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">
+                  {unreadMessages > 9 ? "9+" : unreadMessages}
+                </span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-gray-900">
+                {unreadMessages > 0
+                  ? `${unreadMessages} unread message${unreadMessages === 1 ? "" : "s"} from your tutors`
+                  : "Messages"}
+              </p>
+              <p className="truncate text-xs text-gray-400">
+                {messagesTarget
+                  ? `${messagesTarget.courseTitle}${messagesTarget.lastMessage ? ` · ${messagesTarget.lastSender === "student" ? "You: " : ""}${messagesTarget.lastMessage}` : ""}`
+                  : "Have a question? Open a course and use Messages to ask your tutors."}
+              </p>
+            </div>
+            <ChevronRight size={18} className="flex-shrink-0 text-gray-300" />
+          </Link>
 
           {/* Middle: 2 columns */}
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_460px]">

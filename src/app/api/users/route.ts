@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { UserService } from "@/services";
 import { EmailService } from "@/services/email.service";
-import { hashPassword } from "@/lib/utils";
+import { hashPassword } from "@/lib/server-utils";
 import { z } from "zod";
 import { successResponse, createdResponse, unauthorized, forbidden, serverError, validationError, conflict } from "@/lib/api-response";
 import { log } from "@/lib/logger";

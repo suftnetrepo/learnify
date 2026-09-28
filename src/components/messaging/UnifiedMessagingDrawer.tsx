@@ -26,6 +26,8 @@ interface Props {
   liveSession:   LiveSessionInfo | null;
   /** Where the floating button sits — pages stack it above the AI Tutor button. */
   buttonPositionClassName?: string;
+  /** Open straight away on this tab (e.g. the dashboard's Messages card links with ?messages=private) */
+  openOnTab?: "announcements" | "live" | "private";
 }
 
 interface ConversationRow {
@@ -68,18 +70,18 @@ const dayLabel = (d: Date) => {
  */
 export function UnifiedMessagingDrawer({
   courseId, courseName, currentUserId, currentRole, liveSession: initialLive,
-  buttonPositionClassName = "bottom-6 right-6",
+  buttonPositionClassName = "bottom-6 right-6", openOnTab,
 }: Props) {
   const isStudent  = currentRole === "student";
   const isAdmin    = currentRole === "admin";
   const isStaff    = !isStudent;   // tutors + admins: post notices, use the staff channel
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!!openOnTab);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef   = useRef<HTMLDivElement>(null);
-  const [tab,  setTab]  = useState<Tab>(initialLive ? "live" : "announcements");
+  const [tab,  setTab]  = useState<Tab>(openOnTab ?? (initialLive ? "live" : "announcements"));
   // What's on screen, readable from stream callbacks without re-subscribing
-  const viewing = useRef({ open: false, tab });
+  const viewing = useRef({ open: !!openOnTab, tab });
   const isViewing = useCallback((t: Tab) => viewing.current.open && viewing.current.tab === t, []);
 
   // ── Live session (re-checked so Live Q&A opens/closes on time) ──────────────
@@ -131,7 +133,15 @@ export function UnifiedMessagingDrawer({
         if (cancelled || !body) return;
         const list: ConversationRow[] = body.data;
         if (isStudent) {
-          if (list[0]) { setStudentConvId(list[0].id); setStudentUnread(list[0].unreadCount ?? 0); }
+          if (list[0]) {
+            setStudentConvId(list[0].id);
+            // Already looking at Private (opened from the dashboard)? Then it's read, not unread
+            if (viewing.current.open && viewing.current.tab === "private") {
+              void fetch(`/api/messages/${list[0].id}`, { method: "PATCH" });
+            } else {
+              setStudentUnread(list[0].unreadCount ?? 0);
+            }
+          }
         } else {
           setRows(list);
         }

@@ -238,7 +238,7 @@ export class UserService {
       invitation = inv;
     }
 
-    const { hashPassword } = await import("@/lib/utils");
+    const { hashPassword } = await import("@/lib/server-utils");
     const passwordHash = await hashPassword(password);
     const status: "active" | "pending" = role === "tutor" && !invitation ? "pending" : "active";
 
