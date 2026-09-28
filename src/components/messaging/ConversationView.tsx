@@ -14,6 +14,9 @@ interface Props {
   loading?:      boolean;
   emptyText:     string;
   onSend:        (content: string) => Promise<void>;
+  /** Show ✓ / ✓✓ on own messages (off for channels without read receipts) */
+  receipts?:     boolean;
+  placeholder?:  string;
 }
 
 const dayLabel = (d: Date) => {
@@ -25,7 +28,9 @@ const dayLabel = (d: Date) => {
 };
 
 /** WhatsApp-style thread: day separators, bubbles, time + read ticks, and the composer. */
-export function ConversationView({ messages, viewerId, viewerRole, readOnly, loading, emptyText, onSend }: Props) {
+export function ConversationView({
+  messages, viewerId, viewerRole, readOnly, loading, emptyText, onSend, receipts = true, placeholder = "Type a message…",
+}: Props) {
   const [input,   setInput]   = useState("");
   const [sending, setSending] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
@@ -71,7 +76,8 @@ export function ConversationView({ messages, viewerId, viewerRole, readOnly, loa
             const date = new Date(m.createdAt);
             const newDay = i === 0 || new Date(messages[i - 1].createdAt).toDateString() !== date.toDateString();
             // Show who's talking when it isn't obvious: other-side messages, and colleagues' in a shared inbox
-            const label = !own && (viewerRole === "student" ? "Tutor" : sideLabel(m));
+            // Named senders (direct / staff chats) show their name; otherwise the side
+            const label = !own && (m.senderName ?? (viewerRole === "student" ? "Tutor" : sideLabel(m)));
             return (
               <div key={m.id}>
                 {newDay && (
@@ -86,14 +92,14 @@ export function ConversationView({ messages, viewerId, viewerRole, readOnly, loa
                   )}>
                     {label && (
                       <p className={cn("mb-0.5 text-xs font-semibold",
-                        m.senderRole === "student" ? "text-sky-700" : "text-emerald-700")}>{label}</p>
+                        m.senderRole === "student" ? "text-sky-700" : m.senderRole === "admin" ? "text-purple-700" : "text-emerald-700")}>{label}</p>
                     )}
                     <p className="whitespace-pre-wrap break-words leading-relaxed">{m.content}</p>
                     <div className="mt-0.5 flex items-center justify-end gap-1">
                       <span className="text-[10px] text-gray-400">
                         {date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
-                      {own && (m.readAt
+                      {own && receipts && (m.readAt
                         ? <CheckCheck size={13} className="text-sky-500" aria-label="Read" />
                         : <Check      size={13} className="text-gray-400" aria-label="Sent" />)}
                     </div>
@@ -119,7 +125,7 @@ export function ConversationView({ messages, viewerId, viewerRole, readOnly, loa
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void submit(); }
               }}
-              placeholder="Type a message…"
+              placeholder={placeholder}
               aria-label="Message"
               rows={1}
               maxLength={4000}

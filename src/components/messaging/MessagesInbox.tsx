@@ -32,7 +32,7 @@ function timeAgo(iso: string) {
  * WhatsApp-Web style inbox: conversations on the left, the open thread on the right.
  * Tutors see their assigned courses and reply; admins see every course, read-only.
  */
-export function MessagesInbox({ viewerId, viewerRole }: { viewerId: string; viewerRole: "tutor" | "admin" }) {
+export function MessagesInbox({ viewerId, viewerRole, title = "Messages" }: { viewerId: string; viewerRole: "tutor" | "admin"; title?: string }) {
   const [rows,       setRows]       = useState<ConversationRow[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [courseId,   setCourseId]   = useState("");
@@ -76,18 +76,18 @@ export function MessagesInbox({ viewerId, viewerRole }: { viewerId: string; view
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] min-h-0 bg-white">
+    <div className="flex h-full min-h-0 bg-white">
       {/* Conversation list */}
       <aside className={cn(
         "flex w-full flex-col border-r border-surface-100 md:w-[340px] md:flex-shrink-0",
         selectedId && "hidden md:flex",
       )}>
         <div className="flex-shrink-0 border-b border-surface-100 px-4 py-4">
-          <h1 className="font-display text-lg font-bold text-gray-900">Messages</h1>
+          <h2 className="font-display text-lg font-bold text-gray-900">{title}</h2>
           <p className="text-xs text-gray-400">
             {readOnly
               ? "All private student ↔ tutor conversations (read-only)"
-              : "Private questions from students. Notices and Live Q&A are in each course’s Messages drawer."}
+              : "Private questions from students on your courses"}
           </p>
           {courses.length > 1 && (
             <select

@@ -9,3 +9,4 @@ export { ResourceService } from "./resource.service";
 export { NoteService }     from "./note.service";
 export { MessagingService, MessagingError } from "./messaging.service";
 export { CourseMessagingService } from "./course-messaging.service";
+export { DirectMessagingService } from "./direct-messaging.service";

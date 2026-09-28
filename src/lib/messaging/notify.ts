@@ -9,12 +9,13 @@ type Listener = () => void;
 const g = globalThis as unknown as { __learnifyMessageListeners?: Map<string, Set<Listener>> };
 const listeners: Map<string, Set<Listener>> = (g.__learnifyMessageListeners ??= new Map());
 
-/** Channel names — one per private conversation, and per course for announcements / live Q&A / staff. */
+/** Channel names — one per private conversation / direct thread, and per course for announcements / live Q&A / staff. */
 export const channels = {
   conversation:  (conversationId: string) => `conversation:${conversationId}`,
   announcements: (courseId: string)       => `announcements:${courseId}`,
   groupChat:     (courseId: string)       => `group:${courseId}`,
   staff:         (courseId: string)       => `staff:${courseId}`,
+  direct:        (threadId: string)       => `direct:${threadId}`,
 };
 
 export function onChannel(channel: string, listener: Listener): () => void {

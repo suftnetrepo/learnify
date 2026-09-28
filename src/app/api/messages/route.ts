@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { MessagingService, MessagingError } from "@/services";
+import { CourseMessagingService, DirectMessagingService, MessagingService, MessagingError } from "@/services";
 import type { Viewer } from "@/services/messaging.service";
 import { MAX_MESSAGE_LENGTH } from "@/services/messaging.service";
 import {
@@ -12,7 +12,7 @@ import { log } from "@/lib/logger";
 /**
  * GET /api/messages[?courseId=][&unread=1]
  *   Conversations the user can see (students: their own; tutors: their courses; admins: all),
- *   or with unread=1 just { unread } for badges.
+ *   or with unread=1 the badge counts { unread, students, direct, staff }.
  */
 export async function GET(req: NextRequest) {
   try {
@@ -22,7 +22,14 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     if (searchParams.get("unread") === "1") {
-      return successResponse({ unread: await MessagingService.unreadTotal(viewer) });
+      // Badge counts: private student threads, plus (staff only) direct admin chats and course staff channels
+      const staff = viewer.role === "tutor" || viewer.role === "admin";
+      const [students, direct, staffChannels] = await Promise.all([
+        MessagingService.unreadTotal(viewer),
+        staff ? DirectMessagingService.unreadTotal(viewer) : 0,
+        staff ? CourseMessagingService.staffUnreadTotal(viewer) : 0,
+      ]);
+      return successResponse({ unread: students + direct + staffChannels, students, direct, staff: staffChannels });
     }
     const courseId = searchParams.get("courseId") ?? undefined;
     if (courseId && !z.string().uuid().safeParse(courseId).success) {

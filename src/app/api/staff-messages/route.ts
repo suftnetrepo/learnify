@@ -3,17 +3,36 @@ import { z } from "zod";
 import { CourseMessagingService, MessagingError } from "@/services";
 import { MAX_MESSAGE_LENGTH } from "@/services/messaging.service";
 import { staffAccess } from "@/lib/messaging/route-helpers";
-import { createdResponse, errorResponse, serverError, successResponse, validationError } from "@/lib/api-response";
+import { auth } from "@/lib/auth";
+import type { Viewer } from "@/services/messaging.service";
+import {
+  createdResponse, errorResponse, forbidden, serverError, successResponse, unauthorized, validationError,
+} from "@/lib/api-response";
 import { log } from "@/lib/logger";
 
 /**
  * GET /api/staff-messages?courseId=[&unread=1]
  *   The course's staff channel (assigned tutors ↔ admins), oldest first — or just { unread }.
+ * GET /api/staff-messages[?options=1]
+ *   Without courseId: the channels the viewer can use (tutors: their courses; admins: channels
+ *   with messages), each with its last message and unread count. options=1 (admins): courses
+ *   with tutors, to start a new channel.
  */
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const courseId = searchParams.get("courseId");
+    if (!courseId) {
+      const session = await auth();
+      if (!session?.user?.id) return unauthorized();
+      const viewer: Viewer = { id: session.user.id, role: session.user.role };
+      if (viewer.role !== "admin" && viewer.role !== "tutor") return forbidden();
+      if (searchParams.get("options") === "1") {
+        if (viewer.role !== "admin") return forbidden();
+        return successResponse(await CourseMessagingService.staffCourseOptions());
+      }
+      return successResponse(await CourseMessagingService.staffChannels(viewer));
+    }
     const access = await staffAccess(courseId);
     if (!access.ok) return errorResponse(access.message, "ACCESS_DENIED", access.status);
     if (searchParams.get("unread") === "1") {

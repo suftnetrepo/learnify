@@ -17,7 +17,7 @@ interface NavItem {
   href:  string;
   icon:  React.ReactNode;
   roles: string[];
-  /** Live count shown on the item — "messages" = unread student messages */
+  /** Live count shown on the item — "messages" = unread messages (students, direct chats, course staff) */
   badge?: "messages";
 }
 
@@ -36,7 +36,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Payments",   href: "/admin/payments",        icon: <CreditCard      size={18} />, roles: ["admin"] },
   { label: "Review", href: "/admin/courses/pending", icon: <Clock       size={18} />, roles: ["admin"] },
   { label: "Users",      href: "/admin/users",           icon: <Users           size={18} />, roles: ["admin"] },
-  { label: "Messages",   href: "/admin/messages",        icon: <MessageCircle   size={18} />, roles: ["admin"] },
+  { label: "Messages",   href: "/admin/messages",        icon: <MessageCircle   size={18} />, roles: ["admin"], badge: "messages" },
   // Instructor
   { label: "Dashboard",  href: "/instructor",            icon: <LayoutDashboard size={18} />, roles: ["tutor"] },
   { label: "My Courses", href: "/instructor/courses",    icon: <BookOpen        size={18} />, roles: ["tutor"] },
@@ -57,7 +57,7 @@ interface SidebarProps {
 
 const UNREAD_REFRESH_MS = 30000;
 
-/** Unread student messages for the tutor's Messages badge (refreshed every 30s). */
+/** Unread messages for the Messages badge (refreshed every 30s). */
 function useUnreadMessages(enabled: boolean) {
   const [count, setCount] = useState(0);
   const [tick,  setTick]  = useState(0);
@@ -69,7 +69,10 @@ function useUnreadMessages(enabled: boolean) {
       .then((body) => { if (!cancelled && body) setCount(body.data.unread ?? 0); })
       .catch(() => {});
     const timer = setTimeout(() => setTick((n) => n + 1), UNREAD_REFRESH_MS);
-    return () => { cancelled = true; clearTimeout(timer); };
+    // The Messages page announces reads, so the badge clears straight away
+    const refresh = () => setTick((n) => n + 1);
+    window.addEventListener("learnify:unread-changed", refresh);
+    return () => { cancelled = true; clearTimeout(timer); window.removeEventListener("learnify:unread-changed", refresh); };
   }, [enabled, tick]);
   return count;
 }

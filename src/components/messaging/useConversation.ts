@@ -7,6 +7,8 @@ export interface ChatMessage {
   conversationId: string;
   senderId:       string;
   senderRole:     "student" | "tutor" | "admin";
+  /** Set on direct / staff messages (snapshot of the sender's name) */
+  senderName?:    string;
   content:        string;
   readAt:         string | null;
   createdAt:      string;
@@ -34,10 +36,13 @@ function merge(current: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] {
 /**
  * Live conversation: loads the thread, keeps an SSE connection open while `live`, and applies
  * new messages + read receipts. `onIncoming` fires for messages from the other side.
+ * `basePath` picks the API: "/api/messages" (student ↔ tutors) or "/api/direct-messages"
+ * (tutor ↔ admin team) — both have the same shape.
  */
 export function useConversation(
   conversationId: string | null,
-  { live, viewerId, onIncoming }: { live: boolean; viewerId: string; onIncoming?: (m: ChatMessage) => void },
+  { live, viewerId, onIncoming, basePath = "/api/messages" }:
+    { live: boolean; viewerId: string; onIncoming?: (m: ChatMessage) => void; basePath?: string },
 ) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [meta,     setMeta]     = useState<ConversationMeta | null>(null);
@@ -49,7 +54,7 @@ export function useConversation(
 
   const load = useCallback(async () => {
     if (!conversationId) return;
-    const res  = await fetch(`/api/messages/${conversationId}`, { cache: "no-store" });
+    const res  = await fetch(`${basePath}/${conversationId}`, { cache: "no-store" });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) { setError(body.message || "Couldn't load messages"); return; }
     const loaded: ChatMessage[] = body.data.messages;
@@ -58,12 +63,12 @@ export function useConversation(
     setMessages((prev) => merge(prev, loaded));
     setError(null);
     setLoaded(true);
-  }, [conversationId]);
+  }, [conversationId, basePath]);
 
   // Live updates. EventSource reconnects by itself; every (re)connect reloads to catch up.
   useEffect(() => {
     if (!conversationId || !live) return;
-    const es = new EventSource(`/api/messages/stream?conversationId=${conversationId}`);
+    const es = new EventSource(`${basePath}/stream?conversationId=${conversationId}`);
     es.addEventListener("connected", () => { void load(); });
     es.addEventListener("message", (e) => {
       const m: ChatMessage = JSON.parse((e as MessageEvent).data);
@@ -78,18 +83,21 @@ export function useConversation(
       setMessages((prev) => prev.map((m) => (set.has(m.id) ? { ...m, readAt: m.readAt ?? readAt } : m)));
     });
     return () => es.close();
-  }, [conversationId, live, viewerId, load]);
+  }, [conversationId, live, viewerId, load, basePath]);
 
   const markRead = useCallback(async () => {
-    if (conversationId) await fetch(`/api/messages/${conversationId}`, { method: "PATCH" }).catch(() => {});
-  }, [conversationId]);
+    if (conversationId) await fetch(`${basePath}/${conversationId}`, { method: "PATCH" }).catch(() => {});
+  }, [conversationId, basePath]);
 
-  /** Send; returns the conversation id (new for a student's first message). */
-  const send = useCallback(async (content: string, courseId?: string): Promise<string> => {
-    const res  = await fetch("/api/messages", {
+  /**
+   * Send; returns the conversation id. With no conversation yet, `start` says where to create it
+   * (a student's { courseId }, an admin's { tutorId }; a tutor's direct thread needs nothing).
+   */
+  const send = useCallback(async (content: string, start?: Record<string, string>): Promise<string> => {
+    const res  = await fetch(basePath, {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({ content, ...(conversationId ? { conversationId } : { courseId }) }),
+      body:    JSON.stringify({ content, ...(conversationId ? { conversationId } : start) }),
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(body.message || "Message not sent");
@@ -97,7 +105,7 @@ export function useConversation(
     seen.current.add(sent.id);
     setMessages((prev) => merge(prev, [sent]));
     return body.data.conversationId as string;
-  }, [conversationId]);
+  }, [conversationId, basePath]);
 
   const reset = useCallback(() => { setMessages([]); setMeta(null); setLoaded(false); seen.current.clear(); }, []);
 

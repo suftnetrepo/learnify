@@ -1,7 +1,7 @@
-import { and, asc, count, desc, eq, gt, gte, lte, ne, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
-  announcements, courseSessions, enrollments, groupMessages, staffChannelReads, staffMessages,
+  announcements, courseSessions, courses, enrollments, groupMessages, staffChannelReads, staffMessages,
   tutorAssignments, users,
   type Announcement, type GroupMessage, type StaffMessage,
 } from "@/db/schema";
@@ -258,5 +258,75 @@ export const CourseMessagingService = {
         target: [staffChannelReads.courseId, staffChannelReads.userId],
         set:    { lastReadAt: sql`now()` },
       });
+  },
+
+  /**
+   * Staff channels the viewer can use, with the last message and their unread count.
+   * Tutors: every course they're assigned to. Admins: courses whose channel has messages.
+   */
+  async staffChannels(viewer: Viewer) {
+    let courseIds: string[] | null = null;
+    if (viewer.role === "tutor") {
+      const rows = await db
+        .select({ courseId: tutorAssignments.courseId })
+        .from(tutorAssignments)
+        .where(and(eq(tutorAssignments.tutorId, viewer.id), eq(tutorAssignments.status, "active")));
+      courseIds = rows.map((r) => r.courseId);
+      if (courseIds.length === 0) return [];
+    } else if (viewer.role !== "admin") {
+      return [];
+    }
+
+    const last = db
+      .selectDistinctOn([staffMessages.courseId], {
+        courseId:   staffMessages.courseId,
+        content:    staffMessages.content,
+        senderName: staffMessages.senderName,
+        createdAt:  staffMessages.createdAt,
+      })
+      .from(staffMessages)
+      .orderBy(staffMessages.courseId, desc(staffMessages.createdAt))
+      .as("last_staff");
+
+    const unread = sql<number>`(
+      select count(*)::int from ${staffMessages} sm
+      where sm.course_id = ${courses.id}
+        and sm.sender_id <> ${viewer.id}
+        and sm.created_at > coalesce(
+          (select r.last_read_at from ${staffChannelReads} r where r.course_id = ${courses.id} and r.user_id = ${viewer.id}),
+          'epoch'::timestamp)
+    )`;
+
+    const base = db
+      .select({
+        courseId:      courses.id,
+        courseTitle:   courses.title,
+        lastMessage:   last.content,
+        lastSender:    last.senderName,
+        lastMessageAt: last.createdAt,
+        unreadCount:   unread,
+      })
+      .from(courses);
+    const rows = courseIds
+      ? await base.leftJoin(last, eq(last.courseId, courses.id)).where(inArray(courses.id, courseIds))
+      : await base.innerJoin(last, eq(last.courseId, courses.id));   // admins: channels with messages
+
+    // Most recent activity first; tutors' quiet courses after, alphabetically
+    return rows.sort((a, b) =>
+      (b.lastMessageAt?.getTime() ?? 0) - (a.lastMessageAt?.getTime() ?? 0) || a.courseTitle.localeCompare(b.courseTitle));
+  },
+
+  async staffUnreadTotal(viewer: Viewer): Promise<number> {
+    const rows = await this.staffChannels(viewer);
+    return rows.reduce((sum, r) => sum + Number(r.unreadCount ?? 0), 0);
+  },
+
+  /** Courses an admin can open a staff channel on: those with at least one active tutor. */
+  async staffCourseOptions() {
+    return db
+      .selectDistinct({ courseId: courses.id, courseTitle: courses.title })
+      .from(courses)
+      .innerJoin(tutorAssignments, and(eq(tutorAssignments.courseId, courses.id), eq(tutorAssignments.status, "active")))
+      .orderBy(courses.title);
   },
 };

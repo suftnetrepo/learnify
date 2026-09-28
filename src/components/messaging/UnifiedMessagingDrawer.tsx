@@ -342,7 +342,7 @@ export function UnifiedMessagingDrawer({
                 items={privateItems(thread.messages, currentUserId, () => "Tutor")}
               />
               <Composer placeholder="Message your tutors privately…" onSend={async (text) => {
-                const id = await thread.send(text, courseId);
+                const id = await thread.send(text, { courseId });
                 if (!studentConvId) setStudentConvId(id);
               }} />
             </>
