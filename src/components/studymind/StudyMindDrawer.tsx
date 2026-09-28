@@ -9,13 +9,15 @@ interface Props {
   courseId:   string;
   /** Must come from loadStudyMindCourseData — the same outline the course player sends. */
   courseData: CourseData;
+  /** Free course: students don't get the AI tutor, so say so here */
+  isFree?:    boolean;
 }
 
 /**
  * Course editor (tutor/admin): floating "AI Materials" tab on the right edge that opens
  * the StudyMind panel, whose Materials tab uploads notes and PDFs for the course.
  */
-export function StudyMindDrawer({ courseId, courseData }: Props) {
+export function StudyMindDrawer({ courseId, courseData, isFree = false }: Props) {
   return (
     <SlideOverDrawer
       title="AI Materials"
@@ -31,10 +33,18 @@ export function StudyMindDrawer({ courseId, courseData }: Props) {
         </>
       }
       description={
-        <>
-          Upload course notes and PDFs here. Students enrolled in this course can ask the AI tutor
-          about anything in them.
-        </>
+        isFree ? (
+          <>
+            <strong className="text-amber-700">This course is free, so students don&apos;t get the AI tutor.</strong>{" "}
+            You can still upload notes and PDFs here — students will be able to ask the AI tutor about
+            them once the course has a price.
+          </>
+        ) : (
+          <>
+            Upload course notes and PDFs here. Students enrolled in this course can ask the AI tutor
+            about anything in them.
+          </>
+        )
       }
     >
       <StudyMindMaterials courseId={courseId} courseData={courseData} />

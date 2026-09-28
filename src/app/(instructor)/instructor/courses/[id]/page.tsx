@@ -180,7 +180,9 @@ export default async function InstructorCourseEditPage({ params }: Props) {
         sessions={null}
       />
 
-      {studyMindCourse && <StudyMindDrawer courseId={course.id} courseData={studyMindCourse} />}
+      {studyMindCourse && (
+        <StudyMindDrawer courseId={course.id} courseData={studyMindCourse} isFree={Number(course.price) <= 0} />
+      )}
 
       {/* Notices (compose here), Live Q&A during sessions, private threads, staff channel */}
       <UnifiedMessagingDrawer

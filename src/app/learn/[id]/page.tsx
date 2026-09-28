@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { CourseViewer } from "./CourseViewer";
 import { ReviewForm } from "@/app/(dashboard)/dashboard/courses/[id]/ReviewForm";
 import { EnrollmentService } from "@/services/enrollment.service";
-import { loadStudyMindCourseData } from "@/lib/studymind";
+import { courseHasAiTutor, loadStudyMindCourseData } from "@/lib/studymind";
 import { StudentStudyMindDrawer } from "@/components/studymind/StudentStudyMindDrawer";
 import { UnifiedMessagingDrawer } from "@/components/messaging/UnifiedMessagingDrawer";
 import { CourseMessagingService } from "@/services";
@@ -31,8 +31,9 @@ export default async function LearnPage({ params, searchParams }: Props) {
   if (!data) redirect(`/checkout/${courseId}`);
 
   const { enrollment, course, sectionsWithLectures, progressMap, hasReviewed, totalLectures } = data;
-  // AI tutor is optional — the course player works without StudyMind configured
-  const studyMindCourse = process.env.STUDYMIND_API_KEY
+  // AI tutor is optional — the course player works without StudyMind configured —
+  // and a paid-course feature: free courses (price 0) don't get it
+  const studyMindCourse = process.env.STUDYMIND_API_KEY && (await courseHasAiTutor(courseId))
     ? await loadStudyMindCourseData(courseId)
     : null;
   // Live Q&A opens while one of the course's sessions is running (the drawer re-checks while open)

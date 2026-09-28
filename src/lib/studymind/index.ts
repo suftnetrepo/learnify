@@ -14,11 +14,24 @@ import type { CourseData } from "@studymind/react";
 export type StudyMindRole = "student" | "tutor" | "admin";
 
 /**
+ * The AI tutor is a paid-course feature: students on a free course (price 0) don't get it.
+ * Tutors and admins can still prepare AI materials on a free course.
+ */
+export async function courseHasAiTutor(courseId: string): Promise<boolean> {
+  const [course] = await db
+    .select({ price: courses.price })
+    .from(courses)
+    .where(eq(courses.id, courseId))
+    .limit(1);
+  return !!course && Number(course.price) > 0;
+}
+
+/**
  * Which StudyMind role (if any) a Learnify user gets for a course.
- * - admin               → "admin"
- * - tutor with editor+  → "tutor"   (can manage AI materials)
- * - enrolled student    → "student"
- * - anyone else         → null      (no token)
+ * - admin                              → "admin"
+ * - tutor with editor+                 → "tutor"   (can manage AI materials)
+ * - student enrolled on a paid course  → "student"
+ * - anyone else (incl. free courses)   → null      (no token)
  */
 export async function getStudyMindRole(
   userId:   string,
@@ -36,7 +49,7 @@ export async function getStudyMindRole(
     .from(enrollments)
     .where(and(eq(enrollments.studentId, userId), eq(enrollments.courseId, courseId)))
     .limit(1);
-  return enrollment ? "student" : null;
+  return enrollment && (await courseHasAiTutor(courseId)) ? "student" : null;
 }
 
 /**

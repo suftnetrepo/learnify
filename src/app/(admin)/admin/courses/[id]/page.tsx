@@ -96,7 +96,9 @@ export default async function EditCoursePage({ params }: Props) {
         }
       />
 
-      {studyMindCourse && <StudyMindDrawer courseId={course.id} courseData={studyMindCourse} />}
+      {studyMindCourse && (
+        <StudyMindDrawer courseId={course.id} courseData={studyMindCourse} isFree={Number(course.price) <= 0} />
+      )}
 
       {/* Admin: post notices, message the course's tutors (Staff); Live Q&A and Private are read-only */}
       <UnifiedMessagingDrawer

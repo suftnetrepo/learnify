@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { log } from "@/lib/logger";
-import { getStudyMindRole } from "@/lib/studymind";
+import { courseHasAiTutor, getStudyMindRole } from "@/lib/studymind";
 
 const DEFAULT_API_URL = "https://api.aismartlearner.com";
 const TOKEN_TTL_SECONDS = 3600;
@@ -24,6 +24,11 @@ export async function POST(req: NextRequest) {
     const courseId = typeof body?.courseId === "string" ? body.courseId : "";
     if (!courseId) {
       return NextResponse.json({ error: "courseId is required" }, { status: 400 });
+    }
+
+    // Paid-course feature — say so plainly rather than a generic "no access"
+    if (session.user.role === "student" && !(await courseHasAiTutor(courseId))) {
+      return NextResponse.json({ error: "The AI tutor is available on paid courses only" }, { status: 403 });
     }
 
     const role = await getStudyMindRole(session.user.id, session.user.role, courseId);
