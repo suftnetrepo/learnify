@@ -6,17 +6,19 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, BookOpen, Users, GraduationCap, Calendar,
   BarChart3, CreditCard, LogOut, X,
-  Award, Settings, Clock, CalendarDays,
+  Award, Settings, Clock, CalendarDays, MessageCircle,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface NavItem {
   label: string;
   href:  string;
   icon:  React.ReactNode;
   roles: string[];
+  /** Live count shown on the item — "messages" = unread student messages */
+  badge?: "messages";
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -34,12 +36,14 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Payments",   href: "/admin/payments",        icon: <CreditCard      size={18} />, roles: ["admin"] },
   { label: "Review", href: "/admin/courses/pending", icon: <Clock       size={18} />, roles: ["admin"] },
   { label: "Users",      href: "/admin/users",           icon: <Users           size={18} />, roles: ["admin"] },
+  { label: "Messages",   href: "/admin/messages",        icon: <MessageCircle   size={18} />, roles: ["admin"] },
   // Instructor
   { label: "Dashboard",  href: "/instructor",            icon: <LayoutDashboard size={18} />, roles: ["tutor"] },
   { label: "My Courses", href: "/instructor/courses",    icon: <BookOpen        size={18} />, roles: ["tutor"] },
   { label: "Earnings",   href: "/instructor/earnings",   icon: <CreditCard      size={18} />, roles: ["tutor"] },
   { label: "Sessions",   href: "/instructor/sessions",   icon: <Calendar        size={18} />, roles: ["tutor"] },
   { label: "Calendar",   href: "/instructor/calendar",   icon: <CalendarDays    size={18} />, roles: ["tutor"] },
+  { label: "Messages",   href: "/instructor/messages",   icon: <MessageCircle   size={18} />, roles: ["tutor"], badge: "messages" },
 ];
 
 interface SidebarProps {
@@ -51,10 +55,30 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+const UNREAD_REFRESH_MS = 30000;
+
+/** Unread student messages for the tutor's Messages badge (refreshed every 30s). */
+function useUnreadMessages(enabled: boolean) {
+  const [count, setCount] = useState(0);
+  const [tick,  setTick]  = useState(0);
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    fetch("/api/messages?unread=1", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body) => { if (!cancelled && body) setCount(body.data.unread ?? 0); })
+      .catch(() => {});
+    const timer = setTimeout(() => setTick((n) => n + 1), UNREAD_REFRESH_MS);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [enabled, tick]);
+  return count;
+}
+
 export function Sidebar({ role, name, email, open, onClose }: SidebarProps) {
   const pathname       = usePathname();
   const isMobileDrawer = onClose !== undefined;
   const navItems       = NAV_ITEMS.filter((item) => item.roles.includes(role));
+  const unreadMessages = useUnreadMessages(navItems.some((item) => item.badge === "messages"));
 
   // Highlight only the most specific matching item — e.g. "/dashboard" is a
   // literal prefix of "/dashboard/my-courses", so a naive per-item
@@ -112,6 +136,11 @@ export function Sidebar({ role, name, email, open, onClose }: SidebarProps) {
                 {item.icon}
               </span>
               {item.label}
+              {item.badge === "messages" && unreadMessages > 0 && (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1.5 text-[11px] font-bold text-white">
+                  {unreadMessages > 99 ? "99+" : unreadMessages}
+                </span>
+              )}
             </Link>
           );
         })}

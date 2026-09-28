@@ -15,6 +15,13 @@
       "when": 1790419078515,
       "tag": "0001_flippant_crusher_hogan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790596818108,
+      "tag": "0002_lyrical_stick",
+      "breakpoints": true
     }
   ]
 }

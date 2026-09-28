@@ -21,6 +21,10 @@ export * from "./lectureProgress";
 export * from "./lectureResources";
 export * from "./lectureNotes";
 
+// Student ↔ tutor messaging
+export * from "./conversations";
+export * from "./messages";
+
 // ─── Tutors ───────────────────────────────────────────────────────────────────
 export * from "./tutorAssignments";
 export * from "./tutorInvitations";

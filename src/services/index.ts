@@ -7,3 +7,4 @@ export { EnrollmentService } from "./enrollment.service";
 export { SessionService } from "./session.service";
 export { ResourceService } from "./resource.service";
 export { NoteService }     from "./note.service";
+export { MessagingService, MessagingError } from "./messaging.service";

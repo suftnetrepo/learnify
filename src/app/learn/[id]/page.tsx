@@ -6,6 +6,7 @@ import { ReviewForm } from "@/app/(dashboard)/dashboard/courses/[id]/ReviewForm"
 import { EnrollmentService } from "@/services/enrollment.service";
 import { loadStudyMindCourseData } from "@/lib/studymind";
 import { StudentStudyMindDrawer } from "@/components/studymind/StudentStudyMindDrawer";
+import { ChatDrawer } from "@/components/messaging/ChatDrawer";
 
 interface Props {
   params:       Promise<{ id: string }>;
@@ -59,6 +60,13 @@ export default async function LearnPage({ params, searchParams }: Props) {
           buttonPositionClassName="bottom-6 right-[344px] lg:right-[384px] xl:right-[424px] 2xl:right-[464px]"
         />
       )}
+      <ChatDrawer
+        courseId={courseId}
+        courseTitle={course.title}
+        viewerId={session.user.id}
+        // Bottom-left of the lecture area, clear of CourseViewer's 220px left nav (sign-out / profile)
+        buttonPositionClassName="bottom-6 left-[244px]"
+      />
       {!hasReviewed && enrollment.completedAt && (
         <ReviewForm courseId={courseId} existingReview={undefined} progress={Number(enrollment.progress)} />
       )}
