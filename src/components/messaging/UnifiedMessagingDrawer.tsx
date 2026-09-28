@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ComponentType } from "react";
-import { ArrowLeft, Check, CheckCheck, Eye, Megaphone, MessageCircle, Send, Users, X } from "lucide-react";
+import { ArrowLeft, Check, CheckCheck, Eye, Megaphone, MessageCircle, Send, Shield, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { announceDrawerOpen, onOtherDrawerOpen } from "@/lib/drawers";
 import { useConversation, type ChatMessage } from "./useConversation";
-import { FeedError, useAnnouncements, useGroupChat } from "./useCourseFeeds";
+import { FeedError, useAnnouncements, useGroupChat, useStaffChat } from "./useCourseFeeds";
 
-type Tab  = "announcements" | "live" | "private";
+type Tab  = "announcements" | "live" | "private" | "staff";
 type Role = "student" | "tutor" | "admin";
 
 export interface LiveSessionInfo {
@@ -23,7 +24,7 @@ interface Props {
   currentRole:   Role;
   /** Session live right now (worked out on the server); re-checked while the page is open. */
   liveSession:   LiveSessionInfo | null;
-  /** Where the floating button sits — pages keep it clear of their left navigation. */
+  /** Where the floating button sits — pages stack it above the AI Tutor button. */
   buttonPositionClassName?: string;
 }
 
@@ -38,6 +39,7 @@ interface ConversationRow {
 
 const LIVE_CHECK_MS   = 30_000;   // notice a session starting/ending without a reload
 const LIST_REFRESH_MS = 15_000;   // tutors' private conversation list
+const DRAWER_ID       = "messages";
 
 const badge = (n: number) => (n > 9 ? "9+" : String(n));
 
@@ -58,18 +60,19 @@ const dayLabel = (d: Date) => {
 };
 
 /**
- * One course messaging drawer with three tabs:
+ * One course messaging drawer (slides in from the right; opening it closes any other drawer):
  *   Notices  — tutor/admin announcements to the whole course (tutors compose here)
  *   Live Q&A — class group chat, open only while a course session is live
  *   Private  — student ↔ course tutors (tutors get a list of their students' threads)
+ *   Staff    — tutors ↔ admins for this course (staff only; students never see it)
  */
 export function UnifiedMessagingDrawer({
   courseId, courseName, currentUserId, currentRole, liveSession: initialLive,
-  buttonPositionClassName = "bottom-6 left-6",
+  buttonPositionClassName = "bottom-6 right-6",
 }: Props) {
   const isStudent  = currentRole === "student";
   const isAdmin    = currentRole === "admin";
-  const canAnnounce = !isStudent;
+  const isStaff    = !isStudent;   // tutors + admins: post notices, use the staff channel
 
   const [open, setOpen] = useState(false);
   const [tab,  setTab]  = useState<Tab>(initialLive ? "live" : "announcements");
@@ -108,6 +111,9 @@ export function UnifiedMessagingDrawer({
   }, [isViewing]);
   const group = useGroupChat(courseId, liveSession?.id ?? null, currentUserId, onGroupIncoming);
 
+  // ── Staff channel ───────────────────────────────────────────────────────────
+  const staff = useStaffChat(courseId, isStaff, currentUserId, useCallback(() => isViewing("staff"), [isViewing]));
+
   // ── Private: a student has one thread; tutors/admins pick from the course's threads ──
   const [studentConvId,  setStudentConvId]  = useState<string | null>(null);
   const [studentUnread,  setStudentUnread]  = useState(0);
@@ -145,16 +151,18 @@ export function UnifiedMessagingDrawer({
   const privateUnread = isStudent
     ? studentUnread
     : isAdmin ? 0 : (rows ?? []).reduce((sum, r) => sum + (r.unreadCount ?? 0), 0);
-  const totalUnread = notices.unread + liveUnread + privateUnread;
+  const totalUnread = notices.unread + liveUnread + privateUnread + staff.unread;
 
   // ── Opening tabs clears their unread ────────────────────────────────────────
   const show = (nextOpen: boolean, nextTab: Tab) => {
+    if (nextOpen && !viewing.current.open) announceDrawerOpen(DRAWER_ID);   // AI Tutor etc. close
     viewing.current = { open: nextOpen, tab: nextTab };
     setOpen(nextOpen);
     setTab(nextTab);
     if (!nextOpen) return;
     if (nextTab === "announcements") notices.markSeen();
     if (nextTab === "live") setLiveUnread(0);
+    if (nextTab === "staff") staff.markRead();
     if (nextTab === "private" && isStudent) {
       setStudentUnread(0);
       if (studentConvId) void thread.markRead();
@@ -170,6 +178,12 @@ export function UnifiedMessagingDrawer({
       void fetch(`/api/messages/${id}`, { method: "PATCH" });
     }
   };
+
+  // Only one drawer at a time: another one opening (AI Tutor) closes this
+  useEffect(() => onOtherDrawerOpen(DRAWER_ID, () => {
+    viewing.current = { ...viewing.current, open: false };
+    setOpen(false);
+  }), []);
 
   useEffect(() => {
     if (!open) return;
@@ -221,8 +235,8 @@ export function UnifiedMessagingDrawer({
         aria-label="Course messages"
         aria-hidden={!open}
         className={cn(
-          "fixed left-0 top-0 z-50 flex h-full w-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out sm:w-[400px]",
-          open ? "translate-x-0" : "pointer-events-none -translate-x-full",
+          "fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out sm:w-[420px]",
+          open ? "translate-x-0" : "pointer-events-none translate-x-full",
         )}
       >
         {/* Header */}
@@ -250,31 +264,30 @@ export function UnifiedMessagingDrawer({
             icon={Users} label="Live Q&A" unread={liveUnread} dot={isLive} />
           <TabButton active={tab === "private"} onClick={() => show(true, "private")}
             icon={MessageCircle} label="Private" unread={privateUnread} />
+          {isStaff && (
+            <TabButton active={tab === "staff"} onClick={() => show(true, "staff")}
+              icon={Shield} label="Staff" unread={staff.unread} />
+          )}
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col">
-          {/* ── NOTICES ─────────────────────────────────────────────── */}
+          {/* ── NOTICES: bubbles from tutors/admins, oldest → newest ─────── */}
           {tab === "announcements" && (
-            <div className="flex-1 space-y-3 overflow-y-auto bg-gray-50 p-4">
-              {canAnnounce && <AnnouncementForm onSend={notices.post} />}
-              {notices.items.length === 0 ? (
-                <EmptyState icon={Megaphone} title={notices.loaded ? "No announcements yet" : "Loading…"}
-                  hint={notices.loaded ? (canAnnounce ? "Send one above to notify every student on the course" : "Your tutors' course notices will appear here") : undefined} />
-              ) : notices.items.map((a) => (
-                <article key={a.id} className="rounded-xl border border-indigo-100 bg-white px-4 py-3 shadow-sm">
-                  <div className="mb-2 flex items-center gap-2">
-                    <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-indigo-600">
-                      <Megaphone size={12} /> Announcement
-                    </span>
-                    <span className="ml-auto text-xs text-gray-400">
-                      {new Date(a.createdAt).toLocaleDateString([], { month: "short", day: "numeric" })} · {new Date(a.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  </div>
-                  <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-800">{a.content}</p>
-                  <p className="mt-2 text-xs text-gray-400">From {a.tutorName}</p>
-                </article>
-              ))}
-            </div>
+            <>
+              <MessageList
+                loading={!notices.loaded}
+                empty={<EmptyState icon={Megaphone} title="No announcements yet"
+                  hint={isStaff ? "Type below to notify every student on the course." : "Your tutors' course notices will appear here."} />}
+                items={[...notices.items].reverse().map((a, i, all) => ({
+                  id: a.id, own: false, tone: "tutor" as const, content: a.content, createdAt: a.createdAt,
+                  // Broadcasts sit on the left for everyone; the author's own are marked "(you)"
+                  label: i > 0 && all[i - 1].tutorId === a.tutorId
+                    ? null
+                    : `📢 ${a.tutorName}${a.tutorId === currentUserId ? " (you)" : ""}`,
+                }))}
+              />
+              {isStaff && <Composer key="notices" placeholder="Announce to all students…" onSend={notices.post} />}
+            </>
           )}
 
           {/* ── LIVE Q&A ────────────────────────────────────────────── */}
@@ -298,7 +311,7 @@ export function UnifiedMessagingDrawer({
                   const sameSender = i > 0 && group.messages[i - 1].senderId === m.senderId;
                   return {
                     id: m.id, own, content: m.content, createdAt: m.createdAt,
-                    fromTutor: m.senderRole !== "student",
+                    tone: m.senderRole === "student" ? "student" as const : "tutor" as const,
                     label: !own && !sameSender ? `${m.senderName}${m.senderRole !== "student" ? " · Tutor" : ""}` : null,
                   };
                 })}
@@ -387,6 +400,31 @@ export function UnifiedMessagingDrawer({
               ))}
             </div>
           ))}
+
+          {/* ── STAFF: course tutors ↔ admins ───────────────────────── */}
+          {tab === "staff" && isStaff && (
+            <>
+              <p className="flex-shrink-0 border-b border-gray-100 bg-white px-4 py-1.5 text-xs text-gray-500">
+                Only this course&apos;s tutors and admins can see this channel.
+              </p>
+              <MessageList
+                loading={!staff.loaded}
+                empty={<EmptyState icon={Shield} title="Staff channel for this course" hint="Private between tutors and admins." />}
+                items={staff.messages.map((m, i) => {
+                  const own = m.senderId === currentUserId;
+                  return {
+                    id: m.id, own, content: m.content, createdAt: m.createdAt,
+                    tone: m.senderRole,
+                    // Names on every sender change, own included, so it's clear who said what
+                    label: i > 0 && staff.messages[i - 1].senderId === m.senderId
+                      ? null
+                      : `${m.senderRole === "admin" ? "🛡️" : "👨‍🏫"} ${m.senderName}${own ? " (you)" : ""}`,
+                  };
+                })}
+              />
+              <Composer key="staff" placeholder={isAdmin ? "Message the course tutors…" : "Message the admin team…"} onSend={staff.send} />
+            </>
+          )}
         </div>
       </div>
     </>
@@ -398,7 +436,8 @@ export function UnifiedMessagingDrawer({
 interface ListItem {
   id:        string;
   own:       boolean;
-  fromTutor: boolean;
+  /** Who it's from: tutors highlighted indigo, admins purple. */
+  tone:      "student" | "tutor" | "admin";
   label:     string | null;
   content:   string;
   createdAt: string;
@@ -412,7 +451,7 @@ function privateItems(messages: ChatMessage[], viewerId: string, labelFor: (m: C
     const sameSender = i > 0 && messages[i - 1].senderId === m.senderId;
     return {
       id: m.id, own, content: m.content, createdAt: m.createdAt,
-      fromTutor: m.senderRole !== "student",
+      tone: m.senderRole,
       label: !own && !sameSender ? labelFor(m) : null,
       readAt: own ? m.readAt : undefined,
     };
@@ -498,7 +537,8 @@ function MessageList({ items, loading, empty }: { items: ListItem[]; loading: bo
               </div>
             )}
             {m.label && (
-              <p className={cn("mb-0.5 mt-2 px-1 text-xs font-semibold", m.fromTutor ? "text-indigo-600" : "text-gray-500")}>
+              <p className={cn("mb-0.5 mt-2 px-1 text-xs font-semibold", m.own && "text-right",
+                m.tone === "admin" ? "text-purple-600" : m.tone === "tutor" ? "text-indigo-600" : "text-gray-500")}>
                 {m.label}
               </p>
             )}
@@ -507,9 +547,11 @@ function MessageList({ items, loading, empty }: { items: ListItem[]; loading: bo
                 "max-w-[82%] rounded-2xl px-3 py-2 text-sm shadow-sm",
                 m.own
                   ? "rounded-tr-none bg-indigo-600 text-white"
-                  : m.fromTutor
-                    ? "rounded-tl-none border border-indigo-100 bg-indigo-50 text-gray-800"
-                    : "rounded-tl-none border border-gray-100 bg-white text-gray-800",
+                  : m.tone === "admin"
+                    ? "rounded-tl-none border border-purple-100 bg-purple-50 text-gray-800"
+                    : m.tone === "tutor"
+                      ? "rounded-tl-none border border-indigo-100 bg-indigo-50 text-gray-800"
+                      : "rounded-tl-none border border-gray-100 bg-white text-gray-800",
               )}>
                 <p className="whitespace-pre-wrap break-words leading-relaxed">{m.content}</p>
                 <div className="mt-1 flex items-center justify-end gap-1">
@@ -529,7 +571,7 @@ function MessageList({ items, loading, empty }: { items: ListItem[]; loading: bo
   );
 }
 
-/** Message box: Enter sends, Shift+Enter is a new line; keys never reach page shortcuts. */
+/** Message box: Enter sends, Shift+Enter is a new line; keys (except Escape) never reach page shortcuts. */
 function Composer({ placeholder, onSend }: { placeholder: string; onSend: (text: string) => Promise<void> }) {
   const [input,   setInput]   = useState("");
   const [sending, setSending] = useState(false);
@@ -559,7 +601,7 @@ function Composer({ placeholder, onSend }: { placeholder: string; onSend: (text:
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
-            e.stopPropagation();
+            if (e.key !== "Escape") e.stopPropagation();   // Escape still closes the drawer
             if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void submit(); }
           }}
           placeholder={placeholder}
@@ -575,67 +617,6 @@ function Composer({ placeholder, onSend }: { placeholder: string; onSend: (text:
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white transition-colors hover:bg-indigo-700 disabled:bg-gray-300"
         >
           <Send size={16} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/** Tutors/admins: compose a notice to every student on the course. */
-function AnnouncementForm({ onSend }: { onSend: (content: string) => Promise<void> }) {
-  const [composing, setComposing] = useState(false);
-  const [draft,     setDraft]     = useState("");
-  const [sending,   setSending]   = useState(false);
-  const [error,     setError]     = useState<string | null>(null);
-
-  async function send() {
-    const text = draft.trim();
-    if (!text || sending) return;
-    setSending(true);
-    setError(null);
-    try {
-      await onSend(text);
-      setDraft("");
-      setComposing(false);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Announcement not sent");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  if (!composing) {
-    return (
-      <button onClick={() => setComposing(true)}
-        className="flex w-full items-center gap-2 rounded-xl border border-gray-200 bg-white p-3 text-sm font-semibold text-indigo-600 hover:border-indigo-200">
-        <Megaphone size={16} /> Send announcement to all students
-      </button>
-    );
-  }
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-3">
-      <p className="mb-2 flex items-center gap-1 text-xs font-semibold text-indigo-600">
-        <Megaphone size={12} /> Broadcast to all enrolled students
-      </p>
-      <textarea
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={(e) => e.stopPropagation()}
-        placeholder="e.g. Tomorrow's session is cancelled…"
-        aria-label="Announcement"
-        rows={3}
-        maxLength={4000}
-        autoFocus
-        className="w-full resize-none rounded-lg border border-indigo-200 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-indigo-400"
-      />
-      {error && <p role="alert" className="mt-1 text-xs text-red-600">{error}</p>}
-      <div className="mt-2 flex items-center justify-between">
-        <button onClick={() => { setComposing(false); setDraft(""); setError(null); }} className="text-xs text-gray-500 hover:text-gray-700">
-          Cancel
-        </button>
-        <button onClick={() => void send()} disabled={!draft.trim() || sending}
-          className="flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-indigo-700 disabled:bg-gray-300">
-          <Send size={12} /> {sending ? "Sending…" : "Send to all"}
         </button>
       </div>
     </div>

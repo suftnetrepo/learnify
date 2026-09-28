@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface AnnouncementItem {
   id:        string;
@@ -105,65 +105,135 @@ export function useAnnouncements(courseId: string, viewerId: string, isViewing: 
   return { items, loaded, unread, markSeen, post };
 }
 
+export interface StaffMessageItem {
+  id:         string;
+  courseId:   string;
+  senderId:   string;
+  senderName: string;
+  senderRole: "tutor" | "admin";
+  content:    string;
+  createdAt:  string;
+}
+
+interface FeedMessage { id: string; senderId: string; createdAt: string }
+
 /**
- * Live Q&A for one session, oldest first, kept live over SSE while `sessionId` is set.
+ * A chat feed, oldest first, kept live over SSE while `key` is set: loads `listUrl`, then applies
+ * `event` messages from `streamUrl` (reloading on every (re)connect). State is keyed so switching
+ * feeds (a new live session) never shows the previous one's messages.
  * `onIncoming` fires for new messages from other people.
  */
+function useMessageFeed<T extends FeedMessage>(
+  key: string | null,
+  urls: { list: string; stream: string; event: string; post: string },
+  postBody: Record<string, unknown>,
+  viewerId: string,
+  onIncoming?: (m: T) => void,
+) {
+  const [state,     setState]     = useState<{ key: string | null; items: T[] }>({ key: null, items: [] });
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const seen        = useRef(new Set<string>());
+  const incomingRef = useRef(onIncoming);
+  useEffect(() => { incomingRef.current = onIncoming; }, [onIncoming]);
+  const bodyRef = useRef(postBody);
+  useEffect(() => { bodyRef.current = postBody; }, [postBody]);
+  const { list, stream, event, post } = urls;
+
+  const add = useCallback((k: string, incoming: T[]) => {
+    setState((prev) => ({ key: k, items: mergeById(prev.key === k ? prev.items : [], incoming, false) }));
+  }, []);
+
+  const load = useCallback(async () => {
+    if (!key) return;
+    const res  = await fetch(list, { cache: "no-store" });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return;
+    const items: T[] = body.data;
+    items.forEach((m) => seen.current.add(m.id));
+    add(key, items);
+    setLoadedFor(key);
+  }, [key, list, add]);
+
+  useEffect(() => {
+    if (!key) return;
+    const es = new EventSource(stream);
+    es.addEventListener("connected", () => { void load(); });
+    es.addEventListener(event, (e) => {
+      const m: T = JSON.parse((e as MessageEvent).data);
+      const isNew = !seen.current.has(m.id);
+      seen.current.add(m.id);
+      add(key, [m]);
+      if (isNew && m.senderId !== viewerId) incomingRef.current?.(m);
+    });
+    return () => es.close();
+  }, [key, stream, event, viewerId, load, add]);
+
+  const send = useCallback(async (content: string) => {
+    if (!key) throw new FeedError("This chat isn't available right now", 409);
+    const m = await postJson<T>(post, { ...bodyRef.current, content });
+    seen.current.add(m.id);
+    add(key, [m]);
+  }, [key, post, add]);
+
+  return { messages: state.key === key ? state.items : [], loaded: loadedFor === key, send };
+}
+
+/** Live Q&A for one session (while `sessionId` is set). */
 export function useGroupChat(
   courseId: string,
   sessionId: string | null,
   viewerId: string,
   onIncoming?: (m: GroupMessageItem) => void,
 ) {
-  // Keyed by session so a new session never shows the previous one's messages
-  const [state,  setState]  = useState<{ sessionId: string | null; items: GroupMessageItem[] }>({ sessionId: null, items: [] });
-  const [loadedFor, setLoadedFor] = useState<string | null>(null);
-  const seen        = useRef(new Set<string>());
-  const incomingRef = useRef(onIncoming);
-  useEffect(() => { incomingRef.current = onIncoming; }, [onIncoming]);
+  const qs = `courseId=${courseId}&sessionId=${sessionId}`;
+  return useMessageFeed<GroupMessageItem>(
+    sessionId,
+    { list: `/api/group-messages?${qs}`, stream: `/api/group-messages/stream?${qs}`, event: "group_message", post: "/api/group-messages" },
+    { courseId, sessionId },
+    viewerId,
+    onIncoming,
+  );
+}
 
-  const add = useCallback((sid: string, incoming: GroupMessageItem[]) => {
-    setState((prev) => ({
-      sessionId: sid,
-      items: mergeById(prev.sessionId === sid ? prev.items : [], incoming, false),
-    }));
-  }, []);
+/**
+ * The course's staff channel (assigned tutors ↔ admins), when `enabled`. Unread is tracked on the
+ * server per person, so a badge follows them to any device; `isViewing()` says the channel is on
+ * screen — then new messages are marked read straight away.
+ */
+export function useStaffChat(courseId: string, enabled: boolean, viewerId: string, isViewing: () => boolean) {
+  const [unread, setUnread] = useState(0);
+  const viewingRef = useRef(isViewing);
+  useEffect(() => { viewingRef.current = isViewing; }, [isViewing]);
 
-  const load = useCallback(async () => {
-    if (!sessionId) return;
-    const res  = await fetch(`/api/group-messages?courseId=${courseId}&sessionId=${sessionId}`, { cache: "no-store" });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) return;
-    const list: GroupMessageItem[] = body.data;
-    list.forEach((m) => seen.current.add(m.id));
-    add(sessionId, list);
-    setLoadedFor(sessionId);
-  }, [courseId, sessionId, add]);
+  const patchRead = useCallback(() => {
+    void fetch(`/api/staff-messages?courseId=${courseId}`, { method: "PATCH" }).catch(() => {});
+  }, [courseId]);
 
   useEffect(() => {
-    if (!sessionId) return;
-    const es = new EventSource(`/api/group-messages/stream?courseId=${courseId}&sessionId=${sessionId}`);
-    es.addEventListener("connected", () => { void load(); });
-    es.addEventListener("group_message", (e) => {
-      const m: GroupMessageItem = JSON.parse((e as MessageEvent).data);
-      const isNew = !seen.current.has(m.id);
-      seen.current.add(m.id);
-      add(sessionId, [m]);
-      if (isNew && m.senderId !== viewerId) incomingRef.current?.(m);
-    });
-    return () => es.close();
-  }, [courseId, sessionId, viewerId, load, add]);
+    if (!enabled) return;
+    let cancelled = false;
+    fetch(`/api/staff-messages?courseId=${courseId}&unread=1`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body) => { if (!cancelled && body && !viewingRef.current()) setUnread(body.data.unread ?? 0); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [courseId, enabled]);
 
-  const send = useCallback(async (content: string) => {
-    if (!sessionId) throw new FeedError("There's no live session right now", 409);
-    const m = await postJson<GroupMessageItem>("/api/group-messages", { courseId, sessionId, content });
-    seen.current.add(m.id);
-    add(sessionId, [m]);
-  }, [courseId, sessionId, add]);
+  const onIncoming = useCallback(() => {
+    if (viewingRef.current()) patchRead();
+    else setUnread((n) => n + 1);
+  }, [patchRead]);
 
-  return {
-    messages: state.sessionId === sessionId ? state.items : [],
-    loaded:   loadedFor === sessionId,
-    send,
-  };
+  const postBody = useMemo(() => ({ courseId }), [courseId]);
+  const feed = useMessageFeed<StaffMessageItem>(
+    enabled ? courseId : null,
+    { list: `/api/staff-messages?courseId=${courseId}`, stream: `/api/staff-messages/stream?courseId=${courseId}`, event: "staff_message", post: "/api/staff-messages" },
+    postBody,
+    viewerId,
+    onIncoming,
+  );
+
+  const markRead = useCallback(() => { setUnread(0); patchRead(); }, [patchRead]);
+
+  return { ...feed, unread, markRead };
 }

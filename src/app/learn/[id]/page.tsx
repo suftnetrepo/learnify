@@ -74,8 +74,10 @@ export default async function LearnPage({ params, searchParams }: Props) {
           startDatetime: liveSession.startDatetime.toISOString(),
           endDatetime:   liveSession.endDatetime.toISOString(),
         }}
-        // Bottom-left of the lecture area, clear of CourseViewer's 220px left nav (sign-out / profile)
-        buttonPositionClassName="bottom-6 left-[244px]"
+        // Stacked just above the AI Tutor button (same offset, clear of the curriculum sidebar)
+        buttonPositionClassName={studyMindCourse
+          ? "bottom-20 right-[344px] lg:right-[384px] xl:right-[424px] 2xl:right-[464px]"
+          : "bottom-6 right-[344px] lg:right-[384px] xl:right-[424px] 2xl:right-[464px]"}
       />
       {!hasReviewed && enrollment.completedAt && (
         <ReviewForm courseId={courseId} existingReview={undefined} progress={Number(enrollment.progress)} />

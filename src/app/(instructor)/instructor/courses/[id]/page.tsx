@@ -182,7 +182,7 @@ export default async function InstructorCourseEditPage({ params }: Props) {
 
       {studyMindCourse && <StudyMindDrawer courseId={course.id} courseData={studyMindCourse} />}
 
-      {/* Notices (compose here), Live Q&A during sessions, and this course's private threads */}
+      {/* Notices (compose here), Live Q&A during sessions, private threads, staff channel */}
       <UnifiedMessagingDrawer
         courseId={course.id}
         courseName={course.title}
@@ -194,8 +194,7 @@ export default async function InstructorCourseEditPage({ params }: Props) {
           startDatetime: liveSession.startDatetime.toISOString(),
           endDatetime:   liveSession.endDatetime.toISOString(),
         }}
-        // Clear of the dashboard sidebar (w-60) on desktop
-        buttonPositionClassName="bottom-6 left-6 lg:left-[264px]"
+        // Bottom-right; the AI Materials tab sits mid-way up the right edge
       />
     </div>
   );

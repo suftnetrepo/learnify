@@ -1,6 +1,7 @@
-import { CourseService } from "@/services";
+import { CourseMessagingService, CourseService } from "@/services";
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import Link from "next/link";
 import { CourseForm } from "@/components/shared/CourseForm";
 import { TutorAssignmentSection } from "./TutorAssignmentSection";
@@ -10,6 +11,7 @@ import { SectionsManager } from "./sections/SectionsManager";
 import { CourseEditTabs } from "./CourseEditTabs";
 import { StudyMindDrawer } from "@/components/studymind/StudyMindDrawer";
 import { loadStudyMindCourseData } from "@/lib/studymind";
+import { UnifiedMessagingDrawer } from "@/components/messaging/UnifiedMessagingDrawer";
 
 export const metadata: Metadata = { title: "Edit Course" };
 
@@ -18,9 +20,13 @@ interface Props { params: Promise<{ id: string }> }
 export default async function EditCoursePage({ params }: Props) {
   const { id } = await params;
 
-  const [result, sectionsWithLectures] = await Promise.all([
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+
+  const [result, sectionsWithLectures, liveSession] = await Promise.all([
     CourseService.getAdminCourseEditData(id),
     CourseService.getSectionsWithLectures(id),
+    CourseMessagingService.activeSession(id),
   ]);
   if (!result) notFound();
   const { course, categories: allCategories, sessions } = result;
@@ -91,6 +97,20 @@ export default async function EditCoursePage({ params }: Props) {
       />
 
       {studyMindCourse && <StudyMindDrawer courseId={course.id} courseData={studyMindCourse} />}
+
+      {/* Admin: post notices, message the course's tutors (Staff); Live Q&A and Private are read-only */}
+      <UnifiedMessagingDrawer
+        courseId={course.id}
+        courseName={course.title}
+        currentUserId={session.user.id}
+        currentRole="admin"
+        liveSession={liveSession && {
+          id:            liveSession.id,
+          title:         liveSession.title,
+          startDatetime: liveSession.startDatetime.toISOString(),
+          endDatetime:   liveSession.endDatetime.toISOString(),
+        }}
+      />
     </div>
   );
 }

@@ -1,8 +1,9 @@
-import { and, asc, desc, eq, gt, gte, lte } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, gte, lte, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
-  announcements, courseSessions, enrollments, groupMessages, tutorAssignments, users,
-  type Announcement, type GroupMessage,
+  announcements, courseSessions, enrollments, groupMessages, staffChannelReads, staffMessages,
+  tutorAssignments, users,
+  type Announcement, type GroupMessage, type StaffMessage,
 } from "@/db/schema";
 import { channels, notifyChannel } from "@/lib/messaging/notify";
 import { MAX_MESSAGE_LENGTH, MessagingError, type Role, type Viewer } from "./messaging.service";
@@ -21,7 +22,7 @@ function cleanContent(raw: string): string {
   return content;
 }
 
-/** Course-wide messaging: tutor announcements and the live-session group chat (Live Q&A). */
+/** Course-wide messaging: tutor announcements, the live-session group chat (Live Q&A) and the staff channel. */
 export const CourseMessagingService = {
   /**
    * The viewer's part in a course: "student" if enrolled, "tutor" if actively assigned,
@@ -187,5 +188,75 @@ export const CourseMessagingService = {
       .returning();
     notifyChannel(channels.groupChat(courseId));
     return row;
+  },
+
+  // ─── Staff channel (course tutors ↔ admins) ─────────────────────────────────
+
+  async staffMessages(courseId: string, limit = 300): Promise<StaffMessage[]> {
+    const rows = await db
+      .select()
+      .from(staffMessages)
+      .where(eq(staffMessages.courseId, courseId))
+      .orderBy(desc(staffMessages.createdAt))
+      .limit(limit);
+    return rows.reverse();
+  },
+
+  async staffMessagesSince(courseId: string, since: Date): Promise<StaffMessage[]> {
+    return db
+      .select()
+      .from(staffMessages)
+      .where(and(eq(staffMessages.courseId, courseId), gte(staffMessages.createdAt, since)))
+      .orderBy(asc(staffMessages.createdAt));
+  },
+
+  /** Assigned tutors and admins only — callers check that with courseRole first. */
+  async sendStaffMessage(viewer: Viewer, courseId: string, raw: string): Promise<StaffMessage> {
+    const content = cleanContent(raw);
+    const role = await this.courseRole(viewer, courseId);
+    if (role !== "tutor" && role !== "admin") throw new MessagingError("Only the course's tutors and admins can use the staff channel", 403);
+    const [row] = await db
+      .insert(staffMessages)
+      .values({
+        courseId,
+        senderId:   viewer.id,
+        senderName: await this.displayName(viewer.id, role === "admin" ? "Admin" : "Tutor"),
+        senderRole: role,
+        content,
+      })
+      .returning();
+    // Sending means you've read everything up to your own message
+    await this.markStaffRead(viewer, courseId);
+    notifyChannel(channels.staff(courseId));
+    return row;
+  },
+
+  /** Staff messages from others since the viewer last read the channel. */
+  async staffUnread(viewer: Viewer, courseId: string): Promise<number> {
+    const [read] = await db
+      .select({ lastReadAt: staffChannelReads.lastReadAt })
+      .from(staffChannelReads)
+      .where(and(eq(staffChannelReads.courseId, courseId), eq(staffChannelReads.userId, viewer.id)))
+      .limit(1);
+    const [row] = await db
+      .select({ n: count() })
+      .from(staffMessages)
+      .where(and(
+        eq(staffMessages.courseId, courseId),
+        ne(staffMessages.senderId, viewer.id),
+        ...(read ? [gt(staffMessages.createdAt, read.lastReadAt)] : []),
+      ));
+    return Number(row?.n ?? 0);
+  },
+
+  async markStaffRead(viewer: Viewer, courseId: string): Promise<void> {
+    // Database clock on both sides of the comparison (messages default to now() too)
+    await db
+      .insert(staffChannelReads)
+      .values({ courseId, userId: viewer.id, lastReadAt: sql`now()` })
+      .onConflictDoUpdate({
+        target: [staffChannelReads.courseId, staffChannelReads.userId],
+        set:    { lastReadAt: sql`now()` },
+      });
   },
 };

@@ -20,3 +20,12 @@ export async function courseAccess(courseId: string | null): Promise<Access> {
   if (!courseRole) return { ok: false, status: 403, message: "You're not part of this course" };
   return { ok: true, viewer, courseRole };
 }
+
+/** Like courseAccess, but only the course's assigned tutors and admins (the staff channel). */
+export async function staffAccess(courseId: string | null): Promise<Access> {
+  const access = await courseAccess(courseId);
+  if (access.ok && access.courseRole === "student") {
+    return { ok: false, status: 403, message: "The staff channel is for tutors and admins" };
+  }
+  return access;
+}

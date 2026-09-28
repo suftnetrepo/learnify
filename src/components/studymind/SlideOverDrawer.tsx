@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import { X } from "lucide-react";
+import { announceDrawerOpen, onOtherDrawerOpen } from "@/lib/drawers";
 
 interface Props {
   title:      string;
@@ -25,9 +26,13 @@ export function SlideOverDrawer({
   const drawerId = useId();
 
   const toggle = () => {
-    setOpen((o) => !o);
+    if (!open) announceDrawerOpen(drawerId);
+    setOpen(!open);
     setOpened(true);
   };
+
+  // Another drawer (e.g. Messages) opened — make way for it
+  useEffect(() => onOtherDrawerOpen(drawerId, () => setOpen(false)), [drawerId]);
 
   useEffect(() => {
     if (!open) return;
