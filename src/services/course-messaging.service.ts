@@ -22,6 +22,14 @@ function cleanContent(raw: string): string {
   return content;
 }
 
+/** Names of a course's active tutors — shown so admins can see who a staff message reaches. */
+const tutorNamesSql = sql<string[]>`array(
+  select coalesce(u.name, u.email) from ${tutorAssignments} ta
+  join ${users} u on u.id = ta.tutor_id
+  where ta.course_id = "courses"."id" and ta.status = 'active'
+  order by 1
+)`;   // "courses"."id" spelled out: Drizzle leaves columns unqualified in single-table selects
+
 /** Course-wide messaging: tutor announcements, the live-session group chat (Live Q&A) and the staff channel. */
 export const CourseMessagingService = {
   /**
@@ -301,6 +309,8 @@ export const CourseMessagingService = {
       .select({
         courseId:      courses.id,
         courseTitle:   courses.title,
+        courseStatus:  courses.status,
+        tutorNames:    tutorNamesSql,
         lastMessage:   last.content,
         lastSender:    last.senderName,
         lastMessageAt: last.createdAt,
@@ -321,12 +331,16 @@ export const CourseMessagingService = {
     return rows.reduce((sum, r) => sum + Number(r.unreadCount ?? 0), 0);
   },
 
-  /** Courses an admin can open a staff channel on: those with at least one active tutor. */
+  /**
+   * Courses an admin can open a staff channel on: those with at least one active tutor. Status and
+   * tutor names are included because course titles aren't unique (e.g. an archived copy).
+   * Published courses first.
+   */
   async staffCourseOptions() {
     return db
-      .selectDistinct({ courseId: courses.id, courseTitle: courses.title })
+      .select({ courseId: courses.id, courseTitle: courses.title, courseStatus: courses.status, tutorNames: tutorNamesSql })
       .from(courses)
-      .innerJoin(tutorAssignments, and(eq(tutorAssignments.courseId, courses.id), eq(tutorAssignments.status, "active")))
-      .orderBy(courses.title);
+      .where(sql`exists (select 1 from ${tutorAssignments} ta where ta.course_id = ${courses.id} and ta.status = 'active')`)
+      .orderBy(sql`${courses.status} <> 'published'`, courses.title);
   },
 };

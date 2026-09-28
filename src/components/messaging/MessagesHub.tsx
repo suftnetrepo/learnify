@@ -385,13 +385,19 @@ function DirectPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewer
 interface StaffRow {
   courseId:      string;
   courseTitle:   string;
+  courseStatus:  string;
+  tutorNames:    string[];
   lastMessage:   string | null;
   lastSender:    string | null;
   lastMessageAt: string | null;
   unreadCount:   number;
 }
 
-interface CourseOption { courseId: string; courseTitle: string }
+interface CourseOption { courseId: string; courseTitle: string; courseStatus: string; tutorNames: string[] }
+
+/** Titles aren't unique (drafts, archived copies) — say which course, and who the message reaches. */
+const statusNote = (status: string) => (status === "published" ? "" : ` (${status.replace("_", " ")})`);
+const tutorsLabel = (names: string[]) => (names.length ? `Tutors: ${names.join(", ")}` : "No tutors assigned");
 
 function StaffPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewerRole: Role; onRead: () => void }) {
   const isAdmin = viewerRole === "admin";
@@ -455,7 +461,11 @@ function StaffPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewerR
                 className="w-full rounded-xl border border-surface-200 bg-white px-3 py-2 text-sm text-gray-700"
               >
                 <option value="" disabled>{options ? "Choose a course with tutors…" : "Loading courses…"}</option>
-                {options?.map((o) => <option key={o.courseId} value={o.courseId}>{o.courseTitle}</option>)}
+                {options?.map((o) => (
+                  <option key={o.courseId} value={o.courseId}>
+                    {o.courseTitle}{statusNote(o.courseStatus)} — {o.tutorNames.join(", ")}
+                  </option>
+                ))}
               </select>
               <button onClick={() => setPicking(false)} className="mt-2 text-xs text-gray-500 hover:text-gray-700">Cancel</button>
             </div>
@@ -471,12 +481,13 @@ function StaffPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewerR
               </div>
             ) : rows.map((r) => (
               <ListRow key={r.courseId}
-                title={r.courseTitle}
+                title={`${r.courseTitle}${statusNote(r.courseStatus)}`}
+                subtitle={isAdmin ? tutorsLabel(r.tutorNames) : null}
                 preview={r.lastMessage ? `${r.lastSender ? `${r.lastSender}: ` : ""}${r.lastMessage}` : "No messages yet"}
                 time={r.lastMessageAt}
                 unread={Number(r.unreadCount)}
                 selected={r.courseId === selected?.courseId}
-                onClick={() => open({ courseId: r.courseId, courseTitle: r.courseTitle })}
+                onClick={() => open(r)}
                 initial={r.courseTitle[0] ?? "C"}
                 tone="purple" />
             ))}
@@ -485,7 +496,10 @@ function StaffPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewerR
       }
       thread={selected ? (
         <>
-          <ThreadHeader title={selected.courseTitle} subtitle="Course staff — tutors and admins only" icon={<Shield size={16} />}
+          <ThreadHeader
+            title={`${selected.courseTitle}${statusNote(selected.courseStatus)}`}
+            subtitle={isAdmin ? `Course staff · ${tutorsLabel(selected.tutorNames)}` : "Course staff — tutors and admins only"}
+            icon={<Shield size={16} />}
             onBack={() => setSelected(null)} />
           <ConversationView
             key={selected.courseId}
