@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, GraduationCap, MessageCircle, Plus, Shield, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { avatarColor, avatarColors, initials } from "@/lib/avatar";
 import { ConversationView } from "./ConversationView";
 import { MessagesInbox } from "./MessagesInbox";
 import { useConversation, type ChatMessage } from "./useConversation";
@@ -150,9 +151,11 @@ function ListHeader({ title, hint, action }: { title: string; hint: string; acti
   );
 }
 
-function ListRow({ title, subtitle, preview, time, unread, selected, onClick, initial, tone = "emerald" }: {
+function ListRow({ title, subtitle, preview, time, unread, selected, onClick, initial, tone = "emerald", avatarClassName }: {
   title: string; subtitle?: string | null; preview: string; time: string | null; unread: number;
   selected: boolean; onClick: () => void; initial: string; tone?: "emerald" | "purple";
+  /** Colour classes for the avatar (people get their own colour; see avatarColor) */
+  avatarClassName?: string;
 }) {
   return (
     <button
@@ -164,9 +167,9 @@ function ListRow({ title, subtitle, preview, time, unread, selected, onClick, in
     >
       <div className={cn(
         "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold",
-        tone === "purple" ? "bg-purple-100 text-purple-700" : "bg-emerald-100 text-emerald-700",
+        avatarClassName ?? (tone === "purple" ? "bg-purple-100 text-purple-700" : "bg-emerald-100 text-emerald-700"),
       )}>
-        {initial.toUpperCase()}
+        {initial}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
@@ -187,7 +190,9 @@ function ListRow({ title, subtitle, preview, time, unread, selected, onClick, in
   );
 }
 
-function ThreadHeader({ title, subtitle, onBack, icon }: { title: string; subtitle?: string; onBack?: () => void; icon: React.ReactNode }) {
+function ThreadHeader({ title, subtitle, onBack, icon, iconClassName = "bg-emerald-500" }: {
+  title: string; subtitle?: string; onBack?: () => void; icon: React.ReactNode; iconClassName?: string;
+}) {
   return (
     <div className="flex flex-shrink-0 items-center gap-3 bg-emerald-700 px-4 py-3 text-white">
       {onBack && (
@@ -195,7 +200,7 @@ function ThreadHeader({ title, subtitle, onBack, icon }: { title: string; subtit
           <ArrowLeft size={18} />
         </button>
       )}
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold">{icon}</div>
+      <div className={cn("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold", iconClassName)}>{icon}</div>
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold">{title}</p>
         {subtitle && <p className="truncate text-xs text-emerald-100">{subtitle}</p>}
@@ -306,6 +311,8 @@ function DirectPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewer
 
   // ── Admin: all tutors' threads, and start new ones ──
   const selected = rows?.find((r) => r.id === selectedId) ?? null;
+  const colors = avatarColors((rows ?? []).map((r) => r.tutorId));
+  const colorFor = (tutorId: string) => colors.get(tutorId) ?? avatarColor(tutorId);
   const threadTitle = selected ? (selected.tutorName ?? selected.tutorEmail) : pendingTutor ? (pendingTutor.name ?? pendingTutor.email) : null;
   const threadSubtitle = selected?.tutorEmail ?? pendingTutor?.email;
 
@@ -356,14 +363,16 @@ function DirectPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewer
                 unread={r.unreadCount}
                 selected={r.id === selectedId}
                 onClick={() => open(r.id)}
-                initial={(r.tutorName ?? r.tutorEmail)[0] ?? "T"} />
+                initial={initials(r.tutorName ?? r.tutorEmail)}
+                avatarClassName={colorFor(r.tutorId)} />
             ))}
           </div>
         </>
       }
       thread={threadTitle ? (
         <>
-          <ThreadHeader title={threadTitle} subtitle={threadSubtitle} icon={threadTitle[0]?.toUpperCase()}
+          <ThreadHeader title={threadTitle} subtitle={threadSubtitle} icon={initials(threadTitle)}
+            iconClassName={colorFor(selected?.tutorId ?? pendingTutor?.id ?? threadTitle)}
             onBack={() => { reset(); setSelectedId(null); setPendingTutor(null); }} />
           <ConversationView
             messages={messages}
@@ -488,7 +497,7 @@ function StaffPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewerR
                 unread={Number(r.unreadCount)}
                 selected={r.courseId === selected?.courseId}
                 onClick={() => open(r)}
-                initial={r.courseTitle[0] ?? "C"}
+                initial={(r.courseTitle[0] ?? "C").toUpperCase()}
                 tone="purple" />
             ))}
           </div>
