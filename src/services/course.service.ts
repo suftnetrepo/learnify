@@ -512,6 +512,8 @@ export class CourseService {
         categoryId:       payload.categoryId,
         level:            payload.level,
         language:         payload.language ?? "English",
+        handoutUrl:       payload.handoutUrl || null,
+        handoutName:      payload.handoutName || null,
         createdBy,
       })
       .returning();

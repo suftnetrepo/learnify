@@ -264,11 +264,10 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
         </div>
       )}
 
-      {mode === "edit" && (
-        <SectionCard
+      <SectionCard
           icon={<FileText size={16} />}
-          title="Course Handout"
-          sub="Upload the complete course book or handout for instructors to access and share."
+          title="Course Handbook"
+          sub="Upload the complete course handbook. Students enrolled in the course can download it from their course page."
         >
           {handoutUrl ? (
             <div className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white">
@@ -282,7 +281,11 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
                     <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">Ready</span>
                   </div>
                   <p className="mt-1 truncate text-xs text-gray-400">
-                    {handoutSaved ? "Enrolled students can download this from their course." : "Not saved yet — save changes to publish it to students."}
+                    {handoutSaved
+                      ? "Enrolled students can download this from their course."
+                      : mode === "create"
+                        ? "It will be available to students once the course is created."
+                        : "Not saved yet — save changes to publish it to students."}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-2">
@@ -292,7 +295,7 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
                     onClick={async () => {
                       // The raw Cloudinary URL isn't downloadable; share the access-checked link
                       await navigator.clipboard.writeText(`${window.location.origin}${handoutDownloadPath(initialData.id!)}`);
-                      success("Handout link copied", "Works for enrolled students, the course's tutors and admins.");
+                      success("Handbook link copied", "Works for enrolled students, the course's tutors and admins.");
                     }}
                     className="flex h-9 items-center gap-1.5 rounded-xl border border-surface-200 bg-white px-3 text-xs font-semibold text-gray-600 transition hover:border-brand-200 hover:text-brand-600"
                   >
@@ -306,14 +309,14 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
                     type="button"
                     onClick={() => { setHandoutUrl(""); setHandoutName(""); }}
                     className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-white text-red-400 transition hover:bg-red-50 hover:text-red-600"
-                    title="Remove handout"
+                    title="Remove handbook"
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
               </div>
               <div className="border-t border-emerald-100 px-5 py-3 text-xs text-emerald-700">
-                Save changes after replacing or removing the handout.
+                {mode === "create" ? "Create the course to attach it." : "Save changes after replacing or removing the handbook."}
               </div>
             </div>
           ) : (
@@ -321,24 +324,25 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
               <CloudinaryUploader
                 type="document"
                 folder="resources"
-                label="Full course handout"
+                label="Course handbook"
                 accept="application/pdf,.doc,.docx,.ppt,.pptx"
                 maxSizeMb={100}
                 onSuccess={(result) => {
                   setHandoutUrl(result.secureUrl);
                   // Raw uploads (PDF/DOC/PPT) have no `format` — take the extension from the URL
                   setHandoutName(handoutNameForUpload(result.originalFilename, result.format, result.secureUrl));
-                  success("Handout uploaded", "Save changes to attach it to this course.");
+                  success("Handbook uploaded", mode === "create"
+                    ? "It will be attached when you create the course."
+                    : "Save changes to attach it to this course.");
                 }}
                 onError={(message) => showError("Upload failed", message)}
               />
               <p className="mt-3 text-xs leading-5 text-gray-400">
-                Accepted formats: PDF, DOC, DOCX, PPT and PPTX. The secure link becomes available immediately after upload.
+                Accepted formats: PDF, DOC, DOCX, PPT and PPTX (up to 100 MB).
               </p>
             </div>
           )}
         </SectionCard>
-      )}
 
       {/* Actions */}
       <div className="flex items-center justify-between rounded-2xl border border-surface-200 bg-white px-6 py-4 shadow-card">
