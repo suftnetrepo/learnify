@@ -332,15 +332,17 @@ export const CourseMessagingService = {
   },
 
   /**
-   * Courses an admin can open a staff channel on: those with at least one active tutor. Status and
-   * tutor names are included because course titles aren't unique (e.g. an archived copy).
-   * Published courses first.
+   * Courses an admin can open a staff channel on: published courses with at least one active
+   * tutor. Tutor names are included because course titles aren't unique.
    */
   async staffCourseOptions() {
     return db
       .select({ courseId: courses.id, courseTitle: courses.title, courseStatus: courses.status, tutorNames: tutorNamesSql })
       .from(courses)
-      .where(sql`exists (select 1 from ${tutorAssignments} ta where ta.course_id = ${courses.id} and ta.status = 'active')`)
-      .orderBy(sql`${courses.status} <> 'published'`, courses.title);
+      .where(and(
+        eq(courses.status, "published"),
+        sql`exists (select 1 from ${tutorAssignments} ta where ta.course_id = ${courses.id} and ta.status = 'active')`,
+      ))
+      .orderBy(courses.title);
   },
 };

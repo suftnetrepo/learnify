@@ -460,7 +460,7 @@ function StaffPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewerR
                 aria-label="Choose a course"
                 className="w-full rounded-xl border border-surface-200 bg-white px-3 py-2 text-sm text-gray-700"
               >
-                <option value="" disabled>{options ? "Choose a course with tutors…" : "Loading courses…"}</option>
+                <option value="" disabled>{options ? "Choose a published course with tutors…" : "Loading courses…"}</option>
                 {options?.map((o) => (
                   <option key={o.courseId} value={o.courseId}>
                     {o.courseTitle}{statusNote(o.courseStatus)} — {o.tutorNames.join(", ")}
