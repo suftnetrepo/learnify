@@ -4,10 +4,14 @@ import { auth } from "@/lib/auth";
 import { CourseViewer } from "./CourseViewer";
 import { ReviewForm } from "@/app/(dashboard)/dashboard/courses/[id]/ReviewForm";
 import { EnrollmentService } from "@/services/enrollment.service";
+import { CourseService } from "@/services/course.service";
 import { courseHasAiTutor, loadStudyMindCourseData } from "@/lib/studymind";
 import { StudentStudyMindDrawer } from "@/components/studymind/StudentStudyMindDrawer";
 import { UnifiedMessagingDrawer } from "@/components/messaging/UnifiedMessagingDrawer";
 import { CourseMessagingService } from "@/services";
+
+/** Right offset shared by the floating AI Tutor / Messages buttons (see CourseViewer's layout). */
+const FLOATING_RIGHT = "right-4 lg:right-[384px] xl:right-[424px] 2xl:right-[464px]";
 
 interface Props {
   params:       Promise<{ id: string }>;
@@ -16,8 +20,8 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const data = await EnrollmentService.getCourseViewerData("preview", id).catch(() => null);
-  return { title: data?.course?.title ? `${data.course.title} | Learnify` : "Course" };
+  const title = await CourseService.getTitle(id).catch(() => null);
+  return { title: title ?? "Course" };   // the root layout adds " | Learnify"
 }
 
 export default async function LearnPage({ params, searchParams }: Props) {
@@ -31,13 +35,15 @@ export default async function LearnPage({ params, searchParams }: Props) {
   if (!data) redirect(`/checkout/${courseId}`);
 
   const { enrollment, course, sectionsWithLectures, progressMap, hasReviewed, totalLectures } = data;
-  // AI tutor is optional — the course player works without StudyMind configured —
-  // and a paid-course feature: free courses (price 0) don't get it
-  const studyMindCourse = process.env.STUDYMIND_API_KEY && (await courseHasAiTutor(courseId))
-    ? await loadStudyMindCourseData(courseId)
-    : null;
-  // Live Q&A opens while one of the course's sessions is running (the drawer re-checks while open)
-  const liveSession = await CourseMessagingService.activeSession(courseId, session.user.id);
+  const [studyMindCourse, liveSession] = await Promise.all([
+    // AI tutor is optional — the course player works without StudyMind configured —
+    // and a paid-course feature: free courses (price 0) don't get it
+    process.env.STUDYMIND_API_KEY
+      ? courseHasAiTutor(courseId).then((paid) => (paid ? loadStudyMindCourseData(courseId) : null))
+      : Promise.resolve(null),
+    // Live Q&A opens while one of the course's sessions is running (the drawer re-checks while open)
+    CourseMessagingService.activeSession(courseId, session.user.id),
+  ]);
   const allLectures   = sectionsWithLectures.flatMap((s) => s.lectures);
   const activeLecture = lectureParam
     ? allLectures.find((l) => l.id === lectureParam) ?? allLectures[0] ?? null
@@ -54,14 +60,15 @@ export default async function LearnPage({ params, searchParams }: Props) {
         activeProgress={activeProgress}
         progressMap={progressMap}
         totalLectures={totalLectures}
+        studentName={session.user.name}
       />
       {studyMindCourse && (
         <StudentStudyMindDrawer
           courseId={courseId}
           courseData={studyMindCourse}
-          // Sits just left of CourseViewer's curriculum sidebar (w-[320px] lg:360 xl:400 2xl:440)
-          // so it never covers the lecture list or the certificate button
-          buttonPositionClassName="bottom-6 right-[344px] lg:right-[384px] xl:right-[424px] 2xl:right-[464px]"
+          // Desktop: just left of CourseViewer's curriculum column (lg:360 xl:400 2xl:440) so it never
+          // covers the lecture list; phones/tablets (stacked layout): bottom-right of the screen
+          buttonPositionClassName={`bottom-6 ${FLOATING_RIGHT}`}
         />
       )}
       <UnifiedMessagingDrawer
@@ -75,10 +82,8 @@ export default async function LearnPage({ params, searchParams }: Props) {
           startDatetime: liveSession.startDatetime.toISOString(),
           endDatetime:   liveSession.endDatetime.toISOString(),
         }}
-        // Stacked just above the AI Tutor button (same offset, clear of the curriculum sidebar)
-        buttonPositionClassName={studyMindCourse
-          ? "bottom-20 right-[344px] lg:right-[384px] xl:right-[424px] 2xl:right-[464px]"
-          : "bottom-6 right-[344px] lg:right-[384px] xl:right-[424px] 2xl:right-[464px]"}
+        // Stacked just above the AI Tutor button (same offset)
+        buttonPositionClassName={`${studyMindCourse ? "bottom-20" : "bottom-6"} ${FLOATING_RIGHT}`}
       />
       {!hasReviewed && enrollment.completedAt && (
         <ReviewForm courseId={courseId} existingReview={undefined} progress={Number(enrollment.progress)} />

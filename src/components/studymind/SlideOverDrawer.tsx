@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { announceDrawerOpen, onOtherDrawerOpen } from "@/lib/drawers";
 
@@ -23,12 +23,21 @@ export function SlideOverDrawer({
 }: Props) {
   const [open,   setOpen]   = useState(false);
   const [opened, setOpened] = useState(false);
-  const drawerId = useId();
+  const drawerId   = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef   = useRef<HTMLDivElement>(null);
+
+  const close = () => {
+    setOpen(false);
+    triggerRef.current?.focus();   // back to the button that opened it
+  };
 
   const toggle = () => {
-    if (!open) announceDrawerOpen(drawerId);
-    setOpen(!open);
+    if (open) { close(); return; }
+    announceDrawerOpen(drawerId);
+    setOpen(true);
     setOpened(true);
+    requestAnimationFrame(() => panelRef.current?.focus());   // keyboard users land in the drawer
   };
 
   // Another drawer (e.g. Messages) opened — make way for it
@@ -36,7 +45,11 @@ export function SlideOverDrawer({
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      triggerRef.current?.focus();
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
@@ -44,6 +57,7 @@ export function SlideOverDrawer({
   return (
     <>
       <button
+        ref={triggerRef}
         onClick={toggle}
         aria-expanded={open}
         aria-controls={drawerId}
@@ -55,7 +69,7 @@ export function SlideOverDrawer({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setOpen(false)} aria-hidden />
+        <div className="fixed inset-0 z-40 bg-black/20" onClick={close} aria-hidden />
       )}
 
       <div
@@ -64,6 +78,10 @@ export function SlideOverDrawer({
         aria-modal="true"
         aria-label={title}
         aria-hidden={!open}
+        ref={panelRef}
+        tabIndex={-1}
+        // Closed: off-screen AND out of the tab order
+        inert={!open}
         className={`fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out sm:w-[480px] md:w-[520px] lg:w-[580px] ${
           open ? "translate-x-0" : "pointer-events-none translate-x-full"
         }`}
@@ -74,7 +92,7 @@ export function SlideOverDrawer({
             <span className="text-sm font-semibold text-gray-900">{title}</span>
           </div>
           <button
-            onClick={() => setOpen(false)}
+            onClick={close}
             aria-label="Close"
             className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-surface-100 hover:text-gray-700"
           >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   CheckCircle2, Circle, ChevronDown, ChevronRight, ChevronLeft,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
 import { cn, formatDuration } from "@/lib/utils";
+import { initials } from "@/lib/avatar";
 import { handoutDisplayName, handoutDownloadPath } from "@/lib/handout";
 import { resourcesApi, notesApi } from "@/lib/api-client";
 import type { LectureResource, LectureResourceType } from "@/types";
@@ -66,6 +67,8 @@ interface Props {
   activeProgress:  ProgressRow | null;
   progressMap:     Record<string, ProgressRow>;
   totalLectures:   number;
+  /** Signed-in student's name for the nav footer */
+  studentName?:    string | null;
 }
 
 type TabKey = "overview" | "transcript" | "notes" | "resources";
@@ -114,7 +117,7 @@ function formatClockTime(t: string) {
 export function CourseViewer({
   course, enrollment, sections,
   activeLecture: initialLecture, activeProgress,
-  progressMap: initialProgressMap, totalLectures,
+  progressMap: initialProgressMap, totalLectures, studentName,
 }: Props) {
   const router   = useRouter();
   const pathname = usePathname();
@@ -139,26 +142,50 @@ export function CourseViewer({
   }, [activeLecture?.id]);
 
   // ─ Notes tab — fetch on lecture change, auto-save 1s after typing stops ─────
-  const [noteContent, setNoteContent] = useState("");
-  const [noteSaved,   setNoteSaved]   = useState(false);
+  // Only the student's own edits are saved, and only into the lecture whose note is loaded:
+  // saving on every change used to write the previous lecture's text (or "" after a failed
+  // load) over a note when its fetch was slow or failed.
+  const [noteContent,   setNoteContent]   = useState("");
+  const [noteSaved,     setNoteSaved]     = useState(false);
+  const [noteLectureId, setNoteLectureId] = useState<string | null>(null);  // whose note is in the box
+  const [noteDirty,     setNoteDirty]     = useState(false);
+  const [noteError,     setNoteError]     = useState(false);
+  const noteContentRef = useRef(noteContent);
+  useEffect(() => { noteContentRef.current = noteContent; }, [noteContent]);
+
+  const activeLectureId = activeLecture?.id ?? null;
+  useEffect(() => {
+    if (!activeLectureId) return;
+    const lectureId = activeLectureId;
+    let cancelled = false;
+    notesApi.get(lectureId)
+      .then((note) => {
+        if (cancelled) return;
+        setNoteContent(note?.content ?? "");
+        setNoteLectureId(lectureId);
+        setNoteDirty(false);
+        setNoteSaved(false);
+        setNoteError(false);
+      })
+      .catch(() => { if (!cancelled) { setNoteLectureId(null); setNoteError(true); } });
+    return () => { cancelled = true; };
+  }, [activeLectureId]);
 
   useEffect(() => {
-    if (!activeLecture) { setNoteContent(""); setNoteSaved(false); return; }
-    setNoteSaved(false);
-    notesApi.get(activeLecture.id)
-      .then((note) => setNoteContent(note?.content ?? ""))
-      .catch(() => setNoteContent(""));
-  }, [activeLecture?.id]);
-
-  useEffect(() => {
-    if (!activeLecture) return;
+    if (!noteDirty || !noteLectureId || noteLectureId !== activeLectureId) return;
+    const content = noteContent;
     const timer = setTimeout(() => {
-      notesApi.save(activeLecture.id, noteContent)
-        .then(() => setNoteSaved(true))
-        .catch(() => {});
+      notesApi.save(noteLectureId, content)
+        .then(() => {
+          setNoteSaved(true);
+          if (noteContentRef.current === content) setNoteDirty(false);   // still typing? keep saving
+        })
+        .catch(() => setNoteSaved(false));
     }, 1000);
     return () => clearTimeout(timer);
-  }, [noteContent, activeLecture?.id]);
+  }, [noteContent, noteDirty, noteLectureId, activeLectureId]);
+
+  const noteReady = !!activeLectureId && noteLectureId === activeLectureId;
 
   const allLectures    = sections.flatMap((s) => s.lectures);
   const initialSection = sections.find((s) =>
@@ -208,6 +235,11 @@ export function CourseViewer({
   const isTeams            = recordingResource?.url.includes("teams.microsoft.com");
   const platformLabel      = isZoom ? "Zoom" : isTeams ? "Microsoft Teams" : "Recording";
 
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) void document.exitFullscreen?.();
+    else void document.documentElement.requestFullscreen?.().catch(() => {});
+  };
+
   const isCoursePage = pathname?.startsWith("/learn") ?? false;
   const activeHref = isCoursePage
     ? "/dashboard/my-courses"
@@ -217,10 +249,13 @@ export function CourseViewer({
         .sort((a, b) => b.length - a.length)[0];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white">
+    // Desktop (lg+): nav | lecture | curriculum columns, each scrolling on its own.
+    // Phones/tablets: no left nav (the header links back to My Courses); lecture and curriculum
+    // stack in one scrolling column. 100dvh keeps it inside mobile browser chrome.
+    <div className="flex h-[100dvh] overflow-hidden bg-white">
 
       {/* ── LEFT NAV SIDEBAR ────────────────────────────────────────────── */}
-      <aside className="w-[220px] flex-shrink-0 h-full border-r border-surface-100 flex flex-col bg-white">
+      <aside className="hidden h-full w-[220px] flex-shrink-0 flex-col border-r border-surface-100 bg-white lg:flex">
         <Link href="/dashboard" className="flex h-16 flex-shrink-0 items-center gap-2.5 border-b border-surface-100 px-5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500">
             <Sparkles size={15} className="text-white" />
@@ -262,10 +297,10 @@ export function CourseViewer({
 
           <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
-              S
+              {initials(studentName ?? "Student")}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-xs font-semibold text-gray-900">Student</p>
+              <p className="truncate text-xs font-semibold text-gray-900">{studentName || "Student"}</p>
               <p className="truncate text-[11px] text-gray-400">Signed in</p>
             </div>
           </div>
@@ -276,7 +311,7 @@ export function CourseViewer({
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
 
         {/* ── HEADER ─────────────────────────────────────────────────────── */}
-        <header className="h-[52px] flex-shrink-0 flex items-center justify-between border-b border-surface-100 bg-white px-6">
+        <header className="h-[52px] flex-shrink-0 flex items-center justify-between gap-3 border-b border-surface-100 bg-white px-4 sm:px-6">
           <Link
             href="/dashboard/my-courses"
             className="flex min-w-0 items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
@@ -286,31 +321,36 @@ export function CourseViewer({
           </Link>
 
           <div className="flex flex-shrink-0 items-center gap-3">
-            <span className="text-xs text-gray-500">Your progress</span>
+            <span className="hidden text-xs text-gray-500 sm:inline">Your progress</span>
             <span className="text-xs font-semibold text-brand-600">{overallProgress}%</span>
-            <div className="h-1.5 w-[120px] rounded-full bg-surface-200 overflow-hidden">
+            <div className="hidden h-1.5 w-[120px] overflow-hidden rounded-full bg-surface-200 sm:block">
               <div
                 className="h-full rounded-full bg-brand-500 transition-all duration-500"
                 style={{ width: `${overallProgress}%` }}
               />
             </div>
-            <button className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-surface-100 hover:text-gray-700 transition-colors">
+            <button
+              onClick={toggleFullscreen}
+              aria-label="Toggle full screen"
+              title="Full screen"
+              className="hidden h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-surface-100 hover:text-gray-700 transition-colors sm:flex"
+            >
               <Maximize2 size={15} />
             </button>
           </div>
         </header>
 
         {/* ── BODY ───────────────────────────────────────────────────────── */}
-        <div className="flex flex-1 overflow-hidden min-h-0">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
 
           {/* ── CENTRE PANEL ────────────────────────────────────────────── */}
-          <div className="flex-1 flex flex-col overflow-hidden min-w-0 min-h-0">
+          <div className="flex min-w-0 flex-col lg:min-h-0 lg:flex-1 lg:overflow-hidden">
             {activeLecture ? (
               <>
                 {/* Render media only when the lesson has real playable or
                     scheduled media. Written lessons start with their content. */}
                 {activeLecture.videoUrl ? (
-                  <div className="flex-shrink-0 w-full h-[42%] bg-black">
+                  <div className="aspect-video w-full flex-shrink-0 bg-black lg:aspect-auto lg:h-[42%]">
                     <VideoPlayer
                       lectureId={activeLecture.id}
                       videoUrl={activeLecture.videoUrl}
@@ -321,7 +361,7 @@ export function CourseViewer({
                     />
                   </div>
                 ) : recordingResource ? (
-                  <div className="flex flex-shrink-0 w-full h-[42%] flex-col items-center justify-center gap-5 bg-gradient-to-br from-surface-50 to-white px-8">
+                  <div className="flex w-full flex-shrink-0 flex-col items-center justify-center gap-5 bg-gradient-to-br from-surface-50 to-white px-4 py-8 sm:px-8 lg:h-[42%] lg:py-0">
                     <div className="w-full max-w-md rounded-2xl border border-surface-200 bg-white p-6 text-center shadow-sm">
                       <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-brand-100 bg-brand-50">
                         <PlayCircle size={28} className="text-brand-500" />
@@ -351,14 +391,14 @@ export function CourseViewer({
                 ) : null}
 
                 {/* Lecture info panel — scrolls independently below the fixed-height video */}
-                <div className="flex-1 overflow-y-auto min-h-0 px-5 py-4">
+                <div className="px-4 py-4 sm:px-5 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
 
                   {/* Title + prev/next */}
-                  <div className="flex items-center justify-between border-b border-surface-100 pb-4">
-                    <div className="min-w-0">
-                      <h2 className="truncate text-xl font-bold text-gray-900">{activeLecture.title}</h2>
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-surface-100 pb-4">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-lg font-bold text-gray-900 sm:truncate sm:text-xl">{activeLecture.title}</h2>
                     </div>
-                    <div className="ml-4 flex flex-shrink-0 items-center gap-2">
+                    <div className="flex flex-shrink-0 items-center gap-2">
                       <button
                         onClick={() => previousLecture && goToLecture(previousLecture)}
                         disabled={!previousLecture}
@@ -377,7 +417,7 @@ export function CourseViewer({
                   </div>
 
                   {/* Meta chips */}
-                  <div className="flex items-center gap-2 border-b border-surface-100 py-3">
+                  <div className="flex flex-wrap items-center gap-2 border-b border-surface-100 py-3">
                     <span className="inline-flex items-center gap-1.5 rounded-lg border border-surface-200 px-3 py-1.5 text-xs text-gray-500">
                       <Clock size={13} />
                       {activeLecture.videoDuration
@@ -394,13 +434,13 @@ export function CourseViewer({
                   </div>
 
                   {/* Tabs */}
-                  <div className="flex items-center gap-6 border-b border-surface-100">
+                  <div className="flex items-center gap-4 overflow-x-auto border-b border-surface-100 sm:gap-6">
                     {TABS.map((tab) => (
                       <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
                         className={cn(
-                          "-mb-px flex items-center gap-1.5 border-b-2 py-3 text-sm font-medium transition-colors",
+                          "-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 py-3 text-sm font-medium transition-colors",
                           activeTab === tab.key
                             ? "border-brand-500 text-brand-600"
                             : "border-transparent text-gray-500 hover:text-gray-700"
@@ -427,7 +467,7 @@ export function CourseViewer({
                         {whatYouLearn.length > 0 && (
                           <>
                             <h3 className="text-sm font-semibold text-gray-900 mb-3">What you&apos;ll learn</h3>
-                            <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
+                            <div className="grid grid-cols-1 gap-x-8 gap-y-2.5 sm:grid-cols-2">
                               {whatYouLearn.map((item, i) => (
                                 <div key={i} className="flex items-start gap-2">
                                   <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-brand-500" />
@@ -446,14 +486,20 @@ export function CourseViewer({
                       </p>
                     )}
 
-                    {activeTab === "notes" && (
+                    {activeTab === "notes" && (noteError && !noteReady ? (
+                      <p className="text-sm text-red-500">
+                        Couldn&apos;t load your notes for this lecture. Check your connection and reopen the lecture.
+                      </p>
+                    ) : (
                       <textarea
-                        value={noteContent}
-                        onChange={(e) => { setNoteContent(e.target.value); setNoteSaved(false); }}
-                        placeholder="Add your notes for this lecture..."
+                        value={noteReady ? noteContent : ""}
+                        disabled={!noteReady}
+                        aria-label="Your notes for this lecture"
+                        onChange={(e) => { setNoteContent(e.target.value); setNoteSaved(false); setNoteDirty(true); }}
+                        placeholder={noteReady ? "Add your notes for this lecture..." : "Loading your notes…"}
                         className="h-full min-h-[240px] w-full resize-none border-none bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
                       />
-                    )}
+                    ))}
 
                     {activeTab === "resources" && (
                       loadingResources ? (
@@ -494,7 +540,8 @@ export function CourseViewer({
           </div>
 
           {/* ── RIGHT CURRICULUM SIDEBAR ──────────────────────────────────── */}
-          <aside className="w-[320px] lg:w-[360px] xl:w-[400px] 2xl:w-[440px] flex-shrink-0 border-l border-surface-100 flex flex-col overflow-hidden bg-white">
+          {/* Below lg it stacks under the lecture (extra bottom space clears the floating buttons) */}
+          <aside className="flex w-full flex-shrink-0 flex-col border-t border-surface-100 bg-white pb-36 lg:w-[360px] lg:overflow-hidden lg:border-l lg:border-t-0 lg:pb-0 xl:w-[400px] 2xl:w-[440px]">
           <div className="flex-shrink-0 border-b border-surface-100 px-5 py-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
               <AlignLeft size={16} /> Course content
@@ -521,7 +568,7 @@ export function CourseViewer({
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
             {sections.map((section, sIdx) => {
               const sectionCompleted = section.lectures.filter((l) => progressMap[l.id]?.isCompleted).length;
               const isExpanded       = expandedSections[section.id] ?? false;

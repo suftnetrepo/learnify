@@ -75,6 +75,8 @@ export function UnifiedMessagingDrawer({
   const isStaff    = !isStudent;   // tutors + admins: post notices, use the staff channel
 
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef   = useRef<HTMLDivElement>(null);
   const [tab,  setTab]  = useState<Tab>(initialLive ? "live" : "announcements");
   // What's on screen, readable from stream callbacks without re-subscribing
   const viewing = useRef({ open: false, tab });
@@ -155,7 +157,12 @@ export function UnifiedMessagingDrawer({
 
   // ── Opening tabs clears their unread ────────────────────────────────────────
   const show = (nextOpen: boolean, nextTab: Tab) => {
-    if (nextOpen && !viewing.current.open) announceDrawerOpen(DRAWER_ID);   // AI Tutor etc. close
+    const wasOpen = viewing.current.open;
+    if (nextOpen && !wasOpen) {
+      announceDrawerOpen(DRAWER_ID);   // AI Tutor etc. close
+      requestAnimationFrame(() => panelRef.current?.focus());   // keyboard / screen-reader users land in the drawer
+    }
+    if (!nextOpen && wasOpen) triggerRef.current?.focus();      // …and back on the button when it closes
     viewing.current = { open: nextOpen, tab: nextTab };
     setOpen(nextOpen);
     setTab(nextTab);
@@ -191,6 +198,7 @@ export function UnifiedMessagingDrawer({
       if (e.key !== "Escape") return;
       viewing.current = { ...viewing.current, open: false };
       setOpen(false);
+      triggerRef.current?.focus();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -204,6 +212,7 @@ export function UnifiedMessagingDrawer({
     <>
       {/* Floating button */}
       <button
+        ref={triggerRef}
         onClick={() => show(!open, tab)}
         aria-expanded={open}
         aria-label={`Course messages${isLive ? ", live session" : ""}${totalUnread ? `, ${totalUnread} unread` : ""}`}
@@ -234,6 +243,10 @@ export function UnifiedMessagingDrawer({
         aria-modal="true"
         aria-label="Course messages"
         aria-hidden={!open}
+        ref={panelRef}
+        tabIndex={-1}
+        // Closed: off-screen AND out of the tab order (otherwise Tab walks into the hidden drawer)
+        inert={!open}
         className={cn(
           "fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out sm:w-[420px]",
           open ? "translate-x-0" : "pointer-events-none translate-x-full",

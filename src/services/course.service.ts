@@ -138,6 +138,13 @@ export class CourseService {
   /**
    * Full course detail by ID — for admin editing.
    */
+  /** Just the title (page <title>s). Null for unknown or malformed ids — never throws on bad input. */
+  static async getTitle(id: string): Promise<string | null> {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
+    const [row] = await db.select({ title: courses.title }).from(courses).where(eq(courses.id, id)).limit(1);
+    return row?.title ?? null;
+  }
+
   static async findById(id: string): Promise<CourseDetail | null> {
     const [course] = await db
       .select()

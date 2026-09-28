@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { CourseViewer } from "./CourseViewer";
 import { ReviewForm } from "./ReviewForm";
 import { EnrollmentService } from "@/services/enrollment.service";
+import { CourseService } from "@/services/course.service";
 
 interface Props {
   params:       Promise<{ id: string }>;
@@ -12,8 +13,8 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const data = await EnrollmentService.getCourseViewerData("preview", id).catch(() => null);
-  return { title: data?.course?.title ? `${data.course.title} | Learnify` : "Course" };
+  const title = await CourseService.getTitle(id).catch(() => null);
+  return { title: title ?? "Course" };   // the root layout adds " | Learnify"
 }
 
 export default async function CoursePage({ params, searchParams }: Props) {
