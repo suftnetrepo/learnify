@@ -46,7 +46,7 @@ const nextConfig: NextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://images.unsplash.com",
               "media-src 'self' https://res.cloudinary.com https://*.cloudinary.com blob:",
-              "connect-src 'self' https://api.cloudinary.com https://api.stripe.com https://*.ingest.sentry.io https://api.aismartlearner.com",
+              "connect-src 'self' https://api.cloudinary.com https://api.stripe.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://api.aismartlearner.com",
               "frame-src https://js.stripe.com https://hooks.stripe.com https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
             ].join("; "),
           },
