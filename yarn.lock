@@ -1937,7 +1937,7 @@
 
 "@studymind/react@file:vendor/studymind-react-0.1.0.tgz":
   version "0.1.0"
-  resolved "file:vendor/studymind-react-0.1.0.tgz#76c791aa3823557838e8129705b280bdf8ea7c40"
+  resolved "file:vendor/studymind-react-0.1.0.tgz#8bd4cf343c587f580c8b889be59cc80e0b846b0b"
 
 "@svta/cml-608@1.0.2":
   version "1.0.2"
