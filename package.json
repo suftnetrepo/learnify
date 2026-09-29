@@ -13,7 +13,8 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "npx tsx src/db/seed.ts",
     "db:seed:programming-foundations": "npx tsx src/db/seed-programming-foundations.ts",
-    "db:drop": "drizzle-kit drop"
+    "db:drop": "drizzle-kit drop",
+    "seed:prod": "tsx scripts/seed-prod.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",
