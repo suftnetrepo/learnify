@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "About Us — Edquis",
+  title: "About Us",
   description: "Edquis is a UK-based premium learning platform built to give every learner access to expert-led, practitioner-built courses that deliver real career results.",
 };
 

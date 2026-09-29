@@ -49,5 +49,5 @@ jobs:
           CLOUDINARY_API_KEY:     dummy
           CLOUDINARY_API_SECRET:  dummy
           BREVO_API_KEY:          dummy
-          BREVO_FROM_EMAIL:       noreply@example.com
+          BREVO_FROM_EMAIL:       noreply@suftnet.com
           BREVO_FROM_NAME:        Edquis

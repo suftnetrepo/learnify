@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import { LoginForm } from "./LoginForm";
 
-export const metadata: Metadata = { title: "Sign In — Edquis" };
+export const metadata: Metadata = { title: "Sign In" };
 
 export default function LoginPage() {
   return (

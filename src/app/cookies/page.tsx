@@ -3,7 +3,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { auth } from "@/lib/auth";
 import { Footer } from "@/components/layout/Footer";
 
-export const metadata: Metadata = { title: "Cookie Policy — Edquis" };
+export const metadata: Metadata = { title: "Cookie Policy" };
 
 export default async function CookiePolicyPage() {
   const session = await auth();
@@ -75,7 +75,7 @@ export default async function CookiePolicyPage() {
 
           <section>
             <h2 className="font-display text-xl font-bold text-gray-900 mb-3">Contact</h2>
-            <p>Questions about our cookie use? Email <a href="mailto:privacy@learnify.dev" className="text-brand-600 hover:underline">privacy@learnify.dev</a>.</p>
+            <p>Questions about our cookie use? Email <a href="mailto:privacy@suftnet.com" className="text-brand-600 hover:underline">privacy@suftnet.com</a>.</p>
           </section>
         </div>
       </main>

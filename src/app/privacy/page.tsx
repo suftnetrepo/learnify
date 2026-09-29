@@ -3,7 +3,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { auth } from "@/lib/auth";
 import { Footer } from "@/components/layout/Footer";
 
-export const metadata: Metadata = { title: "Privacy Policy — Edquis" };
+export const metadata: Metadata = { title: "Privacy Policy" };
 
 const LAST_UPDATED = "1 August 2026";
 
@@ -71,7 +71,7 @@ export default async function PrivacyPage() {
               <li>Object to processing or request restriction.</li>
               <li>Data portability — receive your data in a machine-readable format.</li>
             </ul>
-            <p className="mt-3">To exercise any of these rights, contact <a href="mailto:privacy@learnify.dev" className="text-brand-600 hover:underline">privacy@learnify.dev</a>.</p>
+            <p className="mt-3">To exercise any of these rights, contact <a href="mailto:privacy@suftnet.com" className="text-brand-600 hover:underline">privacy@suftnet.com</a>.</p>
           </section>
 
           <section>
@@ -86,7 +86,7 @@ export default async function PrivacyPage() {
 
           <section>
             <h2 className="font-display text-xl font-bold text-gray-900 mb-3">9. Contact & Complaints</h2>
-            <p>Contact our Data Protection Officer at <a href="mailto:privacy@learnify.dev" className="text-brand-600 hover:underline">privacy@learnify.dev</a>. You also have the right to lodge a complaint with the ICO (Information Commissioner's Office) at <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">ico.org.uk</a>.</p>
+            <p>Contact our Data Protection Officer at <a href="mailto:privacy@suftnet.com" className="text-brand-600 hover:underline">privacy@suftnet.com</a>. You also have the right to lodge a complaint with the ICO (Information Commissioner's Office) at <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">ico.org.uk</a>.</p>
           </section>
         </div>
       </main>

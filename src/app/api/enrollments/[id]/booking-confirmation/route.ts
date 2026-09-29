@@ -189,8 +189,8 @@ async function buildBookingConfirmationPdf(data: {
     doc.fontSize(9).font("Helvetica").fillColor("#9ca3af");
     doc.text(`Booking reference: ${data.bookingRef}`, boxX, y);
     y += doc.heightOfString(`Booking reference: ${data.bookingRef}`) + 8;
-    doc.text("Please bring this confirmation and a valid photo ID to the venue. For support: hello@learnify.dev", boxX, y, { width: boxW });
-    y += doc.heightOfString("Please bring this confirmation and a valid photo ID to the venue. For support: hello@learnify.dev", { width: boxW }) + 12;
+    doc.text("Please bring this confirmation and a valid photo ID to the venue. For support: info@suftnet.com", boxX, y, { width: boxW });
+    y += doc.heightOfString("Please bring this confirmation and a valid photo ID to the venue. For support: info@suftnet.com", { width: boxW }) + 12;
     doc.text("© Edquis · 30-day money-back guarantee", boxX, y);
 
     doc.end();

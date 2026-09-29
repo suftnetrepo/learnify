@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!result) return { title: "Course not found" };
   const { course } = result;
   return {
-    title:       `${course.title} | Edquis`,
+    title:       course.title,
     description: course.shortDescription ?? undefined,
     openGraph: {
       title:       course.title,

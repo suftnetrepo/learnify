@@ -10,7 +10,7 @@ export default function SuspendedPage() {
       <p className="text-gray-500 mb-8 max-w-sm">
         Your account has been suspended. Please contact support if you believe this is a mistake.
       </p>
-      <a href="mailto:support@learnify.com" className="btn-primary">Contact support</a>
+      <a href="mailto:support@suftnet.com" className="btn-primary">Contact support</a>
     </div>
   );
 }

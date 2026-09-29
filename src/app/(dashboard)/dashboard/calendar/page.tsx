@@ -8,7 +8,7 @@ import { Calendar } from "lucide-react";
 import Link from "next/link";
 import { CalendarView } from "./CalendarView";
 
-export const metadata: Metadata = { title: "Calendar | Edquis" };
+export const metadata: Metadata = { title: "Calendar" };
 
 export default async function CalendarPage() {
   const session = await auth();

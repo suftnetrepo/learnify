@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { courseId } = await params;
   const course = await CourseService.findById(courseId);
   if (!course) return { title: "Checkout" };
-  return { title: `Enrol in ${course.title} | Edquis` };
+  return { title: `Enrol in ${course.title}` };
 }
 
 export default async function CheckoutPage({ params }: Props) {

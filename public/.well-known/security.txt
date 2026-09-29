@@ -1,4 +1,4 @@
-Contact: mailto:security@learnify.dev
+Contact: mailto:info@suftnet.com
 Expires: 2027-01-01T00:00:00.000Z
 Preferred-Languages: en
-Policy: https://learnify.dev/security-policy
+Policy: https://edquis.com/security-policy

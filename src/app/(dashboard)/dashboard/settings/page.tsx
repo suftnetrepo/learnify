@@ -5,7 +5,7 @@ import { Topbar } from "@/components/layout/Topbar";
 import { ProfileSettingsForm } from "./ProfileSettingsForm";
 import { UserService } from "@/services";
 
-export const metadata: Metadata = { title: "Settings | Edquis" };
+export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
   const session = await auth();

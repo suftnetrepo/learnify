@@ -3,7 +3,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { auth } from "@/lib/auth";
 import { Footer } from "@/components/layout/Footer";
 
-export const metadata: Metadata = { title: "Terms of Service — Edquis" };
+export const metadata: Metadata = { title: "Terms of Service" };
 
 const LAST_UPDATED = "1 August 2026";
 
@@ -73,7 +73,7 @@ export default async function TermsPage() {
 
           <section>
             <h2 className="font-display text-xl font-bold text-gray-900 mb-3">9. Contact</h2>
-            <p>For questions about these terms, contact us at <a href="mailto:legal@learnify.dev" className="text-brand-600 hover:underline">legal@learnify.dev</a>.</p>
+            <p>For questions about these terms, contact us at <a href="mailto:info@suftnet.com" className="text-brand-600 hover:underline">info@suftnet.com</a>.</p>
           </section>
         </div>
       </main>

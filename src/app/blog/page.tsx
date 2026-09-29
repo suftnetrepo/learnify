@@ -7,7 +7,7 @@ import { ArrowRight, Clock, Calendar, Tag } from "lucide-react";
 import { POSTS, type BlogPost } from "./posts";
 
 export const metadata: Metadata = {
-  title: "Blog — Edquis",
+  title: "Blog",
   description: "Insights on learning, career development, and the skills that matter most in today's workplace.",
 };
 

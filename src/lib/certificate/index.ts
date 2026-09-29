@@ -182,7 +182,7 @@ async function buildCertificatePdf(data: {
       .fontSize(8)
       .font("Helvetica")
       .fillColor("#374151")
-      .text("learnify.com", 0, H - 50, { align: "center" });
+      .text("edquis.com", 0, H - 50, { align: "center" });
 
     doc.end();
   });

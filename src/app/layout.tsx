@@ -24,7 +24,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default:  "Edquis — Learn, Grow, Succeed",
+    default:  "Edquis — AI-Powered Learning Platform",
     template: "%s | Edquis",
   },
   description: "Edquis is an AI-powered learning platform. Study smarter with AI tutoring, live sessions, and expert instructors.",

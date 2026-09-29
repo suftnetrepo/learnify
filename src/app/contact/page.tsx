@@ -25,8 +25,8 @@ const CHANNELS = [
     icon:  Mail,
     title: "Email us",
     body:  "Send us a message and we'll reply within 24 hours.",
-    value: "hello@learnify.dev",
-    href:  "mailto:hello@learnify.dev",
+    value: "info@suftnet.com",
+    href:  "mailto:info@suftnet.com",
     color: "bg-brand-50 text-brand-600",
   },
   {
@@ -244,8 +244,8 @@ export default function ContactPage() {
                 </div>
                 <div className="flex items-center gap-3 text-sm text-gray-600">
                   <Mail size={16} className="flex-shrink-0 text-brand-500" />
-                  <a href="mailto:hello@learnify.dev" className="text-brand-600 hover:underline">
-                    hello@learnify.dev
+                  <a href="mailto:info@suftnet.com" className="text-brand-600 hover:underline">
+                    info@suftnet.com
                   </a>
                 </div>
               </div>
@@ -312,7 +312,7 @@ export default function ContactPage() {
             </div>
             <p className="mt-8 text-center text-sm text-gray-400">
               Still have questions?{" "}
-              <a href="mailto:hello@learnify.dev" className="font-semibold text-brand-600 hover:underline">
+              <a href="mailto:info@suftnet.com" className="font-semibold text-brand-600 hover:underline">
                 Email us directly
               </a>
             </p>

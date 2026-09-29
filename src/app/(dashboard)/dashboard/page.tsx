@@ -13,7 +13,7 @@ import Image from "next/image";
 import { MobileMenuButton } from "./MobileMenuButton";
 import { CalendarWidget } from "./CalendarWidget";
 
-export const metadata: Metadata = { title: "Dashboard | Edquis" };
+export const metadata: Metadata = { title: "Dashboard" };
 
 const GRADIENTS = [
   "from-indigo-700 to-brand-500",
