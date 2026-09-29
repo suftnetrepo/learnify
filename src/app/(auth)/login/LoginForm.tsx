@@ -2,32 +2,39 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { RecaptchaProvider, useRecaptcha } from "@/lib/recaptcha";
+import { RecaptchaProvider } from "@/lib/recaptcha";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-function FloatingInput({
+function AuthInput({
   id, label, type = "text", placeholder, value, onChange,
-  autoComplete, required, disabled, rightElement, error,
+  autoComplete, required, disabled, leftElement, rightElement, error,
 }: {
   id: string; label: string; type?: string; placeholder: string;
   value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   autoComplete?: string; required?: boolean; disabled?: boolean;
-  rightElement?: React.ReactNode; error?: string;
+  leftElement?: React.ReactNode; rightElement?: React.ReactNode; error?: string;
 }) {
   const [focused, setFocused] = useState(false);
-  const filled = value.length > 0;
 
   return (
-    <div className="relative">
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-slate-700">
+        {label}
+      </label>
       <div className={cn(
-        "relative flex items-center rounded-xl border bg-white transition-all duration-200 overflow-hidden",
+        "relative flex h-12 items-center overflow-hidden rounded-xl border bg-white transition-all duration-200",
         error     ? "border-red-400 ring-1 ring-red-100"         :
         focused   ? "border-brand-400 ring-2 ring-brand-100"     :
         "border-surface-200 hover:border-surface-300"
       )}>
+        {leftElement && (
+          <div className="pointer-events-none absolute left-3.5 flex items-center text-slate-400">
+            {leftElement}
+          </div>
+        )}
         <input
           id={id}
           type={type}
@@ -35,42 +42,19 @@ function FloatingInput({
           onChange={onChange}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          // Browser autofill sets the DOM value directly without firing a
-          // real input event, so this controlled field's own state — and
-          // the floating label's "has a value" check below — never learns
-          // about it. The animationstart event (see globals.css) fires the
-          // moment :-webkit-autofill actually matches, giving us a real
-          // hook to sync state from the DOM.
-          onAnimationStart={(e) => {
-            if (e.animationName === "onAutoFillStart" && e.currentTarget.value !== value) {
-              onChange({ target: e.currentTarget } as React.ChangeEvent<HTMLInputElement>);
-            }
-          }}
           autoComplete={autoComplete}
           required={required}
           disabled={disabled}
-          placeholder=" "
+          placeholder={placeholder}
           className={cn(
-            "peer h-14 w-full px-4 pt-5 pb-1 text-sm text-gray-900 bg-transparent",
-            "placeholder-transparent outline-none disabled:cursor-not-allowed disabled:opacity-50",
-            // Override browser autofill blue background
-            "[&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_white] [&:-webkit-autofill]:[-webkit-text-fill-color:#111827]"
+            "h-full w-full bg-transparent px-3.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50",
+            leftElement && "pl-10",
+            rightElement && "pr-11",
+            "[&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_white] [&:-webkit-autofill]:[-webkit-text-fill-color:#0f172a]"
           )}
         />
-        {/* Floating label */}
-        <label
-          htmlFor={id}
-          className={cn(
-            "pointer-events-none absolute left-4 font-medium transition-all duration-200",
-            focused || filled
-              ? "top-2 text-xs text-brand-600"
-              : "top-1/2 -translate-y-1/2 text-sm text-gray-400"
-          )}
-        >
-          {label}
-        </label>
         {rightElement && (
-          <div className="flex flex-shrink-0 items-center pr-3">{rightElement}</div>
+          <div className="absolute right-3 flex items-center">{rightElement}</div>
         )}
       </div>
       {error && (
@@ -127,15 +111,17 @@ function LoginFormInner() {
       )}
 
       <div className="space-y-3">
-        <FloatingInput
+        <AuthInput
           id="email" label="Email address" type="email"
-          placeholder="you@example.com" value={fields.email}
+          placeholder="name@example.com" value={fields.email}
           onChange={set("email")} autoComplete="email" required
+          leftElement={<Mail size={16} />}
         />
-        <FloatingInput
+        <AuthInput
           id="password" label="Password" type={showPass ? "text" : "password"}
-          placeholder="••••••••" value={fields.password}
+          placeholder="Enter your password" value={fields.password}
           onChange={set("password")} autoComplete="current-password" required
+          leftElement={<Lock size={16} />}
           rightElement={
             <button type="button" tabIndex={-1} onClick={() => setShowPass(!showPass)}
               className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded">
