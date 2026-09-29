@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { BookOpen, ArrowRight } from "lucide-react";
 import { MyCoursesList } from "./MyCoursesList";
 
-export const metadata: Metadata = { title: "My Courses | Learnify" };
+export const metadata: Metadata = { title: "My Courses | Edquis" };
 
 type Filter = "all" | "in-progress" | "completed";
 

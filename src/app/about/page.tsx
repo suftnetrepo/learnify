@@ -9,8 +9,8 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "About Us — Learnify",
-  description: "Learnify is a UK-based premium learning platform built to give every learner access to expert-led, practitioner-built courses that deliver real career results.",
+  title: "About Us — Edquis",
+  description: "Edquis is a UK-based premium learning platform built to give every learner access to expert-led, practitioner-built courses that deliver real career results.",
 };
 
 const STATS = [
@@ -24,7 +24,7 @@ const VALUES = [
   {
     icon: Target,
     title:  "Outcome-driven learning",
-    body:   "Every course on Learnify is designed around one question: will this move your career forward? We measure success by what our students achieve, not the hours they spend watching videos.",
+    body:   "Every course on Edquis is designed around one question: will this move your career forward? We measure success by what our students achieve, not the hours they spend watching videos.",
   },
   {
     icon: Shield,
@@ -39,12 +39,12 @@ const VALUES = [
   {
     icon: Globe,
     title:  "Built for flexibility",
-    body:   "Learn online at your own pace, join a live cohort, or attend in person. Learnify supports every format so you can learn the way that actually fits your life.",
+    body:   "Learn online at your own pace, join a live cohort, or attend in person. Edquis supports every format so you can learn the way that actually fits your life.",
   },
   {
     icon: Award,
     title:  "Credentials that mean something",
-    body:   "Every certificate on Learnify is tied to real competency, not just time spent. Employers recognise our certificates because they represent genuine skill.",
+    body:   "Every certificate on Edquis is tied to real competency, not just time spent. Employers recognise our certificates because they represent genuine skill.",
   },
   {
     icon: Zap,
@@ -58,7 +58,7 @@ const TEAM = [
     name:  "Alex Morgan",
     role:  "Co-founder & CEO",
     init:  "AM",
-    bio:   "Former head of learning at a FTSE 250. Built Learnify after seeing how much talent gets left behind by inaccessible, overpriced education.",
+    bio:   "Former head of learning at a FTSE 250. Built Edquis after seeing how much talent gets left behind by inaccessible, overpriced education.",
   },
   {
     name:  "Priya Sharma",
@@ -70,19 +70,19 @@ const TEAM = [
     name:  "James Okafor",
     role:  "Head of Curriculum",
     init:  "JO",
-    bio:   "Ex-Google educator and instructional designer. Responsible for the standard every Learnify course is held to — and the process for getting there.",
+    bio:   "Ex-Google educator and instructional designer. Responsible for the standard every Edquis course is held to — and the process for getting there.",
   },
   {
     name:  "Sophie Chen",
     role:  "Head of Product",
     init:  "SC",
-    bio:   "Product designer turned PM. Built consumer products used by millions. At Learnify she keeps the learner experience the most important thing in every room.",
+    bio:   "Product designer turned PM. Built consumer products used by millions. At Edquis she keeps the learner experience the most important thing in every room.",
   },
 ];
 
 const TESTIMONIALS = [
   {
-    body:   "Learnify completely changed how I think about upskilling. Within three months of completing the Full-Stack course I landed a role paying 40% more than my previous job.",
+    body:   "Edquis completely changed how I think about upskilling. Within three months of completing the Full-Stack course I landed a role paying 40% more than my previous job.",
     name:   "Sarah J.",
     role:   "Software Engineer, London",
     rating: 5,
@@ -94,7 +94,7 @@ const TESTIMONIALS = [
     rating: 5,
   },
   {
-    body:   "I've taken courses on every major platform. Learnify is the only one where I actually finished. The quality kept me going.",
+    body:   "I've taken courses on every major platform. Edquis is the only one where I actually finished. The quality kept me going.",
     name:   "Amara O.",
     role:   "Marketing Manager, Birmingham",
     rating: 5,
@@ -102,7 +102,7 @@ const TESTIMONIALS = [
 ];
 
 const MILESTONES = [
-  { year: "2022", event: "Learnify founded in Peterborough, UK with a single course and a conviction that online learning could be better." },
+  { year: "2022", event: "Edquis founded in Peterborough, UK with a single course and a conviction that online learning could be better." },
   { year: "2023", event: "First 1,000 students enrolled. Stripe Connect integrated for instructor payouts. First in-person cohort delivered." },
   { year: "2024", event: "Expanded to 200+ courses across 12 categories. Launched live online sessions with Zoom and Teams integration." },
   { year: "2025", event: "Passed 40,000 enrolled students. Launched certificate programme. Opened applications for new instructors." },
@@ -131,7 +131,7 @@ export default async function AboutPage() {
             <span className="text-brand-400">careers forward</span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-gray-400 leading-relaxed">
-            Learnify is a UK-based premium learning platform built to give every learner access to expert-led,
+            Edquis is a UK-based premium learning platform built to give every learner access to expert-led,
             practitioner-built courses that deliver real career results — not just certificates.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
@@ -175,7 +175,7 @@ export default async function AboutPage() {
               </h2>
               <p className="mt-5 text-base text-gray-500 leading-relaxed">
                 The world's best education has always been behind paywalls, geography, or gatekeepers.
-                We started Learnify because we believe the most important investment anyone can make is in themselves —
+                We started Edquis because we believe the most important investment anyone can make is in themselves —
                 and that shouldn't require a university application, £40,000 of debt, or three years of your life.
               </p>
               <p className="mt-4 text-base text-gray-500 leading-relaxed">
@@ -241,7 +241,7 @@ export default async function AboutPage() {
       <section className="py-20">
         <div className="container">
           <div className="mb-12 text-center">
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-brand-600">The people behind Learnify</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-brand-600">The people behind Edquis</p>
             <h2 className="font-display text-3xl font-extrabold text-gray-900">Meet the team</h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-gray-500">
               We&apos;re a small, focused team of builders, educators, and product people — obsessed with making learning better.

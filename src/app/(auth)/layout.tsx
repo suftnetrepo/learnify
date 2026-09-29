@@ -35,9 +35,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <div className="relative z-10 p-8">
               <Link href="/" className="flex items-center gap-2.5">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-glow-brand">
-                  <Image src="/logo.png" alt="Learnify" width={48} height={48} className="rounded-md" />
+                  <Image src="/logo.png" alt="Edquis" width={48} height={48} className="rounded-md" />
                 </div>
-                <span className="font-display text-base font-bold text-white">Learnify</span>
+                <span className="font-display text-base font-bold text-white">Edquis</span>
               </Link>
             </div>
 
@@ -131,14 +131,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="flex flex-1 flex-col justify-center bg-white px-8 py-10 sm:px-10">
             {/* Mobile logo */}
             <Link href="/" className="mb-6 flex items-center gap-2 lg:hidden">
-              <Image src="/logo.png" alt="Learnify" width={32} height={32} className="flex-shrink-0" />
-              <span className="font-display text-base font-bold text-gray-900">Learnify</span>
+              <Image src="/logo.png" alt="Edquis" width={32} height={32} className="flex-shrink-0" />
+              <span className="font-display text-base font-bold text-gray-900">Edquis</span>
             </Link>
 
             {/* Desktop logo inside form */}
             <Link href="/" className="mb-6 hidden items-center gap-2 lg:flex">
-              <Image src="/logo.png" alt="Learnify" width={32} height={32} className="flex-shrink-0" />
-              <span className="font-display text-base font-bold text-gray-900">Learnify</span>
+              <Image src="/logo.png" alt="Edquis" width={32} height={32} className="flex-shrink-0" />
+              <span className="font-display text-base font-bold text-gray-900">Edquis</span>
             </Link>
 
             <div className="w-full max-w-[340px]">
@@ -151,7 +151,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Footer */}
       <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-gray-400 z-10">
-        © {new Date().getFullYear()} Learnify · All rights reserved.
+        © {new Date().getFullYear()} Edquis · All rights reserved.
       </p>
     </div>
   );

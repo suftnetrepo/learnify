@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { courseId } = await params;
   const course = await CourseService.findById(courseId);
   if (!course) return { title: "Checkout" };
-  return { title: `Enrol in ${course.title} | Learnify` };
+  return { title: `Enrol in ${course.title} | Edquis` };
 }
 
 export default async function CheckoutPage({ params }: Props) {

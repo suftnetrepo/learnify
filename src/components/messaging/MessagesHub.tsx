@@ -295,7 +295,7 @@ function DirectPane({ viewerId, viewerRole, onRead }: { viewerId: string; viewer
   if (!isAdmin) {
     return (
       <div className="flex h-full min-h-0 flex-col">
-        <ThreadHeader title="Admin team" subtitle="Direct messages with the Learnify admins" icon={<Users size={16} />} />
+        <ThreadHeader title="Admin team" subtitle="Direct messages with the Edquis admins" icon={<Users size={16} />} />
         <ConversationView
           messages={messages}
           viewerId={viewerId}

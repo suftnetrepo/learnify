@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import { LoginForm } from "./LoginForm";
 
-export const metadata: Metadata = { title: "Sign In — Learnify" };
+export const metadata: Metadata = { title: "Sign In — Edquis" };
 
 export default function LoginPage() {
   return (

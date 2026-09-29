@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt     = "Learnify — Premium Learning Platform";
+export const alt     = "Edquis — Learn, Grow, Succeed";
 export const size    = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -43,7 +43,7 @@ export default function OgImage() {
             <span style={{ color: "white", fontSize: 32 }}>✦</span>
           </div>
           <span style={{ color: "white", fontSize: 40, fontWeight: 700, letterSpacing: -1 }}>
-            Learnify
+            Edquis
           </span>
         </div>
 

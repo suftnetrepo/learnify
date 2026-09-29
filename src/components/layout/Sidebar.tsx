@@ -106,8 +106,8 @@ export function Sidebar({ role, name, email, open, onClose }: SidebarProps) {
       {/* Logo */}
       <div className="flex h-16 items-center justify-between px-5 border-b border-surface-100">
         <Link href="/dashboard" className="flex items-center gap-2.5">
-          <Image src="/logo.png" alt="Learnify" width={48} height={48} className="flex-shrink-0" />
-          <span className="font-display text-[15px] font-bold text-gray-900">Learnify</span>
+          <Image src="/logo.png" alt="Edquis" width={48} height={48} className="flex-shrink-0" />
+          <span className="font-display text-[15px] font-bold text-gray-900">Edquis</span>
         </Link>
         {isMobileDrawer && (
           <button

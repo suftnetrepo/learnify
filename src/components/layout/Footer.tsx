@@ -9,8 +9,8 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <Image src="/logo.png" alt="Learnify" width={48} height={48} className="flex-shrink-0" />
-              <span className="font-display font-bold text-gray-900">Learnify</span>
+              <Image src="/logo.png" alt="Edquis" width={48} height={48} className="flex-shrink-0" />
+              <span className="font-display font-bold text-gray-900">Edquis</span>
             </Link>
             <p className="text-xs text-gray-400 leading-relaxed">
               Premium learning for ambitious people.
@@ -75,7 +75,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-surface-100 pt-8 sm:flex-row">
           <p className="text-xs text-gray-400">
-            © {new Date().getFullYear()} Learnify. All rights reserved.
+            © {new Date().getFullYear()} Edquis. All rights reserved.
           </p>
           <p className="text-xs text-gray-300">
             Secure payments via Stripe · Content delivered via Cloudinary

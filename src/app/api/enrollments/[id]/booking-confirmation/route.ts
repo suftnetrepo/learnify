@@ -60,7 +60,7 @@ export async function GET(
     return new Response(new Uint8Array(pdfBuffer), {
       headers: {
         "Content-Type":        "application/pdf",
-        "Content-Disposition": `attachment; filename="learnify-booking-confirmation.pdf"`,
+        "Content-Disposition": `attachment; filename="edquis-booking-confirmation.pdf"`,
       },
     });
   } catch (error) {
@@ -191,7 +191,7 @@ async function buildBookingConfirmationPdf(data: {
     y += doc.heightOfString(`Booking reference: ${data.bookingRef}`) + 8;
     doc.text("Please bring this confirmation and a valid photo ID to the venue. For support: hello@learnify.dev", boxX, y, { width: boxW });
     y += doc.heightOfString("Please bring this confirmation and a valid photo ID to the venue. For support: hello@learnify.dev", { width: boxW }) + 12;
-    doc.text("© Learnify · 30-day money-back guarantee", boxX, y);
+    doc.text("© Edquis · 30-day money-back guarantee", boxX, y);
 
     doc.end();
   });

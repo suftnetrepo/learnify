@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import { RegisterForm } from "./RegisterForm";
 
-export const metadata: Metadata = { title: "Create Account — Learnify" };
+export const metadata: Metadata = { title: "Create Account — Edquis" };
 
 export default function RegisterPage() {
   return (

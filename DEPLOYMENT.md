@@ -1,4 +1,4 @@
-# Learnify — Production Deployment Guide
+# Edquis — Production Deployment Guide
 
 ## Stack
 - **Hosting**: Vercel (recommended) or Railway
@@ -82,7 +82,7 @@
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Yes | Same as CLOUDINARY_CLOUD_NAME |
 | `BREVO_API_KEY` | Yes | Brevo transactional email API key |
 | `BREVO_FROM_EMAIL` | Yes | Verified sender, e.g. `noreply@yourdomain.com` |
-| `BREVO_FROM_NAME` | No | Defaults to `Learnify` |
+| `BREVO_FROM_NAME` | No | Defaults to `Edquis` |
 | `ADMIN_EMAIL` | Yes | Receives admin alerts |
 | `CRON_SECRET` | Yes | Secures the queued-email retry endpoint |
 

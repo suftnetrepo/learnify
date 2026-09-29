@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = getPost(slug);
   if (!post) return { title: "Post not found" };
   return {
-    title:       `${post.title} | Learnify Blog`,
+    title:       `${post.title} | Edquis Blog`,
     description: post.excerpt,
     openGraph: {
       title:       post.title,
@@ -167,7 +167,7 @@ export default async function BlogPostPage({ params }: Props) {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900">{post.author}</p>
-                  <p className="text-sm text-gray-400">{post.authorRole}, Learnify</p>
+                  <p className="text-sm text-gray-400">{post.authorRole}, Edquis</p>
                 </div>
               </div>
             </div>

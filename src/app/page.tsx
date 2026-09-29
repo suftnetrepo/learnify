@@ -25,7 +25,7 @@ const FEATURES = [
 ];
 
 const TESTIMONIALS = [
-  { name: "Sarah K.", role: "Product Designer", body: "Learnify completely transformed how I approach design. The instructors are the real deal.", rating: 5 },
+  { name: "Sarah K.", role: "Product Designer", body: "Edquis completely transformed how I approach design. The instructors are the real deal.", rating: 5 },
   { name: "James M.", role: "Software Engineer", body: "Best investment I made in my career. Got promoted within 3 months of completing my course.", rating: 5 },
   { name: "Priya R.", role: "Marketing Manager", body: "The flexibility to learn at my own pace made all the difference. Highly recommended.", rating: 5 },
 ];
@@ -225,7 +225,7 @@ export default async function HomePage() {
 
             {/* Right copy */}
             <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-brand-600">Why Learnify</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-brand-600">Why Edquis</p>
               <h2 className="font-display text-4xl font-extrabold leading-tight text-gray-900">
                 Book Our Courses &{" "}
                 <span className="text-brand-500">Improve</span> Your Skills

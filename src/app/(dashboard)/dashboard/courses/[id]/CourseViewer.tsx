@@ -240,7 +240,7 @@ export function CourseViewer({
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500">
               <Sparkles size={15} className="text-white" />
             </div>
-            <span className="font-display text-[15px] font-bold text-gray-900">Learnify</span>
+            <span className="font-display text-[15px] font-bold text-gray-900">Edquis</span>
           </Link>
 
           <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">

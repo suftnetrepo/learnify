@@ -53,7 +53,7 @@ const FAQS = [
     a: "If you're not satisfied with a course within 30 days of purchase, contact us and we'll issue a full refund — no questions asked. The refund appears on your original payment method within 5–10 business days.",
   },
   {
-    q: "Can I become an instructor on Learnify?",
+    q: "Can I become an instructor on Edquis?",
     a: "Yes. We accept applications from practitioners with real-world experience in their field. Use the contact form, select 'Becoming an instructor', and tell us about your expertise. We review every application personally.",
   },
   {
@@ -230,7 +230,7 @@ export default function ContactPage() {
                 <div className="flex items-start gap-3 text-sm text-gray-600">
                   <MapPin size={16} className="flex-shrink-0 mt-0.5 text-brand-500" />
                   <div>
-                    <p className="font-medium text-gray-900">Learnify Ltd</p>
+                    <p className="font-medium text-gray-900">Edquis Ltd</p>
                     <p>Peterborough, England</p>
                     <p>United Kingdom</p>
                   </div>

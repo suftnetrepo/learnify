@@ -44,7 +44,7 @@ function ForgotPasswordForm() {
         </div>
         <h1 className="font-display text-2xl font-bold text-gray-900">Check your inbox</h1>
         <p className="mt-3 text-sm text-gray-500">
-          If <strong>{email}</strong> is linked to a Learnify account, you&apos;ll receive
+          If <strong>{email}</strong> is linked to a Edquis account, you&apos;ll receive
           a password reset link within a few minutes.
         </p>
         <p className="mt-2 text-xs text-gray-400">

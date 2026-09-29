@@ -7,7 +7,7 @@ import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { Trophy, Download, ArrowRight } from "lucide-react";
 
-export const metadata: Metadata = { title: "Certificates | Learnify" };
+export const metadata: Metadata = { title: "Certificates | Edquis" };
 
 export default async function CertificatesPage() {
   const session = await auth();

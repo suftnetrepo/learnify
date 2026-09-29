@@ -9,7 +9,7 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2026-07-29.dahlia",
   typescript: true,
   appInfo: {
-    name:    "Learnify",
+    name:    "Edquis",
     version: "1.0.0",
     url:     process.env.NEXT_PUBLIC_APP_URL,
   },

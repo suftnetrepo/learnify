@@ -1,0 +1,40 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:          # manual trigger only
+    inputs:
+      confirm:
+        description: 'Type DEPLOY to confirm production deployment'
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy to Edquis Production
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'DEPLOY'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Confirm deployment
+        run: |
+          echo "Deploying to production: edquis.com"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+
+      - name: Trigger Render deploy
+        env:
+          RENDER_API_KEY:         ${{ secrets.RENDER_API_KEY }}
+          RENDER_PROD_SERVICE_ID: ${{ secrets.RENDER_PROD_SERVICE_ID }}
+        run: |
+          curl --fail-with-body -X POST \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            "https://api.render.com/v1/services/$RENDER_PROD_SERVICE_ID/deploys" \
+            -d '{"clearCache": "do_not_clear"}'
+
+      - name: Wait and verify
+        run: |
+          echo "Deploy triggered — check Render dashboard"
+          echo "https://dashboard.render.com"

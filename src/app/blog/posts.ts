@@ -48,8 +48,8 @@ export const POSTS: BlogPost[] = [
       { type: "heading", text: "The myth of learning styles" },
       { type: "paragraph", text: "You've probably heard that you're a visual, auditory, or kinaesthetic learner. This is one of the most persistent myths in education. Dozens of studies have found no evidence that matching instruction to a person's preferred 'learning style' improves outcomes. What does work — for almost everyone — is varied presentation: diagrams and text and spoken explanation and hands-on practice. The more modalities, the more retrieval routes." },
       { type: "callout", label: "Key insight", text: "The techniques that feel most effective — re-reading, highlighting, summarising — consistently underperform in controlled studies. The techniques that feel hardest — recall, spacing, interleaving — consistently produce the best long-term retention. Lean into the difficulty." },
-      { type: "heading", text: "What this means for your Learnify courses" },
-      { type: "paragraph", text: "Every Learnify course is structured with these principles in mind. Lectures are deliberately concise so you can space them out. Review prompts appear at the end of each section. Project work forces you to apply concepts rather than just receive them." },
+      { type: "heading", text: "What this means for your Edquis courses" },
+      { type: "paragraph", text: "Every Edquis course is structured with these principles in mind. Lectures are deliberately concise so you can space them out. Review prompts appear at the end of each section. Project work forces you to apply concepts rather than just receive them." },
       { type: "paragraph", text: "But the biggest lever is in your hands. Don't watch a lecture and immediately move on. Close your laptop. Write down everything you remember without looking. Check what you missed. Come back to the hardest concepts tomorrow. That cycle — retrieval, check, space, repeat — is how skills become permanent." },
     ],
   },
@@ -116,7 +116,7 @@ export const POSTS: BlogPost[] = [
       ]},
       { type: "heading", text: "The hybrid sweet spot" },
       { type: "paragraph", text: "The most effective approach for most adult learners is a hybrid: structured online content for knowledge acquisition, combined with live sessions (in-person or virtual) for application, feedback, and discussion." },
-      { type: "paragraph", text: "This is why Learnify offers all three formats. The online catalogue gives you flexibility. Live cohorts give you accountability and community. In-person workshops give you the tacit, contextual learning that screens can't replicate." },
+      { type: "paragraph", text: "This is why Edquis offers all three formats. The online catalogue gives you flexibility. Live cohorts give you accountability and community. In-person workshops give you the tacit, contextual learning that screens can't replicate." },
       { type: "callout", label: "The question to ask", text: "Before choosing a format, ask: 'What's the hardest part of learning this skill?' If it's understanding the concepts, online is fine. If it's practising under pressure with real feedback, you need live interaction." },
     ],
   },
@@ -155,7 +155,7 @@ export const POSTS: BlogPost[] = [
       { type: "list", items: [
         "Build something real. A portfolio project, a work tool, a side project. The course is the tutorial; the project is the education.",
       ]},
-      { type: "callout", label: "The single biggest predictor", text: "In our analysis of Learnify completion data, the single biggest predictor of finishing a course is whether a student applies content in the first 48 hours. Students who do are 4x more likely to complete. Don't wait until you've 'finished learning' to start doing." },
+      { type: "callout", label: "The single biggest predictor", text: "In our analysis of Edquis completion data, the single biggest predictor of finishing a course is whether a student applies content in the first 48 hours. Students who do are 4x more likely to complete. Don't wait until you've 'finished learning' to start doing." },
     ],
   },
   {

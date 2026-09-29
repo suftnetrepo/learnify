@@ -9,7 +9,7 @@ function baseTemplate(content: string, preheader = ""): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Learnify</title>
+  <title>Edquis</title>
 </head>
 <body style="margin:0;padding:0;background:#f8f8fc;font-family:'Inter',system-ui,sans-serif">
   ${preheader ? `<div style="display:none;max-height:0;overflow:hidden">${preheader}</div>` : ""}
@@ -22,7 +22,7 @@ function baseTemplate(content: string, preheader = ""): string {
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td>
-                  <span style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:18px;font-weight:700;color:#fff">Learnify</span>
+                  <span style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:18px;font-weight:700;color:#fff">Edquis</span>
                 </td>
               </tr>
             </table>
@@ -38,7 +38,7 @@ function baseTemplate(content: string, preheader = ""): string {
         <tr>
           <td style="padding:20px 32px;border-top:1px solid #f1f1f8;background:#f8f8fc">
             <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center">
-              © ${new Date().getFullYear()} Learnify · <a href="${APP}" style="color:#6366f1">Visit Learnify</a>
+              © ${new Date().getFullYear()} Edquis · <a href="${APP}" style="color:#6366f1">Visit Edquis</a>
               &nbsp;·&nbsp; <a href="${APP}/privacy" style="color:#6366f1">Privacy</a>
               &nbsp;·&nbsp; <a href="${APP}/terms" style="color:#6366f1">Terms</a>
               <br/>This is a transactional email sent to your registered address.
@@ -195,7 +195,7 @@ export const EmailService = {
   }) {
     const html = baseTemplate(
       h1("New tutor application") +
-      p(`<strong>${data.applicantName}</strong> (${data.applicantEmail}) has applied to become a tutor on Learnify.`) +
+      p(`<strong>${data.applicantName}</strong> (${data.applicantEmail}) has applied to become a tutor on Edquis.`) +
       p("Review and approve or reject their application from the admin panel.") +
       btn("Review Application", `${APP}/admin/tutors`),
       `New tutor application from ${data.applicantName}`
@@ -209,14 +209,14 @@ export const EmailService = {
     expiresIn: string;
   }) {
     const html = baseTemplate(
-      h1("You're invited to teach on Learnify") +
-      p("You've been invited to become an instructor on Learnify — a premium learning platform.") +
+      h1("You're invited to teach on Edquis") +
+      p("You've been invited to become an instructor on Edquis — a premium learning platform.") +
       p("Click below to create your account. This link is personal to you and expires in " + data.expiresIn + ".") +
       btn("Accept Invitation", data.inviteUrl) +
       `<p style="margin-top:24px;font-size:13px;color:#9ca3af">If you didn't expect this email, you can safely ignore it.</p>`,
-      "You've been invited to teach on Learnify"
+      "You've been invited to teach on Edquis"
     );
-    await send(to, "🎓 You're invited to teach on Learnify", html);
+    await send(to, "🎓 You're invited to teach on Edquis", html);
   },
 
   /** Sent to a new student after they register. */
@@ -224,12 +224,12 @@ export const EmailService = {
     name: string;
   }) {
     const html = baseTemplate(
-      h1(`Welcome to Learnify, ${data.name}! 👋`) +
+      h1(`Welcome to Edquis, ${data.name}! 👋`) +
       p("Your account is ready. Browse hundreds of expert-led courses and start building skills that move your career forward.") +
       btn("Browse Courses", `${APP}/courses`),
-      "Welcome to Learnify"
+      "Welcome to Edquis"
     );
-    await send(to, "Welcome to Learnify 🎉", html);
+    await send(to, "Welcome to Edquis 🎉", html);
   },
 
   /** Sent to a student when their payment fails. */
@@ -284,13 +284,13 @@ export const EmailService = {
   async passwordReset(to: string, data: { name: string; resetUrl: string }) {
     const html = baseTemplate(
       h1("Reset your password") +
-      p(`Hi ${data.name}, we received a request to reset your Learnify password.`) +
+      p(`Hi ${data.name}, we received a request to reset your Edquis password.`) +
       p("Click the button below to choose a new password. This link expires in 1 hour.") +
       btn("Reset Password", data.resetUrl) +
       `<p style="margin-top:24px;font-size:13px;color:#9ca3af">If you didn't request this, you can safely ignore this email — your password won't change.</p>`,
-      "Reset your Learnify password"
+      "Reset your Edquis password"
     );
-    await send(to, "🔐 Reset your Learnify password", html);
+    await send(to, "🔐 Reset your Edquis password", html);
   },
 
   /** Sent to admin when a payment is refunded. */
@@ -371,8 +371,8 @@ export const EmailService = {
     tempPassword: string;
   }) {
     const html = baseTemplate(
-      h1("You've been invited to Learnify") +
-      p(`${data.inviterName} has invited you to join the Learnify platform.`) +
+      h1("You've been invited to Edquis") +
+      p(`${data.inviterName} has invited you to join the Edquis platform.`) +
       `<div style="background:#f8f8fc;border-radius:10px;padding:16px;margin:16px 0">
         <p style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em">Your login details</p>
         <p style="font-size:13px;color:#374151;margin-bottom:4px">Email: <strong>${to}</strong></p>
@@ -380,9 +380,9 @@ export const EmailService = {
       </div>` +
       p("Please log in and change your password immediately from Account Settings.") +
       btn("Log in →", data.loginUrl),
-      "You've been invited to Learnify"
+      "You've been invited to Edquis"
     );
-    await send(to, "You've been invited to Learnify", html);
+    await send(to, "You've been invited to Edquis", html);
   },
 
   /** Sent after a student joins a full session's waitlist. */
@@ -414,7 +414,7 @@ export const EmailService = {
     const html = baseTemplate(
       h1("A seat is now available") +
       p(`Hi ${data.studentName}, a seat has opened for <strong>${data.courseTitle}</strong> — ${data.sessionTitle}.`) +
-      p("Sign in to Learnify to secure it. Availability is not guaranteed until checkout is complete.") +
+      p("Sign in to Edquis to secure it. Availability is not guaranteed until checkout is complete.") +
       btn("View course", `${APP}/courses`),
       `A seat is available for ${data.courseTitle}`
     );

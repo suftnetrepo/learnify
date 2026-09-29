@@ -7,7 +7,7 @@ import { ArrowRight, Clock, Calendar, Tag } from "lucide-react";
 import { POSTS, type BlogPost } from "./posts";
 
 export const metadata: Metadata = {
-  title: "Blog — Learnify",
+  title: "Blog — Edquis",
   description: "Insights on learning, career development, and the skills that matter most in today's workplace.",
 };
 
@@ -26,7 +26,7 @@ export default async function BlogPage() {
       {/* ── HEADER ───────────────────────────────────────────────────── */}
       <section className="bg-[#1c1d1f] py-16">
         <div className="container">
-          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-brand-400">Learnify Blog</p>
+          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-brand-400">Edquis Blog</p>
           <h1 className="font-display text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl">
             Insights for serious learners
           </h1>
@@ -78,7 +78,7 @@ export default async function BlogPage() {
                   <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-500">
                     <span className="text-3xl text-white font-bold">L</span>
                   </div>
-                  <p className="text-sm font-bold text-brand-700">The Learnify Blog</p>
+                  <p className="text-sm font-bold text-brand-700">The Edquis Blog</p>
                   <p className="text-xs text-brand-500 mt-1">Practical insights for serious learners</p>
                 </div>
               </div>

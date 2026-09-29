@@ -3,7 +3,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { auth } from "@/lib/auth";
 import { Footer } from "@/components/layout/Footer";
 
-export const metadata: Metadata = { title: "Terms of Service — Learnify" };
+export const metadata: Metadata = { title: "Terms of Service — Edquis" };
 
 const LAST_UPDATED = "1 August 2026";
 
@@ -20,12 +20,12 @@ export default async function TermsPage() {
 
           <section>
             <h2 className="font-display text-xl font-bold text-gray-900 mb-3">1. Acceptance of Terms</h2>
-            <p>By accessing or using Learnify ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Platform.</p>
+            <p>By accessing or using Edquis ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Platform.</p>
           </section>
 
           <section>
             <h2 className="font-display text-xl font-bold text-gray-900 mb-3">2. Description of Service</h2>
-            <p>Learnify is an online learning management platform that connects students with instructors. We facilitate the delivery of educational courses in online, in-person, and hybrid formats.</p>
+            <p>Edquis is an online learning management platform that connects students with instructors. We facilitate the delivery of educational courses in online, in-person, and hybrid formats.</p>
           </section>
 
           <section>
@@ -47,7 +47,7 @@ export default async function TermsPage() {
 
           <section>
             <h2 className="font-display text-xl font-bold text-gray-900 mb-3">5. Intellectual Property</h2>
-            <p>All course content, including videos, documents, and materials, remains the intellectual property of the respective instructors or Learnify. You may not reproduce, distribute, or create derivative works without express written permission.</p>
+            <p>All course content, including videos, documents, and materials, remains the intellectual property of the respective instructors or Edquis. You may not reproduce, distribute, or create derivative works without express written permission.</p>
           </section>
 
           <section>
@@ -63,7 +63,7 @@ export default async function TermsPage() {
 
           <section>
             <h2 className="font-display text-xl font-bold text-gray-900 mb-3">7. Limitation of Liability</h2>
-            <p>Learnify is provided on an "as is" basis. To the maximum extent permitted by law, Learnify shall not be liable for any indirect, incidental, or consequential damages arising from your use of the platform.</p>
+            <p>Edquis is provided on an "as is" basis. To the maximum extent permitted by law, Edquis shall not be liable for any indirect, incidental, or consequential damages arising from your use of the platform.</p>
           </section>
 
           <section>

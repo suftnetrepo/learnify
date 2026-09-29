@@ -3,7 +3,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { auth } from "@/lib/auth";
 import { Footer } from "@/components/layout/Footer";
 
-export const metadata: Metadata = { title: "Privacy Policy — Learnify" };
+export const metadata: Metadata = { title: "Privacy Policy — Edquis" };
 
 const LAST_UPDATED = "1 August 2026";
 
@@ -20,7 +20,7 @@ export default async function PrivacyPage() {
 
           <section>
             <h2 className="font-display text-xl font-bold text-gray-900 mb-3">1. Who We Are</h2>
-            <p>Learnify ("we", "our", "us") operates the Learnify learning platform. We are the data controller for personal data collected through the platform. For GDPR purposes, our registered address is in England and Wales.</p>
+            <p>Edquis ("we", "our", "us") operates the Edquis learning platform. We are the data controller for personal data collected through the platform. For GDPR purposes, our registered address is in England and Wales.</p>
           </section>
 
           <section>

@@ -17,7 +17,7 @@ function config() {
   const apiKey = process.env.BREVO_API_KEY;
   const fromEmail = process.env.BREVO_FROM_EMAIL;
   if (!apiKey || !fromEmail) throw new EmailNotConfiguredError();
-  return { apiKey, fromEmail, fromName: process.env.BREVO_FROM_NAME ?? "Learnify" };
+  return { apiKey, fromEmail, fromName: process.env.BREVO_FROM_NAME ?? "Edquis" };
 }
 
 function plainText(html: string): string {

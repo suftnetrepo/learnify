@@ -3,7 +3,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { auth } from "@/lib/auth";
 import { Footer } from "@/components/layout/Footer";
 
-export const metadata: Metadata = { title: "Cookie Policy — Learnify" };
+export const metadata: Metadata = { title: "Cookie Policy — Edquis" };
 
 export default async function CookiePolicyPage() {
   const session = await auth();
@@ -70,7 +70,7 @@ export default async function CookiePolicyPage() {
 
           <section>
             <h2 className="font-display text-xl font-bold text-gray-900 mb-3">Managing Cookies</h2>
-            <p>You can delete cookies at any time through your browser settings. Note that deleting your session cookie will sign you out of Learnify. Most browsers also allow you to block cookies — however, this will prevent you from signing in.</p>
+            <p>You can delete cookies at any time through your browser settings. Note that deleting your session cookie will sign you out of Edquis. Most browsers also allow you to block cookies — however, this will prevent you from signing in.</p>
           </section>
 
           <section>

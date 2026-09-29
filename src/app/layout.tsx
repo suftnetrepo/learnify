@@ -24,32 +24,32 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Learnify — Premium Learning Platform",
-    template: "%s | Learnify",
+    default:  "Edquis — Learn, Grow, Succeed",
+    template: "%s | Edquis",
   },
-  description: "Discover expert-led courses, learn at your own pace, and advance your career with Learnify.",
+  description: "Edquis is an AI-powered learning platform. Study smarter with AI tutoring, live sessions, and expert instructors.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
-  keywords: ["online learning", "courses", "e-learning", "education", "skills", "career development"],
-  authors: [{ name: "Learnify" }],
+  keywords: ["online learning", "AI tutor", "courses", "education", "Edquis"],
+  authors: [{ name: "Edquis" }],
   openGraph: {
     type:        "website",
     locale:      "en_GB",
-    siteName:    "Learnify",
-    title:       "Learnify — Premium Learning Platform",
-    description: "Discover expert-led courses, learn at your own pace, and advance your career.",
+    siteName:    "Edquis",
+    title:       "Edquis — Learn, Grow, Succeed",
+    description: "Edquis is an AI-powered learning platform. Study smarter with AI tutoring, live sessions, and expert instructors.",
     images: [
       {
         url:    "/og-image.png",
         width:  1200,
         height: 630,
-        alt:    "Learnify — Premium Learning Platform",
+        alt:    "Edquis — Learn, Grow, Succeed",
       },
     ],
   },
   twitter: {
     card:        "summary_large_image",
-    title:       "Learnify — Premium Learning Platform",
-    description: "Discover expert-led courses and advance your career.",
+    title:       "Edquis — Learn, Grow, Succeed",
+    description: "Edquis is an AI-powered learning platform. Study smarter with AI tutoring, live sessions, and expert instructors.",
     images:      ["/og-image.png"],
   },
   manifest: "/site.webmanifest",

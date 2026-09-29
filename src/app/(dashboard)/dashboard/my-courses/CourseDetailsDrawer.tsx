@@ -56,7 +56,7 @@ export function CourseDetailsDrawer({ enrollment, session, onClose }: Props) {
   const isOnline   = enrollment.courseFormat === "online"    || enrollment.courseFormat === "hybrid";
 
   async function handleShare() {
-    const text = `I'm enrolled in "${enrollment.courseTitle}" on Learnify!${
+    const text = `I'm enrolled in "${enrollment.courseTitle}" on Edquis!${
       session ? `\n📅 ${formatDate(session.startDatetime)}\n🕐 ${formatTime(session.startDatetime, session.endDatetime)}${
         session.venueCity ? `\n📍 ${session.venueCity}` : ""
       }` : ""
@@ -79,7 +79,7 @@ export function CourseDetailsDrawer({ enrollment, session, onClose }: Props) {
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a");
     a.href     = url;
-    a.download = `learnify-booking-${(enrollment.courseTitle ?? "course").toLowerCase().replace(/\s+/g, "-")}.pdf`;
+    a.download = `edquis-booking-${(enrollment.courseTitle ?? "course").toLowerCase().replace(/\s+/g, "-")}.pdf`;
     a.click();
     URL.revokeObjectURL(url);
   }

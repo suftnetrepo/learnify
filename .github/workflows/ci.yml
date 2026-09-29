@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']        # runs on every branch push
+  pull_request:
+    branches: [main]        # runs on PRs to main
+
+jobs:
+  build:
+    name: Type check and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: yarn lint
+        continue-on-error: true  # lint warnings don't block
+
+      - name: Build
+        run: yarn build
+        env:
+          # Dummy env vars so build doesn't fail
+          # Real values are in Render dashboard
+          AUTH_SECRET:            dummy_secret_32_chars_minimum_x
+          NEXTAUTH_SECRET:        dummy_secret_32_chars_minimum_x
+          NEXTAUTH_URL:           http://localhost:3000
+          NEXT_PUBLIC_APP_URL:    http://localhost:3000
+          DATABASE_URL:           postgresql://dummy:dummy@localhost/dummy
+          STUDYMIND_API_KEY:      sm_live_dummy
+          STUDYMIND_API_URL:      https://api.aismartlearner.com
+          STRIPE_SECRET_KEY:      sk_test_dummy
+          STRIPE_WEBHOOK_SECRET:  whsec_dummy
+          CLOUDINARY_CLOUD_NAME:  dummy
+          CLOUDINARY_API_KEY:     dummy
+          CLOUDINARY_API_SECRET:  dummy
+          BREVO_API_KEY:          dummy
+          BREVO_FROM_EMAIL:       noreply@example.com
+          BREVO_FROM_NAME:        Edquis

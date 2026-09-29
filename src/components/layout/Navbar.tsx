@@ -25,8 +25,8 @@ export function Navbar({ session }: NavbarProps) {
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <Image src="/logo.png" alt="Learnify" width={48} height={48} className="flex-shrink-0" priority />
-          <span className="font-display text-lg font-bold text-gray-900">Learnify</span>
+          <Image src="/logo.png" alt="Edquis" width={48} height={48} className="flex-shrink-0" priority />
+          <span className="font-display text-lg font-bold text-gray-900">Edquis</span>
         </Link>
 
         {/* Desktop nav */}
