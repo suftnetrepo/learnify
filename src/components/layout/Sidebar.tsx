@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, BookOpen, Users, GraduationCap, Calendar,
   BarChart3, CreditCard, LogOut, X,
-  Award, Settings, Clock, CalendarDays, MessageCircle, UserRound,
+  Award, Settings, Clock, CalendarDays, MessageCircle, ChevronRight,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -44,7 +44,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Sessions",   href: "/instructor/sessions",   icon: <Calendar        size={18} />, roles: ["tutor"] },
   { label: "Calendar",   href: "/instructor/calendar",   icon: <CalendarDays    size={18} />, roles: ["tutor"] },
   { label: "Messages",   href: "/instructor/messages",   icon: <MessageCircle   size={18} />, roles: ["tutor"], badge: "messages" },
-  { label: "Profile",    href: "/instructor/profile",    icon: <UserRound       size={18} />, roles: ["tutor"] },
 ];
 
 interface SidebarProps {
@@ -78,7 +77,7 @@ function useUnreadMessages(enabled: boolean) {
   return count;
 }
 
-export function Sidebar({ role, name, email, open, onClose }: SidebarProps) {
+export function Sidebar({ role, name, email, avatar, open, onClose }: SidebarProps) {
   const pathname       = usePathname();
   const isMobileDrawer = onClose !== undefined;
   const navItems       = NAV_ITEMS.filter((item) => item.roles.includes(role));
@@ -101,6 +100,12 @@ export function Sidebar({ role, name, email, open, onClose }: SidebarProps) {
   const initials = name
     ? name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
     : "U";
+
+  const userAvatar = (
+    <div className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-500 text-xs font-bold text-white">
+      {avatar ? <Image src={avatar} alt="" fill sizes="32px" className="object-cover" /> : initials}
+    </div>
+  );
 
   const sidebarContent = (
     <aside className="flex h-full w-60 flex-col border-r border-surface-100 bg-white">
@@ -160,16 +165,35 @@ export function Sidebar({ role, name, email, open, onClose }: SidebarProps) {
           Sign out
         </button>
 
-        {/* User row */}
-        <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
-            {initials}
+        {/* User row — for tutors it opens their profile editor (no separate nav item) */}
+        {role === "tutor" ? (
+          <Link
+            href="/instructor/profile"
+            onClick={() => isMobileDrawer && onClose?.()}
+            aria-current={pathname === "/instructor/profile" ? "page" : undefined}
+            title="Edit your profile"
+            className={cn(
+              "group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors",
+              pathname === "/instructor/profile" ? "bg-brand-50" : "hover:bg-surface-50"
+            )}
+          >
+            {userAvatar}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold text-gray-900">{name}</p>
+              <p className="truncate text-[11px] text-gray-400 group-hover:hidden">{email}</p>
+              <p className="hidden text-[11px] font-semibold text-brand-600 group-hover:block">Edit profile</p>
+            </div>
+            <ChevronRight size={15} className="flex-shrink-0 text-gray-300 transition-colors group-hover:text-brand-500" />
+          </Link>
+        ) : (
+          <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
+            {userAvatar}
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold text-gray-900">{name}</p>
+              <p className="truncate text-[11px] text-gray-400">{email}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-xs font-semibold text-gray-900">{name}</p>
-            <p className="truncate text-[11px] text-gray-400">{email}</p>
-          </div>
-        </div>
+        )}
       </div>
     </aside>
   );
