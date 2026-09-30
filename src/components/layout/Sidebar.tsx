@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, BookOpen, Users, GraduationCap, Calendar,
   BarChart3, CreditCard, LogOut, X,
-  Award, Settings, Clock, CalendarDays, MessageCircle,
+  Award, Settings, Clock, CalendarDays, MessageCircle, UserRound,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -44,6 +44,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Sessions",   href: "/instructor/sessions",   icon: <Calendar        size={18} />, roles: ["tutor"] },
   { label: "Calendar",   href: "/instructor/calendar",   icon: <CalendarDays    size={18} />, roles: ["tutor"] },
   { label: "Messages",   href: "/instructor/messages",   icon: <MessageCircle   size={18} />, roles: ["tutor"], badge: "messages" },
+  { label: "Profile",    href: "/instructor/profile",    icon: <UserRound       size={18} />, roles: ["tutor"] },
+  { label: "Settings",   href: "/dashboard/settings",    icon: <Settings        size={18} />, roles: ["tutor"] },
 ];
 
 interface SidebarProps {

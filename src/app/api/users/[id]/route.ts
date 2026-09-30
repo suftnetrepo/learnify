@@ -7,6 +7,7 @@ import {
   notFound, serverError, validationError, conflict, errorResponse,
 } from "@/lib/api-response";
 import { log } from "@/lib/logger";
+import { profileSchema } from "@/lib/validation/profile";
 
 const updateSchema = z.object({
   name:   z.string().min(1).max(100).trim().optional(),
@@ -14,6 +15,8 @@ const updateSchema = z.object({
   bio:    z.string().max(500).trim().optional(),
   status: z.enum(["active","pending","suspended"]).optional(),
   role:   z.enum(["student","tutor","admin"]).optional(),
+  // Public profile — same rules as the tutor profile form
+  ...profileSchema.shape,
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -31,7 +34,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors as Record<string, string[]>);
 
     // Self-service updates (e.g. the account settings form) may only touch
-    // name/bio — email, role, and status changes, on any account including
+    // name/bio/profile fields — email, role, and status changes, on any account including
     // your own, require admin privileges.
     if (!isAdmin && (parsed.data.role !== undefined || parsed.data.status !== undefined || parsed.data.email !== undefined)) {
       return forbidden("Only admins can change email, role, or status.");

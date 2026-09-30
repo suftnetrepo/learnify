@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { BookOpen, Clock, BarChart, Globe, Users, CheckCircle2, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { TutorAvatar } from "@/components/profile/TutorAvatar";
 import { Button } from "@/components/ui/Button";
 import { CourseService } from "@/services";
 import { SessionService } from "@/services/session.service";
@@ -29,15 +30,14 @@ export default async function CheckoutPage({ params }: Props) {
   const course = await CourseService.findById(courseId);
   if (!course || course.status !== "published") notFound();
 
-  const [upcomingSessions, isEnrolled, assignments] = await Promise.all([
+  const [upcomingSessions, isEnrolled, tutors] = await Promise.all([
     SessionService.getUpcomingForCourse(courseId),
     session?.user?.role === "student"
       ? EnrollmentService.isEnrolled(session.user.id, courseId)
       : Promise.resolve(false),
-    TutorService.getAssignmentsForCourse(courseId),
+    TutorService.getCourseTutors(courseId),
   ]);
 
-  const assignment     = assignments[0] ?? null;
   const isSessionCourse = await SessionService.requiresSession(courseId, course.format);
   const sessionOptions = upcomingSessions.map((item) => ({
     ...item,
@@ -114,19 +114,19 @@ export default async function CheckoutPage({ params }: Props) {
             )}
 
             {/* Instructor */}
-            {assignment?.tutorName && (
+            {tutors.length > 0 && (
               <div>
-                <h2 className="heading-2 text-gray-900 mb-3">Your instructor</h2>
-                <div className="flex items-start gap-4 card p-4">
-                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-brand-500 text-white font-bold text-lg">
-                    {assignment.tutorName[0]}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">{assignment.tutorName}</p>
-                    {assignment.notes && (
-                      <p className="mt-1 text-sm text-gray-500">{assignment.notes}</p>
-                    )}
-                  </div>
+                <h2 className="heading-2 text-gray-900 mb-3">{tutors.length === 1 ? "Your instructor" : "Your instructors"}</h2>
+                <div className="space-y-3">
+                  {tutors.map((t) => (
+                    <div key={t.id} className="flex items-start gap-4 card p-4">
+                      <TutorAvatar name={t.name} avatarUrl={t.avatarUrl} size={48} />
+                      <div>
+                        <Link href={`/tutors/${t.id}`} className="font-semibold text-gray-900 hover:text-brand-600">{t.name ?? "Instructor"}</Link>
+                        {t.headline && <p className="mt-0.5 text-sm text-gray-500">{t.headline}</p>}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

@@ -18,6 +18,7 @@ import { CourseService } from "@/services";
 import { SessionService } from "@/services/session.service";
 import Link from "next/link";
 import Image from "next/image";
+import { TutorAvatar } from "@/components/profile/TutorAvatar";
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -43,9 +44,9 @@ export default async function CourseDetailPage({ params }: Props) {
 
   const result = await CourseService.getDetailBySlug(slug);
   if (!result) notFound();
-  const { course, sectionsWithLectures, assignment, reviews } = result;
+  const { course, sectionsWithLectures, tutors, reviews } = result;
   const upcomingSessions = await SessionService.getUpcomingForCourse(course.id);
-  const requiresSession = upcomingSessions.length > 0 || course.format === "in_person" || course.format === "hybrid";
+  const requiresSession = await SessionService.requiresSession(course.id, course.format);
   const sessionOptions = upcomingSessions.map((item) => ({
     ...item,
     startDatetime: item.startDatetime.toISOString(),
@@ -119,9 +120,17 @@ export default async function CourseDetailPage({ params }: Props) {
                 </span>
               </div>
 
-              {assignment?.tutorName && (
+              {tutors.length > 0 && (
                 <p className="text-sm text-gray-400">
-                  Instructor: <span className="font-medium text-brand-400 underline cursor-pointer">{assignment.tutorName}</span>
+                  {tutors.length === 1 ? "Instructor" : "Instructors"}:{" "}
+                  {tutors.map((t, i) => (
+                    <span key={t.id}>
+                      {i > 0 && ", "}
+                      <Link href={`/tutors/${t.id}`} className="font-medium text-brand-400 underline hover:text-brand-300">
+                        {t.name ?? "Instructor"}
+                      </Link>
+                    </span>
+                  ))}
                 </p>
               )}
 
@@ -203,7 +212,7 @@ export default async function CourseDetailPage({ params }: Props) {
               course={course}
               sectionsWithLectures={sectionsWithLectures}
               requirements={requirements}
-              assignment={assignment}
+              tutors={tutors}
               reviews={reviews}
               rating={rating}
             />
@@ -285,19 +294,29 @@ export default async function CourseDetailPage({ params }: Props) {
               </div>
             </div>
 
-            {assignment?.tutorName && (
+            {tutors.length > 0 && (
               <div className="mt-4 rounded-2xl border border-surface-200 p-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Instructor</p>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-brand-500 text-lg font-bold text-white">
-                    {assignment.tutorName[0]}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-gray-900">{assignment.tutorName}</p>
-                    {assignment.tutorBio && (
-                      <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{assignment.tutorBio}</p>
-                    )}
-                  </div>
+                <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+                  {tutors.length === 1 ? "Instructor" : "Instructors"}
+                </p>
+                <div className="divide-y divide-surface-100">
+                  {tutors.map((t) => (
+                    <Link key={t.id} href={`/tutors/${t.id}`} className="group flex gap-3 py-3 first:pt-0 last:pb-0">
+                      <TutorAvatar name={t.name} avatarUrl={t.avatarUrl} size={48} />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-gray-900 group-hover:text-brand-600">{t.name ?? "Instructor"}</p>
+                        {t.headline && <p className="text-xs font-medium text-gray-600 mt-0.5">{t.headline}</p>}
+                        {t.bio && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{t.bio}</p>}
+                        {!!t.expertise?.length && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {t.expertise.slice(0, 4).map((x) => (
+                              <span key={x} className="rounded-md bg-surface-100 px-1.5 py-0.5 text-[11px] text-gray-600">{x}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </div>
             )}

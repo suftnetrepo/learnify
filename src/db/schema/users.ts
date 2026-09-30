@@ -5,6 +5,8 @@ import {
   text,
   boolean,
   timestamp,
+  integer,
+  jsonb,
   index,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
@@ -21,6 +23,13 @@ import { courseReviews } from "./courseReviews";
 import { tutorInvitations } from "./tutorInvitations";
 import { courses } from "./courses";
 
+export type WorkExperience = {
+  company:   string;
+  role:      string;
+  startYear: number;
+  endYear?:  number | null; // null/absent = current role
+};
+
 // ─── Users ────────────────────────────────────────────────────────────────────
 export const users = pgTable(
   "users",
@@ -33,6 +42,17 @@ export const users = pgTable(
     status: userStatusEnum("status").default("active").notNull(),
     avatarUrl: text("avatar_url"),
     bio: text("bio"),
+    // Public tutor profile (shown on /tutors/[id] and course pages)
+    headline: text("headline"),                   // "Senior Python Engineer"
+    location: text("location"),                   // "London, UK"
+    website: text("website"),
+    linkedinUrl: text("linkedin_url"),
+    githubUrl: text("github_url"),
+    twitterUrl: text("twitter_url"),
+    yearsExperience: integer("years_experience"),
+    languages: text("languages").array(),         // ["English", "French"]
+    expertise: text("expertise").array(),         // ["Python", "AI/ML"]
+    experience: jsonb("experience").$type<WorkExperience[]>(),
     emailVerified: boolean("email_verified").default(false).notNull(),
     emailVerificationToken: text("email_verification_token"),
     emailVerificationExpires: timestamp("email_verification_expires"),

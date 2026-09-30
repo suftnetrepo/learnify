@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { tutorAssignments, tutorInvitations, users } from "@/db/schema";
-import { eq, and, isNull, desc } from "drizzle-orm";
+import { tutorAssignments, tutorInvitations, users, courses } from "@/db/schema";
+import { eq, and, isNull, desc, asc } from "drizzle-orm";
 import { log } from "@/lib/logger";
 import type {
   TutorAssignmentWithDetails, TutorInvitation, AssignTutorPayload,
@@ -219,4 +219,86 @@ export class TutorService {
     return assignments;
   }
 
+
+  /**
+   * Every active tutor on a course, in assignment order (oldest first) so the
+   * course page lists them consistently. Only active, non-deleted tutor accounts.
+   */
+  static async getCourseTutors(courseId: string) {
+    return db
+      .select({
+        id:        users.id,
+        name:      users.name,
+        bio:       users.bio,
+        avatarUrl: users.avatarUrl,
+        headline:  users.headline,
+        expertise: users.expertise,
+      })
+      .from(tutorAssignments)
+      .innerJoin(users, eq(tutorAssignments.tutorId, users.id))
+      .where(and(
+        eq(tutorAssignments.courseId, courseId),
+        eq(tutorAssignments.status, "active"),
+        eq(users.role, "tutor"),
+        eq(users.status, "active"),
+        isNull(users.deletedAt),
+      ))
+      .orderBy(asc(tutorAssignments.createdAt));
+  }
+
+  /**
+   * Public profile for /tutors/[id]: an active tutor plus the published courses
+   * they're actively assigned to. Returns null for anyone who isn't an active tutor.
+   */
+  static async getPublicProfile(tutorId: string) {
+    // Non-UUID ids would make Postgres throw — treat them as not found
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tutorId)) return null;
+
+    const [tutor] = await db
+      .select({
+        id: users.id, name: users.name, bio: users.bio, avatarUrl: users.avatarUrl,
+        headline: users.headline, location: users.location, website: users.website,
+        linkedinUrl: users.linkedinUrl, githubUrl: users.githubUrl, twitterUrl: users.twitterUrl,
+        yearsExperience: users.yearsExperience, languages: users.languages,
+        expertise: users.expertise, experience: users.experience,
+      })
+      .from(users)
+      .where(and(eq(users.id, tutorId), eq(users.role, "tutor"), eq(users.status, "active"), isNull(users.deletedAt)))
+      .limit(1);
+    if (!tutor) return null;
+
+    const tutorCourses = await db
+      .selectDistinct({
+        id: courses.id, title: courses.title, slug: courses.slug, price: courses.price,
+        thumbnailUrl: courses.thumbnailUrl, format: courses.format, level: courses.level,
+        averageRating: courses.averageRating, reviewCount: courses.reviewCount,
+        enrollmentCount: courses.enrollmentCount,
+      })
+      .from(tutorAssignments)
+      .innerJoin(courses, eq(tutorAssignments.courseId, courses.id))
+      .where(and(
+        eq(tutorAssignments.tutorId, tutorId),
+        eq(tutorAssignments.status, "active"),
+        eq(courses.status, "published"),
+      ))
+      .orderBy(asc(courses.title));
+
+    // Rating weighted by review count, so a course with one 5★ review doesn't
+    // count the same as one with fifty
+    const reviewTotal = tutorCourses.reduce((n, c) => n + (c.reviewCount ?? 0), 0);
+    const rating = reviewTotal
+      ? tutorCourses.reduce((sum, c) => sum + Number(c.averageRating ?? 0) * (c.reviewCount ?? 0), 0) / reviewTotal
+      : null;
+
+    return {
+      tutor,
+      courses: tutorCourses,
+      stats: {
+        courses:  tutorCourses.length,
+        students: tutorCourses.reduce((n, c) => n + (c.enrollmentCount ?? 0), 0),
+        rating,
+        reviews:  reviewTotal,
+      },
+    };
+  }
 }

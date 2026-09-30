@@ -5,6 +5,8 @@ import { CheckCircle2, Lock, PlayCircle, ChevronDown, Star } from "lucide-react"
 import { PreviewModal } from "./PreviewModal";
 import { formatDuration } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { TutorAvatar } from "@/components/profile/TutorAvatar";
 
 interface Lecture {
   id: string; title: string; videoDuration: number | null;
@@ -12,7 +14,7 @@ interface Lecture {
 }
 interface Section { id: string; title: string; lectures: Lecture[] }
 interface Review  { id: string; rating: number; title: string | null; body: string | null; studentName: string | null; createdAt: Date }
-interface Assignment { tutorName: string | null; tutorBio: string | null }
+interface Tutor { id: string; name: string | null; bio: string | null; avatarUrl: string | null; headline: string | null }
 
 interface Props {
   course: {
@@ -22,7 +24,7 @@ interface Props {
   };
   sectionsWithLectures: Section[];
   requirements: string[];
-  assignment: Assignment | null;
+  tutors: Tutor[];
   reviews: Review[];
   rating: number;
 }
@@ -31,7 +33,7 @@ const TABS = ["About", "Curriculum", "Reviews"] as const;
 type Tab = typeof TABS[number];
 
 export function CourseDetailTabs({
-  course, sectionsWithLectures, requirements, assignment, reviews, rating,
+  course, sectionsWithLectures, requirements, tutors, reviews, rating,
 }: Props) {
   const [activeTab,  setActiveTab]  = useState<Tab>("About");
   const [openSects,  setOpenSects]  = useState<Set<string>>(
@@ -124,19 +126,27 @@ export function CourseDetailTabs({
           )}
 
           {/* Instructor bio */}
-          {assignment?.tutorName && (
+          {tutors.length > 0 && (
             <div>
-              <h3 className="font-display text-lg font-bold text-gray-900 mb-3">Your instructor</h3>
-              <div className="flex items-start gap-4">
-                <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-brand-500 text-2xl font-bold text-white">
-                  {assignment.tutorName[0]}
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">{assignment.tutorName}</p>
-                  {assignment.tutorBio && (
-                    <p className="mt-2 text-sm text-gray-500 leading-relaxed">{assignment.tutorBio}</p>
-                  )}
-                </div>
+              <h3 className="font-display text-lg font-bold text-gray-900 mb-3">
+                {tutors.length === 1 ? "Your instructor" : "Your instructors"}
+              </h3>
+              <div className="space-y-5">
+                {tutors.map((t) => (
+                  <div key={t.id} className="flex items-start gap-4">
+                    <TutorAvatar name={t.name} avatarUrl={t.avatarUrl} size={64} />
+                    <div>
+                      <Link href={`/tutors/${t.id}`} className="font-semibold text-gray-900 hover:text-brand-600">
+                        {t.name ?? "Instructor"}
+                      </Link>
+                      {t.headline && <p className="text-sm text-gray-600">{t.headline}</p>}
+                      {t.bio && <p className="mt-2 text-sm text-gray-500 leading-relaxed">{t.bio}</p>}
+                      <Link href={`/tutors/${t.id}`} className="mt-2 inline-block text-xs font-semibold text-brand-600 hover:underline">
+                        View full profile →
+                      </Link>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

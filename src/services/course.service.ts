@@ -419,13 +419,9 @@ export class CourseService {
           .orderBy(lectures.sortOrder)
       : [];
 
-    const { tutorAssignments, users, courseReviews } = await import("@/db/schema");
-    const [assignment] = await db
-      .select({ tutorName: users.name, tutorBio: users.bio, tutorAvatar: users.avatarUrl })
-      .from(tutorAssignments)
-      .leftJoin(users, eq(tutorAssignments.tutorId, users.id))
-      .where(and(eq(tutorAssignments.courseId, course.id), eq(tutorAssignments.status, "active")))
-      .limit(1);
+    const { users, courseReviews } = await import("@/db/schema");
+    const { TutorService } = await import("@/services/tutor.service");
+    const tutors = await TutorService.getCourseTutors(course.id);
 
     const reviews = await db
       .select({
@@ -447,7 +443,7 @@ export class CourseService {
       lectures: allLectures.filter((l) => l.sectionId === s.id),
     }));
 
-    return { course, sectionsWithLectures, assignment: assignment ?? null, reviews };
+    return { course, sectionsWithLectures, tutors, reviews };
   }
 
   /**

@@ -6,6 +6,13 @@ import type {
   UserListItem, UserListResult, UserFilters, UpdateUserPayload, User,
 } from "@/types";
 
+/** Columns UserService.update may write; anything else in the payload is ignored. */
+const UPDATABLE_FIELDS = [
+  "name", "email", "bio", "status", "role",
+  "avatarUrl", "headline", "location", "website", "linkedinUrl", "githubUrl", "twitterUrl",
+  "yearsExperience", "languages", "expertise", "experience",
+] as const satisfies readonly (keyof UpdateUserPayload)[];
+
 export class UserService {
   /**
    * Paginated list of users with optional filters.
@@ -94,13 +101,10 @@ export class UserService {
    * Update name, status, or role.
    */
   static async update(id: string, payload: UpdateUserPayload): Promise<User> {
-    const { name, email, bio, status, role } = payload;
     const updateData: Record<string, unknown> = { updatedAt: new Date() };
-    if (name   !== undefined) updateData.name   = name;
-    if (email  !== undefined) updateData.email  = email;
-    if (bio    !== undefined) updateData.bio    = bio;
-    if (status !== undefined) updateData.status = status;
-    if (role   !== undefined) updateData.role   = role;
+    for (const key of UPDATABLE_FIELDS) {
+      if (payload[key] !== undefined) updateData[key] = payload[key];
+    }
     const [updated] = await db
       .update(users)
       .set(updateData)
@@ -113,6 +117,16 @@ export class UserService {
         status:                 users.status,
         bio:                    users.bio,
         avatarUrl:              users.avatarUrl,
+        headline:               users.headline,
+        location:               users.location,
+        website:                users.website,
+        linkedinUrl:            users.linkedinUrl,
+        githubUrl:              users.githubUrl,
+        twitterUrl:             users.twitterUrl,
+        yearsExperience:        users.yearsExperience,
+        languages:              users.languages,
+        expertise:              users.expertise,
+        experience:             users.experience,
         createdAt:              users.createdAt,
         updatedAt:              users.updatedAt,
         lastLoginAt:            users.lastLoginAt,
