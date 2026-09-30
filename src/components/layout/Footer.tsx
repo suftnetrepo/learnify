@@ -33,7 +33,7 @@ export function Footer() {
   return (
     <footer className="border-t border-surface-100 bg-white">
       <div className="container py-10 sm:py-14 lg:py-16">
-        <div className="overflow-hidden rounded-[2rem] border border-surface-200 bg-surface-50 shadow-[0_24px_70px_-48px_rgba(15,23,42,0.45)]">
+        <div className="overflow-hidden rounded-[2rem] bg-surface-50">
           <div className="grid gap-12 px-6 py-9 sm:px-9 sm:py-11 lg:grid-cols-[1.25fr_1.75fr] lg:gap-16 lg:px-12">
             <div className="max-w-md">
               <Link

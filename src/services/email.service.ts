@@ -1,6 +1,6 @@
 import { sendEmail } from "@/lib/email";
 
-const APP    = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const APP = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function baseTemplate(content: string, preheader = ""): string {
@@ -9,20 +9,47 @@ function baseTemplate(content: string, preheader = ""): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <meta name="supported-color-schemes" content="light" />
   <title>Edquis</title>
+  <style>
+    body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+    table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
+    img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; }
+    table { border-collapse:collapse !important; }
+    a { text-decoration:none; }
+    @media only screen and (max-width:620px) {
+      .email-shell { padding:20px 10px !important; }
+      .email-card { border-radius:18px !important; }
+      .email-header { padding:22px 22px 20px !important; }
+      .email-body { padding:28px 22px 30px !important; }
+      .email-footer { padding:20px 22px !important; }
+      .email-title { font-size:25px !important; line-height:1.22 !important; }
+      .email-button, .email-button a { width:100% !important; box-sizing:border-box !important; text-align:center !important; }
+    }
+  </style>
 </head>
-<body style="margin:0;padding:0;background:#f8f8fc;font-family:'Inter',system-ui,sans-serif">
-  ${preheader ? `<div style="display:none;max-height:0;overflow:hidden">${preheader}</div>` : ""}
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f8fc;padding:40px 20px">
+<body style="margin:0;padding:0;background:#f3f5f9;font-family:Arial,'Helvetica Neue',sans-serif;color:#172033">
+  ${preheader ? `<div style="display:none;font-size:1px;color:#f3f5f9;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">${escapeHtml(preheader)}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>` : ""}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f3f5f9">
     <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;border:1px solid #e4e4ef;overflow:hidden;max-width:560px;width:100%">
+      <table role="presentation" class="email-shell" width="100%" cellpadding="0" cellspacing="0" border="0" style="padding:44px 20px">
+        <tr><td align="center">
+      <table role="presentation" class="email-card" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="background:#ffffff;border-radius:24px;border:1px solid #e2e8f0;overflow:hidden;max-width:600px;width:100%;box-shadow:0 18px 50px rgba(15,23,42,0.08)">
+        <tr><td height="5" bgcolor="#6366f1" style="height:5px;line-height:5px;font-size:0">&nbsp;</td></tr>
         <!-- Header -->
         <tr>
-          <td style="background:#111126;padding:24px 32px">
-            <table width="100%" cellpadding="0" cellspacing="0">
+          <td class="email-header" style="background:#ffffff;padding:25px 36px 23px;border-bottom:1px solid #eef2f7">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td>
-                  <span style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:18px;font-weight:700;color:#fff">Edquis</span>
+                <td width="48" valign="middle">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="42" height="42" align="center" valign="middle" bgcolor="#f8fafc" style="width:42px;height:42px;border:1px solid #e2e8f0;border-radius:13px">
+                    <img src="${escapeHtml(APP)}/logo.png" alt="" width="32" height="32" style="display:block;width:32px;height:32px;object-fit:contain" />
+                  </td></tr></table>
+                </td>
+                <td valign="middle" style="padding-left:11px">
+                  <div style="font-size:19px;line-height:24px;font-weight:800;letter-spacing:-0.02em;color:#111827">Edquis</div>
+                  <div style="font-size:11px;line-height:16px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#94a3b8">Learn with purpose</div>
                 </td>
               </tr>
             </table>
@@ -30,21 +57,26 @@ function baseTemplate(content: string, preheader = ""): string {
         </tr>
         <!-- Body -->
         <tr>
-          <td style="padding:32px">
+          <td class="email-body" style="padding:38px 36px 40px">
+            <p style="margin:0 0 13px;font-size:11px;line-height:16px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#6366f1">A message from Edquis</p>
             ${content}
           </td>
         </tr>
         <!-- Footer -->
         <tr>
-          <td style="padding:20px 32px;border-top:1px solid #f1f1f8;background:#f8f8fc">
-            <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center">
-              © ${new Date().getFullYear()} Edquis · <a href="${APP}" style="color:#6366f1">Visit Edquis</a>
-              &nbsp;·&nbsp; <a href="${APP}/privacy" style="color:#6366f1">Privacy</a>
-              &nbsp;·&nbsp; <a href="${APP}/terms" style="color:#6366f1">Terms</a>
-              <br/>This is a transactional email sent to your registered address.
+          <td class="email-footer" style="padding:22px 36px 24px;border-top:1px solid #eef2f7;background:#f8fafc">
+            <p style="margin:0 0 8px;font-size:12px;line-height:18px;color:#64748b;text-align:center">
+              Need help? <a href="${escapeHtml(APP)}/contact" style="color:#4f46e5;font-weight:600">Contact the Edquis team</a>
+            </p>
+            <p style="margin:0;font-size:11px;line-height:17px;color:#94a3b8;text-align:center">
+              &copy; ${new Date().getFullYear()} Edquis&nbsp;&nbsp;·&nbsp;&nbsp;<a href="${escapeHtml(APP)}/privacy" style="color:#64748b">Privacy</a>
+              &nbsp;&nbsp;·&nbsp;&nbsp;<a href="${escapeHtml(APP)}/terms" style="color:#64748b">Terms</a>
+              <br />This transactional email was sent to your registered address.
             </p>
           </td>
         </tr>
+      </table>
+        </td></tr>
       </table>
     </td></tr>
   </table>
@@ -53,15 +85,15 @@ function baseTemplate(content: string, preheader = ""): string {
 }
 
 function btn(text: string, url: string): string {
-  return `<a href="${url}" style="display:inline-block;background:#6366f1;color:#fff;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;margin-top:8px">${text}</a>`;
+  return `<table role="presentation" class="email-button" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 4px"><tr><td align="center" bgcolor="#4f46e5" style="border-radius:12px;box-shadow:0 7px 18px rgba(79,70,229,0.18)"><a href="${escapeHtml(url)}" style="display:inline-block;border:1px solid #4f46e5;border-radius:12px;color:#ffffff;padding:13px 24px;font-size:14px;line-height:20px;font-weight:700;text-decoration:none">${escapeHtml(text)}</a></td></tr></table>`;
 }
 
 function h1(text: string): string {
-  return `<h1 style="margin:0 0 8px;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:24px;font-weight:700;color:#13131f">${text}</h1>`;
+  return `<h1 class="email-title" style="margin:0 0 12px;font-family:Arial,'Helvetica Neue',sans-serif;font-size:29px;line-height:1.2;font-weight:800;letter-spacing:-0.025em;color:#111827">${text}</h1>`;
 }
 
 function p(text: string): string {
-  return `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151">${text}</p>`;
+  return `<p style="margin:0 0 17px;font-size:15px;line-height:1.68;color:#475569">${text}</p>`;
 }
 
 function escapeHtml(text: string): string {
@@ -133,7 +165,7 @@ export const EmailService = {
     ` : "";
 
     const html = baseTemplate(
-      h1("Your enrolment is confirmed! 🎉") +
+      h1("Your enrolment is confirmed") +
       p(`Hi ${data.studentName}, you're now enrolled in <strong>${data.courseTitle}</strong>.`) +
       p(`Amount paid: <strong>${data.amount}</strong>`) +
       sessionBlock +
@@ -145,7 +177,7 @@ export const EmailService = {
       `<p style="margin-top:24px;font-size:13px;color:#9ca3af">Remember: we offer a 30-day money-back guarantee if you're not satisfied.</p>`,
       `You're enrolled in ${data.courseTitle}`
     );
-    await send(to, `✅ Enrolled in "${data.courseTitle}"`, html);
+    await send(to, `Enrolment confirmed: ${data.courseTitle}`, html);
   },
 
   /** Sent when a student's course progress reaches 100%. */
@@ -156,7 +188,7 @@ export const EmailService = {
   }) {
     const dashUrl = `${APP}/dashboard`;
     const html = baseTemplate(
-      h1("You've completed the course! 🏆") +
+      h1("You've completed the course") +
       p(`Congratulations ${data.studentName}! You've successfully completed <strong>${data.courseTitle}</strong>.`) +
       (data.certificateUrl
         ? p("Your certificate is ready to download and share.") + btn("Download Certificate", data.certificateUrl)
@@ -164,7 +196,7 @@ export const EmailService = {
       ),
       `You've completed ${data.courseTitle}`
     );
-    await send(to, `🏆 Course completed: "${data.courseTitle}"`, html);
+    await send(to, `Course completed: ${data.courseTitle}`, html);
   },
 
   /** Sent to a tutor when they're assigned to a course. */
@@ -185,7 +217,7 @@ export const EmailService = {
       btn("Go to Instructor Dashboard", `${APP}/instructor/courses`),
       `New course assignment: ${data.courseTitle}`
     );
-    await send(to, `📚 New assignment: "${data.courseTitle}"`, html);
+    await send(to, `New course assignment: ${data.courseTitle}`, html);
   },
 
   /** Sent to admin when a new tutor applies. */
@@ -200,7 +232,7 @@ export const EmailService = {
       btn("Review Application", `${APP}/admin/tutors`),
       `New tutor application from ${data.applicantName}`
     );
-    await send(to, `👋 New tutor application: ${data.applicantName}`, html);
+    await send(to, `New tutor application: ${data.applicantName}`, html);
   },
 
   /** Sent to a tutor when they're invited to the platform. */
@@ -216,7 +248,7 @@ export const EmailService = {
       `<p style="margin-top:24px;font-size:13px;color:#9ca3af">If you didn't expect this email, you can safely ignore it.</p>`,
       "You've been invited to teach on Edquis"
     );
-    await send(to, "🎓 You're invited to teach on Edquis", html);
+    await send(to, "You're invited to teach on Edquis", html);
   },
 
   /** Sent to a new student after they register. */
@@ -224,12 +256,12 @@ export const EmailService = {
     name: string;
   }) {
     const html = baseTemplate(
-      h1(`Welcome to Edquis, ${data.name}! 👋`) +
+      h1(`Welcome to Edquis, ${data.name}`) +
       p("Your account is ready. Browse hundreds of expert-led courses and start building skills that move your career forward.") +
       btn("Browse Courses", `${APP}/courses`),
       "Welcome to Edquis"
     );
-    await send(to, "Welcome to Edquis 🎉", html);
+    await send(to, "Welcome to Edquis", html);
   },
 
   /** Sent to a student when their payment fails. */
@@ -241,7 +273,7 @@ export const EmailService = {
       btn("Try enrolling again", `${APP}/courses`),
       `Payment failed for ${data.courseTitle}`
     );
-    await send(to, `⚠️ Payment failed — "${data.courseTitle}"`, html);
+    await send(to, `Payment failed: ${data.courseTitle}`, html);
   },
 
   /** Sent to admin when a chargeback dispute is created. */
@@ -256,14 +288,14 @@ export const EmailService = {
       `</table>`,
     ].join("");
     const html = baseTemplate(
-      h1("Chargeback dispute created ⚠️") +
+      h1("Chargeback dispute created") +
       p(`A chargeback dispute of <strong>${data.amount}</strong> has been filed.`) +
       disputeTable +
       p("You must submit evidence to Stripe before the deadline to contest this dispute.") +
       btn("View in Stripe Dashboard", data.stripeUrl),
       `Chargeback dispute — ${data.amount}`
     );
-    await send(to, `🚨 Chargeback dispute: ${data.amount}`, html);
+    await send(to, `Chargeback dispute: ${data.amount}`, html);
   },
 
   /** Sent to admin when a tutor payout transfer fails. */
@@ -277,7 +309,7 @@ export const EmailService = {
       btn("View Transfer in Stripe", data.stripeUrl),
       `Payout transfer failed — ${data.amount}`
     );
-    await send(to, `💸 Payout transfer failed — ${data.amount}`, html);
+    await send(to, `Payout transfer failed: ${data.amount}`, html);
   },
 
   /** Sent to a user who requested a password reset. */
@@ -290,7 +322,7 @@ export const EmailService = {
       `<p style="margin-top:24px;font-size:13px;color:#9ca3af">If you didn't request this, you can safely ignore this email — your password won't change.</p>`,
       "Reset your Edquis password"
     );
-    await send(to, "🔐 Reset your Edquis password", html);
+    await send(to, "Reset your Edquis password", html);
   },
 
   /** Sent to admin when a payment is refunded. */
@@ -310,7 +342,7 @@ export const EmailService = {
       btn("View in Payments", `${APP}/admin/payments`),
       `Refund: ${data.studentName} — ${data.courseTitle}`
     );
-    await send(to, `💳 Refund issued — ${data.amount}`, html);
+    await send(to, `Refund issued: ${data.amount}`, html);
   },
 
   /** Sent to admin when a manager-tutor submits a course for review. */
@@ -326,7 +358,7 @@ export const EmailService = {
       btn("Review course →", data.reviewUrl),
       `New course pending review: ${data.courseTitle}`
     );
-    await send(to, `📋 Course pending review: "${data.courseTitle}"`, html);
+    await send(to, `Course pending review: ${data.courseTitle}`, html);
   },
 
   /** Sent to a manager-tutor when their submitted course is approved and published. */
@@ -335,13 +367,13 @@ export const EmailService = {
     courseUrl:   string;
   }) {
     const html = baseTemplate(
-      h1("Your course has been approved! 🎉") +
+      h1("Your course has been approved") +
       p(`Great news — <strong>${data.courseTitle}</strong> has been reviewed and approved by the platform admin.`) +
       p("Your course is now live and available for students to enrol.") +
       btn("View your course →", data.courseUrl),
       `Course approved: ${data.courseTitle}`
     );
-    await send(to, `✅ Course approved: "${data.courseTitle}"`, html);
+    await send(to, `Course approved: ${data.courseTitle}`, html);
   },
 
   /** Sent to a manager-tutor when their submitted course is rejected with feedback. */
@@ -361,7 +393,7 @@ export const EmailService = {
       btn("Edit course →", data.editUrl),
       `Course needs changes: ${data.courseTitle}`
     );
-    await send(to, `📝 Course needs changes: "${data.courseTitle}"`, html);
+    await send(to, `Course needs changes: ${data.courseTitle}`, html);
   },
 
   /** Sent when an admin creates a new account (student/tutor/admin) directly. */

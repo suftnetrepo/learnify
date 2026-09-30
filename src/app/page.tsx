@@ -9,7 +9,7 @@ import { auth } from "@/lib/auth";
 import {
   ArrowRight, BookOpen, Users, Star, Shield,
   Zap, Globe, Award, ChevronRight, CheckCircle2,
-  Play, TrendingUp, Clock,
+  Play, TrendingUp,
 } from "lucide-react";
 
 export const revalidate = 3600;
@@ -32,7 +32,7 @@ const TESTIMONIALS = [
 
 export default async function HomePage() {
   const session = await auth();
-  const { featuredCourses, allCategories, totalStudents, avgRating } = await CourseService.getHomeData();
+  const { featuredCourses, totalStudents, avgRating } = await CourseService.getHomeData();
 
   return (
     <div className="min-h-screen bg-white">
@@ -314,7 +314,7 @@ export default async function HomePage() {
                     <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed italic">"{body}"</p>
+                <p className="text-sm text-gray-600 leading-relaxed italic">&ldquo;{body}&rdquo;</p>
                 <div className="mt-5 flex items-center gap-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 font-bold text-brand-700 text-sm">
                     {name[0]}
@@ -326,34 +326,6 @@ export default async function HomePage() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── NEWSLETTER CTA ────────────────────────────────────────────────── */}
-      <section className="py-16 bg-amber-400">
-        <div className="container">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-3xl font-extrabold text-gray-900">
-              Stay in Touch — Get the Latest Courses
-            </h2>
-            <p className="mt-3 text-sm text-amber-900/80">
-              Learning with the experts — get notified when new courses drop in your area of interest.
-            </p>
-            <div className="mt-8 flex gap-3 justify-center flex-col sm:flex-row">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 max-w-xs rounded-xl border-0 bg-white/80 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:bg-white focus:ring-2 focus:ring-gray-900/20"
-              />
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
-              >
-                Subscribe
-              </Link>
-            </div>
-            <p className="mt-3 text-xs text-amber-900/60">No spam. Unsubscribe at any time.</p>
           </div>
         </div>
       </section>
