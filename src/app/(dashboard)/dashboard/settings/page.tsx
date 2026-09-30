@@ -18,7 +18,7 @@ export default async function SettingsPage() {
     <div>
       <Topbar
         breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
+          { label: "Dashboard", href: user.role === "tutor" ? "/instructor" : "/dashboard" },
           { label: "Settings" },
         ]}
       />
@@ -26,10 +26,12 @@ export default async function SettingsPage() {
         <div>
           <h1 className="font-display text-2xl font-extrabold text-gray-900">Account Settings</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Manage your profile details and preferences.
+            {user.role === "tutor"
+              ? "Your account details. What students see about you is on your Profile page."
+              : "Manage your profile details and preferences."}
           </p>
         </div>
-        <ProfileSettingsForm user={user} />
+        <ProfileSettingsForm user={user} role={user.role} />
       </div>
     </div>
   );
