@@ -318,7 +318,7 @@ function SessionFormModal({
             {/* Description */}
             <div>
               <label className="form-label">Description <span className="text-gray-400 font-normal">(optional)</span></label>
-              <textarea name="description" rows={2} defaultValue={session?.description ?? ""} className="form-input resize-none" placeholder="Any specific info for this session…" />
+              <textarea name="description" rows={5} defaultValue={session?.description ?? ""} className="form-input min-h-[7.5rem] resize-y" placeholder="Any specific info for this session…" />
             </div>
 
             {/* Date/time row */}
