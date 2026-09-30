@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/Toast";
 import {
   Plus, Calendar, Clock, MapPin, Video,
   ChevronDown, ChevronUp, Trash2, X, Check,
-  Ban, Mail,
+  Ban, Mail, Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CandidateEmailPanel } from "@/components/sessions/CandidateEmailPanel";
@@ -43,8 +43,14 @@ const PLATFORM_LABELS: Record<string, string> = {
   webex: "Cisco Webex", other: "Other",
 };
 
-function SessionCard({ s, onRefresh }: {
-  s: Session; onRefresh: () => void;
+/** ISO timestamp → value for a datetime-local input, in the admin's local time. */
+function toLocalInput(iso: string) {
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+function SessionCard({ s, onRefresh, onEdit }: {
+  s: Session; onRefresh: () => void; onEdit: () => void;
 }) {
   const { success, error } = useToast();
   const [expanded,  setExpanded]  = useState(false);
@@ -166,6 +172,13 @@ function SessionCard({ s, onRefresh }: {
             <Mail size={14} />
           </button>
           {s.status === "scheduled" && (
+            <button onClick={onEdit}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-brand-50 hover:text-brand-600 transition-colors"
+              title="Edit session">
+              <Pencil size={14} />
+            </button>
+          )}
+          {s.status === "scheduled" && (
             <button onClick={handleCancel} disabled={cancelling}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
               title="Cancel session">
@@ -220,13 +233,15 @@ function SessionCard({ s, onRefresh }: {
 }
 
 function SessionFormModal({
-  courseId, format, onClose, onSaved,
+  courseId, format, session, onClose, onSaved,
 }: {
   courseId: string; format: string; onClose: () => void; onSaved: () => void;
+  session?: Session;   // present → edit this session instead of creating one
 }) {
   const { success, error } = useToast();
   const [saving,   setSaving]   = useState(false);
-  const [platform, setPlatform] = useState("zoom");
+  const [platform, setPlatform] = useState(session?.conferencePlatform ?? "zoom");
+  const isEdit  = !!session;
   const isVenue = format === "in_person" || format === "hybrid";
   const isLive  = format === "online"    || format === "hybrid";
 
@@ -234,40 +249,49 @@ function SessionFormModal({
     e.preventDefault();
     setSaving(true);
     const fd = new FormData(e.currentTarget);
+    // Editing: an emptied optional field is sent as null so it's cleared, not left as it was
+    const empty = isEdit ? null : undefined;
 
     const body: Record<string, unknown> = {
       title:         fd.get("title"),
-      description:   fd.get("description") || undefined,
+      description:   fd.get("description") || empty,
       startDatetime: new Date(fd.get("startDatetime") as string).toISOString(),
       endDatetime:   new Date(fd.get("endDatetime")   as string).toISOString(),
       capacity:      Number(fd.get("capacity")),
     };
 
     if (isVenue) {
-      body.venueAddress  = fd.get("venueAddress")  || undefined;
-      body.venueCity     = fd.get("venueCity")     || undefined;
-      body.venuePostcode = fd.get("venuePostcode") || undefined;
-      body.venueMapUrl   = fd.get("venueMapUrl")   || undefined;
+      body.venueAddress  = fd.get("venueAddress")  || empty;
+      body.venueCity     = fd.get("venueCity")     || empty;
+      body.venuePostcode = fd.get("venuePostcode") || empty;
+      body.venueMapUrl   = fd.get("venueMapUrl")   || empty;
     }
     if (isLive) {
       body.conferencePlatform = platform;
-      body.conferenceUrl      = fd.get("conferenceUrl")      || undefined;
-      body.conferencePassword = fd.get("conferencePassword") || undefined;
+      body.conferenceUrl      = fd.get("conferenceUrl")      || empty;
+      body.conferencePassword = fd.get("conferencePassword") || empty;
     }
 
     try {
-      const res  = await fetch(`/api/courses/${courseId}/sessions`, {
-        method:  "POST",
+      const res  = await fetch(isEdit ? `/api/sessions/${session.id}` : `/api/courses/${courseId}/sessions`, {
+        method:  isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify(body),
       });
       const json = await res.json();
-      if (!json.success) throw new Error(json.message);
-      success("Session created");
+      if (!json.success) {
+        const fieldError = json.errors && Object.values(json.errors as Record<string, string[]>)[0]?.[0];
+        throw new Error(fieldError ?? json.message);
+      }
+      const notified: number = json.data?.studentsNotified ?? 0;
+      success(
+        isEdit ? "Session updated" : "Session created",
+        notified ? `${notified} booked ${notified === 1 ? "student was" : "students were"} emailed the new details.` : undefined,
+      );
       onSaved();
       onClose();
     } catch (err) {
-      error("Failed to create session", err instanceof Error ? err.message : "Please try again");
+      error(isEdit ? "Failed to update session" : "Failed to create session", err instanceof Error ? err.message : "Please try again");
     } finally {
       setSaving(false);
     }
@@ -277,7 +301,7 @@ function SessionFormModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between border-b border-surface-100 px-6 py-4">
-          <h2 className="font-display text-lg font-bold text-gray-900">Add Session</h2>
+          <h2 className="font-display text-lg font-bold text-gray-900">{isEdit ? "Edit Session" : "Add Session"}</h2>
           <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-surface-100 transition-colors">
             <X size={16} />
           </button>
@@ -288,43 +312,46 @@ function SessionFormModal({
             {/* Title */}
             <div>
               <label className="form-label">Session Title *</label>
-              <input name="title" required className="form-input" placeholder="e.g. Morning Cohort — Batch 1" />
+              <input name="title" required defaultValue={session?.title} className="form-input" placeholder="e.g. Morning Cohort — Batch 1" />
             </div>
 
             {/* Description */}
             <div>
               <label className="form-label">Description <span className="text-gray-400 font-normal">(optional)</span></label>
-              <textarea name="description" rows={2} className="form-input resize-none" placeholder="Any specific info for this session…" />
+              <textarea name="description" rows={2} defaultValue={session?.description ?? ""} className="form-input resize-none" placeholder="Any specific info for this session…" />
             </div>
 
             {/* Date/time row */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="form-label">Start date & time *</label>
-                <input name="startDatetime" type="datetime-local" required className="form-input" />
+                <input name="startDatetime" type="datetime-local" required defaultValue={session && toLocalInput(session.startDatetime)} className="form-input" />
               </div>
               <div>
                 <label className="form-label">End date & time *</label>
-                <input name="endDatetime" type="datetime-local" required className="form-input" />
+                <input name="endDatetime" type="datetime-local" required defaultValue={session && toLocalInput(session.endDatetime)} className="form-input" />
               </div>
             </div>
 
             {/* Capacity */}
             <div>
               <label className="form-label">Max seats *</label>
-              <input name="capacity" type="number" min="1" max="10000" defaultValue={20} required className="form-input" />
+              <input name="capacity" type="number" min={Math.max(1, session?.enrolledCount ?? 1)} max="10000" defaultValue={session?.capacity ?? 20} required className="form-input" />
+              {isEdit && session.enrolledCount > 0 && (
+                <p className="mt-1 text-xs text-gray-400">{session.enrolledCount} already booked — can&apos;t go below that.</p>
+              )}
             </div>
 
             {/* Venue details */}
             {isVenue && (
               <div className="rounded-xl border border-surface-200 p-4 space-y-3">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5"><MapPin size={11} />Venue Details</p>
-                <input name="venueAddress"  className="form-input" placeholder="Street address" />
+                <input name="venueAddress"  defaultValue={session?.venueAddress ?? ""} className="form-input" placeholder="Street address" />
                 <div className="grid grid-cols-2 gap-3">
-                  <input name="venueCity"     className="form-input" placeholder="City" />
-                  <input name="venuePostcode" className="form-input" placeholder="Postcode" />
+                  <input name="venueCity"     defaultValue={session?.venueCity ?? ""} className="form-input" placeholder="City" />
+                  <input name="venuePostcode" defaultValue={session?.venuePostcode ?? ""} className="form-input" placeholder="Postcode" />
                 </div>
-                <input name="venueMapUrl" type="url" className="form-input" placeholder="Google Maps URL (optional)" />
+                <input name="venueMapUrl" type="url" defaultValue={session?.venueMapUrl ?? ""} className="form-input" placeholder="Google Maps URL (optional)" />
               </div>
             )}
 
@@ -342,8 +369,8 @@ function SessionFormModal({
                     <option value="other">Other</option>
                   </select>
                 </div>
-                <input name="conferenceUrl" type="url" className="form-input" placeholder="Join link (only visible to enrolled students)" />
-                <input name="conferencePassword" className="form-input" placeholder="Meeting password (optional)" />
+                <input name="conferenceUrl" type="url" defaultValue={session?.conferenceUrl ?? ""} className="form-input" placeholder="Join link (only visible to enrolled students)" />
+                <input name="conferencePassword" defaultValue={session?.conferencePassword ?? ""} className="form-input" placeholder="Meeting password (optional)" />
               </div>
             )}
           </div>
@@ -351,7 +378,7 @@ function SessionFormModal({
           <div className="border-t border-surface-100 flex items-center justify-end gap-3 px-6 py-4">
             <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
             <Button type="submit" loading={saving} leftIcon={<Check size={15} />}>
-              Create Session
+              {isEdit ? "Save Changes" : "Create Session"}
             </Button>
           </div>
         </form>
@@ -364,6 +391,7 @@ export function SessionsManager({ courseId, format, sessions: initial }: Props) 
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>(initial);
   const [showForm, setShowForm] = useState(false);
+  const [editing,  setEditing]  = useState<Session | null>(null);
 
   async function refresh() {
     const res  = await fetch(`/api/courses/${courseId}/sessions`);
@@ -403,7 +431,7 @@ export function SessionsManager({ courseId, format, sessions: initial }: Props) 
       ) : (
         <div className="space-y-3">
           {scheduled.map((s) => (
-            <SessionCard key={s.id} s={s} onRefresh={refresh} />
+            <SessionCard key={s.id} s={s} onRefresh={refresh} onEdit={() => setEditing(s)} />
           ))}
         </div>
       )}
@@ -414,7 +442,7 @@ export function SessionsManager({ courseId, format, sessions: initial }: Props) 
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Past & Cancelled</p>
           <div className="space-y-3">
             {past.map((s) => (
-              <SessionCard key={s.id} s={s} onRefresh={refresh} />
+              <SessionCard key={s.id} s={s} onRefresh={refresh} onEdit={() => setEditing(s)} />
             ))}
           </div>
         </div>
@@ -425,6 +453,16 @@ export function SessionsManager({ courseId, format, sessions: initial }: Props) 
           courseId={courseId}
           format={format}
           onClose={() => setShowForm(false)}
+          onSaved={refresh}
+        />
+      )}
+      {editing && (
+        <SessionFormModal
+          key={editing.id}
+          courseId={courseId}
+          format={format}
+          session={editing}
+          onClose={() => setEditing(null)}
           onSaved={refresh}
         />
       )}

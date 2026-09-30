@@ -7,19 +7,20 @@ import {
   notFound, serverError, validationError, conflict,
 } from "@/lib/api-response";
 
+// Optional text fields accept null so an edit can clear them (e.g. remove a meeting password)
 const updateSchema = z.object({
   title:              z.string().min(2).max(200).optional(),
-  description:        z.string().max(1000).optional(),
+  description:        z.string().max(1000).nullish(),
   startDatetime:      z.string().datetime().optional(),
   endDatetime:        z.string().datetime().optional(),
   capacity:           z.number().int().min(1).optional(),
-  venueAddress:       z.string().max(500).optional(),
-  venueCity:          z.string().max(100).optional(),
-  venuePostcode:      z.string().max(20).optional(),
-  venueMapUrl:        z.string().url().optional(),
-  conferencePlatform: z.enum(["zoom","teams","google_meet","webex","other"]).optional(),
-  conferenceUrl:      z.string().url().optional(),
-  conferencePassword: z.string().max(100).optional(),
+  venueAddress:       z.string().max(500).nullish(),
+  venueCity:          z.string().max(100).nullish(),
+  venuePostcode:      z.string().max(20).nullish(),
+  venueMapUrl:        z.string().url().nullish(),
+  conferencePlatform: z.enum(["zoom","teams","google_meet","webex","other"]).nullish(),
+  conferenceUrl:      z.string().url().nullish(),
+  conferencePassword: z.string().max(100).nullish(),
   status:             z.enum(["scheduled","cancelled","completed"]).optional(),
 });
 
@@ -33,7 +34,8 @@ export async function GET(
     const { id } = await params;
     const s = await SessionService.findById(id);
     if (!s) return notFound("Session");
-    return successResponse(s);
+    const canSeeJoin = await SessionService.canSeeJoinDetails(session.user.id, session.user.role, s.courseId);
+    return successResponse(canSeeJoin ? s : SessionService.withoutJoinDetails(s));
   } catch { return serverError(); }
 }
 
@@ -50,6 +52,16 @@ export async function PATCH(
     const body   = await req.json();
     const parsed = updateSchema.safeParse(body);
     if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors as Record<string,string[]>);
+
+    const existing = await SessionService.findById(id);
+    if (!existing) return notFound("Session");
+    const { capacity, startDatetime, endDatetime } = parsed.data;
+    if (capacity !== undefined && capacity < existing.enrolledCount) {
+      return validationError({ capacity: [`Can't be below the ${existing.enrolledCount} students already booked`] });
+    }
+    const start = startDatetime ? new Date(startDatetime) : existing.startDatetime;
+    const end   = endDatetime   ? new Date(endDatetime)   : existing.endDatetime;
+    if (end <= start) return validationError({ endDatetime: ["End must be after the start"] });
 
     const updated = await SessionService.update(id, parsed.data, session.user.id);
     return successResponse(updated, "Session updated");

@@ -470,6 +470,48 @@ export const EmailService = {
     await send(to, `Session cancelled: ${data.courseTitle}`, html);
   },
 
+  /** Sent to booked students when an administrator changes when/where/how their session runs. */
+  async sessionUpdated(to: string, data: {
+    studentName:   string;
+    courseTitle:   string;
+    sessionTitle:  string;
+    changes:       string[];   // e.g. ["Date and time", "Join link"]
+    dateTime:      string;     // new date/time, already formatted
+    venue?:        string;
+    venueMapUrl?:  string;
+    conferencePlatform?: string;
+    conferenceUrl?:      string;
+    conferencePassword?: string;
+  }) {
+    const e = escapeHtml;
+    const row = (label: string, value: string, changed: boolean) => `
+      <tr>
+        <td style="padding:6px 0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;vertical-align:top;width:120px">${label}</td>
+        <td style="padding:6px 0;font-size:14px;color:#13131f">${value}${changed ? ' <span style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#eef2ff;color:#4f46e5;font-size:11px;font-weight:700">Updated</span>' : ""}</td>
+      </tr>`;
+    const has = (c: string) => data.changes.includes(c);
+
+    const details =
+      row("When", e(data.dateTime), has("Date and time")) +
+      (data.venue ? row("Venue", e(data.venue) + (data.venueMapUrl ? `<br/><a href="${e(data.venueMapUrl)}" style="color:#6366f1;font-size:13px">Get directions →</a>` : ""), has("Venue")) : "") +
+      (data.conferenceUrl ? row("Join online",
+        `${e(data.conferencePlatform ?? "Video call")}<br/><a href="${e(data.conferenceUrl)}" style="color:#6366f1;font-size:13px;word-break:break-all">${e(data.conferenceUrl)}</a>`,
+        has("Join link") || has("Platform")) : "") +
+      (data.conferencePassword ? row("Password", `<span style="font-family:monospace">${e(data.conferencePassword)}</span>`, has("Meeting password")) : "");
+
+    const html = baseTemplate(
+      h1("Your session details have changed") +
+      p(`Hi ${e(data.studentName)}, the <strong>${e(data.sessionTitle)}</strong> session for <strong>${e(data.courseTitle)}</strong> has been updated.`) +
+      p(`What changed: <strong>${e(data.changes.join(", "))}</strong>. Here are the latest details:`) +
+      `<table style="width:100%;background:#f8f8fc;border:1px solid #e4e4ef;border-radius:10px;padding:10px 16px;margin:8px 0 20px">${details}</table>` +
+      (has("Meeting password") && !data.conferencePassword ? p("This session no longer needs a meeting password.") : "") +
+      p("These details are always up to date in My Courses on your dashboard.") +
+      btn("View my courses", `${APP}/dashboard/my-courses`),
+      `Updated: ${data.sessionTitle} — ${data.changes.join(", ")}`
+    );
+    await send(to, `Session updated: ${data.courseTitle}`, html);
+  },
+
   /** Administrator-authored message sent privately to session candidates. */
   async sessionCandidateMessage(to: string, data: {
     candidateName: string;

@@ -23,9 +23,15 @@ export interface CreateSessionPayload {
   conferencePassword?: string;
 }
 
-export interface UpdateSessionPayload extends Partial<Omit<CreateSessionPayload, "courseId">> {
-  status?: "scheduled" | "cancelled" | "completed";
-}
+/** Optional text fields that an edit may clear by sending null. */
+type ClearableSessionField =
+  | "description" | "venueAddress" | "venueCity" | "venuePostcode" | "venueMapUrl"
+  | "conferencePlatform" | "conferenceUrl" | "conferencePassword";
+
+export type UpdateSessionPayload =
+  Partial<Omit<CreateSessionPayload, "courseId" | ClearableSessionField>> &
+  { [K in ClearableSessionField]?: CreateSessionPayload[K] | null } &
+  { status?: "scheduled" | "cancelled" | "completed" };
 
 export interface SessionWithStats extends CourseSession {
   seatsRemaining: number;
@@ -64,6 +70,30 @@ export class SessionService {
       .where(eq(courseSessions.courseId, courseId))
       .limit(1);
     return !!row;
+  }
+
+  /**
+   * Who may see a session's join link and password: admins, tutors with access to the
+   * course, and students enrolled on it. Everyone else gets the session without them.
+   */
+  static async canSeeJoinDetails(userId: string | undefined, role: string | undefined, courseId: string): Promise<boolean> {
+    if (!userId || !role) return false;
+    if (role === "admin") return true;
+    if (role === "tutor") {
+      const { requireCourseAccess } = await import("@/lib/access/course");
+      return requireCourseAccess(userId, courseId, role, "viewer");
+    }
+    const [row] = await db
+      .select({ id: enrollments.id })
+      .from(enrollments)
+      .where(and(eq(enrollments.studentId, userId), eq(enrollments.courseId, courseId)))
+      .limit(1);
+    return !!row;
+  }
+
+  /** The session with its join link and password removed (platform name kept). */
+  static withoutJoinDetails<T extends { conferenceUrl: string | null; conferencePassword: string | null }>(session: T): T {
+    return { ...session, conferenceUrl: null, conferencePassword: null };
   }
 
   static async getUpcomingForCourse(courseId: string): Promise<SessionWithStats[]> {
@@ -135,7 +165,9 @@ export class SessionService {
   }
 
   /** Update an existing session. */
-  static async update(id: string, payload: UpdateSessionPayload, updatedBy: string): Promise<CourseSession> {
+  static async update(
+    id: string, payload: UpdateSessionPayload, updatedBy: string,
+  ): Promise<CourseSession & { studentsNotified: number }> {
     const existing = await SessionService.findById(id);
     if (!existing) throw new Error("Session not found");
     const updateData: Record<string, unknown> = { updatedAt: new Date() };
@@ -161,10 +193,20 @@ export class SessionService {
       .returning();
 
     log.info("Session updated", { sessionId: id, by: updatedBy });
+    let studentsNotified = 0;
     if (payload.status === "cancelled" && existing.status !== "cancelled") {
       await SessionService.notifySessionCancellation(updated);
+    } else if (updated.status === "scheduled" && updated.endDatetime > new Date()) {
+      const changes = SessionService.studentFacingChanges(existing, updated);
+      if (changes.length) {
+        // Never let an email problem fail the save itself
+        studentsNotified = await SessionService.notifySessionUpdate(updated, changes).catch((error) => {
+          log.error("Session update email failed", { sessionId: id, error });
+          return 0;
+        });
+      }
     }
-    return updated;
+    return { ...updated, studentsNotified };
   }
 
   /** Delete a session — only if no enrollments are linked. */
@@ -306,6 +348,59 @@ export class SessionService {
     }
 
     return entry;
+  }
+
+  /** What changed that booked students need to know about (title/description/seats don't count). */
+  private static studentFacingChanges(before: CourseSession, after: CourseSession): string[] {
+    const changed = (keys: (keyof CourseSession)[]) =>
+      keys.some((k) => String(before[k] instanceof Date ? (before[k] as Date).getTime() : before[k] ?? "")
+                    !== String(after[k]  instanceof Date ? (after[k]  as Date).getTime() : after[k]  ?? ""));
+    return [
+      changed(["startDatetime", "endDatetime"])                                  && "Date and time",
+      changed(["venueAddress", "venueCity", "venuePostcode", "venueMapUrl"])       && "Venue",
+      changed(["conferencePlatform"])                                             && "Platform",
+      changed(["conferenceUrl"])                                                  && "Join link",
+      changed(["conferencePassword"])                                             && "Meeting password",
+    ].filter((c): c is string => !!c);
+  }
+
+  /** Email everyone booked on the session about a change. Returns how many were emailed. */
+  private static async notifySessionUpdate(session: CourseSession, changes: string[]): Promise<number> {
+    const recipients = await db
+      .select({ email: users.email, studentName: users.name, courseTitle: courses.title })
+      .from(enrollments)
+      .innerJoin(users, eq(enrollments.studentId, users.id))
+      .innerJoin(courses, eq(enrollments.courseId, courses.id))
+      .where(eq(enrollments.sessionId, session.id));
+    if (!recipients.length) return 0;
+
+    const tz   = "Europe/London";
+    const day  = new Intl.DateTimeFormat("en-GB", { dateStyle: "full", timeZone: tz }).format(session.startDatetime);
+    const time = (d: Date) => new Intl.DateTimeFormat("en-GB", { timeStyle: "short", timeZone: tz }).format(d);
+    const sameDay = session.startDatetime.toDateString() === session.endDatetime.toDateString();
+    const dateTime = sameDay
+      ? `${day}, ${time(session.startDatetime)} – ${time(session.endDatetime)}`
+      : `${day}, ${time(session.startDatetime)} – ${new Intl.DateTimeFormat("en-GB", { dateStyle: "full", timeStyle: "short", timeZone: tz }).format(session.endDatetime)}`;
+    const venue = [session.venueAddress, [session.venueCity, session.venuePostcode].filter(Boolean).join(", ")]
+      .filter(Boolean).join(", ") || undefined;
+    const PLATFORMS: Record<string, string> = {
+      zoom: "Zoom", teams: "Microsoft Teams", google_meet: "Google Meet", webex: "Cisco Webex", other: "Video call",
+    };
+
+    await Promise.all(recipients.map((r) => EmailService.sessionUpdated(r.email, {
+      studentName:        r.studentName ?? "there",
+      courseTitle:        r.courseTitle,
+      sessionTitle:       session.title,
+      changes,
+      dateTime,
+      venue,
+      venueMapUrl:        session.venueMapUrl ?? undefined,
+      conferencePlatform: session.conferencePlatform ? PLATFORMS[session.conferencePlatform] ?? session.conferencePlatform : undefined,
+      conferenceUrl:      session.conferenceUrl ?? undefined,
+      conferencePassword: session.conferencePassword ?? undefined,
+    })));
+    log.info("Session update emailed", { sessionId: session.id, recipients: recipients.length, changes });
+    return recipients.length;
   }
 
   private static async notifySessionCancellation(session: CourseSession): Promise<void> {

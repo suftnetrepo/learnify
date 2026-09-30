@@ -47,7 +47,8 @@ export default async function CourseDetailPage({ params }: Props) {
   const { course, sectionsWithLectures, tutors, reviews } = result;
   const upcomingSessions = await SessionService.getUpcomingForCourse(course.id);
   const requiresSession = await SessionService.requiresSession(course.id, course.format);
-  const sessionOptions = upcomingSessions.map((item) => ({
+  // Pre-purchase session picker: never send join links/passwords to the browser
+  const sessionOptions = upcomingSessions.map(SessionService.withoutJoinDetails).map((item) => ({
     ...item,
     startDatetime: item.startDatetime.toISOString(),
     endDatetime: item.endDatetime.toISOString(),

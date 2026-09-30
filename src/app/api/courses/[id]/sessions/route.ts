@@ -30,8 +30,11 @@ export async function GET(
     if (!session?.user) return unauthorized();
 
     const { id: courseId } = await params;
-    const sessions = await SessionService.getForCourse(courseId);
-    return successResponse(sessions);
+    const [sessions, canSeeJoin] = await Promise.all([
+      SessionService.getForCourse(courseId),
+      SessionService.canSeeJoinDetails(session.user.id, session.user.role, courseId),
+    ]);
+    return successResponse(canSeeJoin ? sessions : sessions.map(SessionService.withoutJoinDetails));
   } catch (error) {
     return serverError();
   }
