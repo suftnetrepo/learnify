@@ -100,7 +100,6 @@ async function main() {
           price: "299.00", format: "online", status: "published",
           categoryId: dataScienceCat?.id, createdBy: admin.id,
           level: "beginner", totalLectures: 64, totalDuration: 79200,
-          enrollmentCount: 1247, averageRating: "4.8", reviewCount: 312,
           thumbnailUrl: "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=800&q=80",
           whatYouLearn: JSON.stringify([
             "Understand the core concepts of supervised and unsupervised machine learning",
@@ -122,7 +121,6 @@ async function main() {
           price: "249.00", format: "online", status: "published",
           categoryId: webDevCat?.id, createdBy: admin.id,
           level: "intermediate", totalLectures: 58, totalDuration: 68400,
-          enrollmentCount: 843, averageRating: "4.9", reviewCount: 198,
           thumbnailUrl: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80",
           whatYouLearn: JSON.stringify([
             "Build iOS apps using SwiftUI's declarative syntax",
@@ -144,7 +142,6 @@ async function main() {
           price: "349.00", format: "online", status: "published",
           categoryId: dataScienceCat?.id, createdBy: admin.id,
           level: "beginner", totalLectures: 96, totalDuration: 115200,
-          enrollmentCount: 2156, averageRating: "4.7", reviewCount: 541,
           thumbnailUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80",
           whatYouLearn: JSON.stringify([
             "Clean and transform messy real-world datasets using Pandas",
@@ -166,7 +163,6 @@ async function main() {
           price: "149.00", format: "online", status: "published",
           categoryId: dataScienceCat?.id, createdBy: admin.id,
           level: "beginner", totalLectures: 34, totalDuration: 28800,
-          enrollmentCount: 3892, averageRating: "4.9", reviewCount: 876,
           thumbnailUrl: "https://images.unsplash.com/photo-1655720828018-edd2daec9349?w=800&q=80",
           whatYouLearn: JSON.stringify([
             "Write prompts that produce consistently high-quality outputs",
@@ -188,7 +184,6 @@ async function main() {
           price: "229.00", format: "online", status: "published",
           categoryId: webDevCat?.id, createdBy: admin.id,
           level: "intermediate", totalLectures: 61, totalDuration: 72000,
-          enrollmentCount: 671, averageRating: "4.8", reviewCount: 143,
           thumbnailUrl: "https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?w=800&q=80",
           whatYouLearn: JSON.stringify([
             "Build Android UIs declaratively using Jetpack Compose",

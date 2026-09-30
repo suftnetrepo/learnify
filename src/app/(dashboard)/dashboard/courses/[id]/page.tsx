@@ -27,7 +27,7 @@ export default async function CoursePage({ params, searchParams }: Props) {
   const data = await EnrollmentService.getCourseViewerData(session.user.id, courseId);
   if (!data) redirect(`/checkout/${courseId}`);
 
-  const { enrollment, course, sectionsWithLectures, progressMap, hasReviewed, totalLectures } = data;
+  const { enrollment, course, sectionsWithLectures, progressMap, myReview, totalLectures } = data;
 
   const allLectures    = sectionsWithLectures.flatMap((s) => s.lectures);
   const activeLecture  = lectureParam
@@ -46,13 +46,7 @@ export default async function CoursePage({ params, searchParams }: Props) {
         progressMap={progressMap}
         totalLectures={totalLectures}
       />
-      {!hasReviewed && enrollment.completedAt && (
-        <ReviewForm
-          courseId={courseId}
-          existingReview={undefined}
-          progress={Number(enrollment.progress)}
-        />
-      )}
+      <ReviewForm courseId={courseId} progress={Number(enrollment.progress)} myReview={myReview} />
     </>
   );
 }

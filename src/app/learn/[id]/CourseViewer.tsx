@@ -8,7 +8,9 @@ import {
   Video, Clock, FileText, Code2, AlignLeft, StickyNote,
   LayoutDashboard, BookOpen, Award, Calendar, Settings, LogOut,
   Archive, ExternalLink,
+  Star,
 } from "lucide-react";
+import { ReviewForm, type OwnReview } from "@/app/(dashboard)/dashboard/courses/[id]/ReviewForm";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
 import { cn, formatDuration } from "@/lib/utils";
 import { initials } from "@/lib/avatar";
@@ -63,6 +65,7 @@ interface Props {
     certificateUrl: string | null;
   };
   sections:        Section[];
+  myReview:        OwnReview | null;
   activeLecture:   Lecture | null;
   activeProgress:  ProgressRow | null;
   progressMap:     Record<string, ProgressRow>;
@@ -71,7 +74,7 @@ interface Props {
   studentName?:    string | null;
 }
 
-type TabKey = "overview" | "transcript" | "notes" | "resources";
+type TabKey = "overview" | "transcript" | "notes" | "resources" | "review";
 
 const NAV_ITEMS = [
   { label: "Dashboard",    href: "/dashboard",              icon: <LayoutDashboard size={18} /> },
@@ -86,6 +89,7 @@ const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "transcript", label: "Transcript", icon: <AlignLeft  size={14} /> },
   { key: "notes",      label: "Notes",      icon: <StickyNote size={14} /> },
   { key: "resources",  label: "Resources",  icon: <Download   size={14} /> },
+  { key: "review",     label: "Review",     icon: <Star       size={14} /> },
 ];
 
 const RESOURCE_TYPE_ICONS: Record<LectureResourceType, React.ReactNode> = {
@@ -117,7 +121,7 @@ function formatClockTime(t: string) {
 export function CourseViewer({
   course, enrollment, sections,
   activeLecture: initialLecture, activeProgress,
-  progressMap: initialProgressMap, totalLectures, studentName,
+  progressMap: initialProgressMap, totalLectures, studentName, myReview,
 }: Props) {
   const router   = useRouter();
   const pathname = usePathname();
@@ -502,6 +506,10 @@ export function CourseViewer({
                         className="h-full min-h-[240px] w-full resize-none border-none bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
                       />
                     ))}
+
+                    {activeTab === "review" && (
+                      <ReviewForm courseId={course.id} progress={overallProgress} myReview={myReview} />
+                    )}
 
                     {activeTab === "resources" && (
                       loadingResources ? (

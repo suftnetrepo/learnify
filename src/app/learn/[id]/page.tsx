@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { CourseViewer } from "./CourseViewer";
-import { ReviewForm } from "@/app/(dashboard)/dashboard/courses/[id]/ReviewForm";
 import { EnrollmentService } from "@/services/enrollment.service";
 import { CourseService } from "@/services/course.service";
 import { courseHasAiTutor, loadStudyMindCourseData } from "@/lib/studymind";
@@ -34,7 +33,7 @@ export default async function LearnPage({ params, searchParams }: Props) {
   const data = await EnrollmentService.getCourseViewerData(session.user.id, courseId);
   if (!data) redirect(`/checkout/${courseId}`);
 
-  const { enrollment, course, sectionsWithLectures, progressMap, hasReviewed, totalLectures } = data;
+  const { enrollment, course, sectionsWithLectures, progressMap, myReview, totalLectures } = data;
   const [studyMindCourse, liveSession] = await Promise.all([
     // AI tutor is optional — the course player works without StudyMind configured —
     // and a paid-course feature: free courses (price 0) don't get it
@@ -61,6 +60,7 @@ export default async function LearnPage({ params, searchParams }: Props) {
         progressMap={progressMap}
         totalLectures={totalLectures}
         studentName={session.user.name}
+        myReview={myReview}
       />
       {studyMindCourse && (
         <StudentStudyMindDrawer
@@ -87,9 +87,6 @@ export default async function LearnPage({ params, searchParams }: Props) {
         // Stacked just above the AI Tutor button (same offset)
         buttonPositionClassName={`${studyMindCourse ? "bottom-20" : "bottom-6"} ${FLOATING_RIGHT}`}
       />
-      {!hasReviewed && enrollment.completedAt && (
-        <ReviewForm courseId={courseId} existingReview={undefined} progress={Number(enrollment.progress)} />
-      )}
     </>
   );
 }

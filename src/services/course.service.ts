@@ -435,7 +435,7 @@ export class CourseService {
       .from(courseReviews)
       .leftJoin(users, eq(courseReviews.studentId, users.id))
       .where(and(eq(courseReviews.courseId, course.id), eq(courseReviews.isPublished, true)))
-      .orderBy(courseReviews.createdAt)
+      .orderBy(desc(courseReviews.createdAt))   // newest first — ascending froze the list on the oldest 8
       .limit(8);
 
     const sectionsWithLectures = sections.map((s) => ({

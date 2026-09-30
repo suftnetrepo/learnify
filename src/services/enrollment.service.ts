@@ -327,11 +327,8 @@ export class EnrollmentService {
       progressRows.map((p) => [p.lectureId, { watchedSeconds: p.watchedSeconds, isCompleted: p.isCompleted }])
     );
 
-    const [hasReviewed] = await db
-      .select({ id: courseReviews.id })
-      .from(courseReviews)
-      .where(and(eq(courseReviews.courseId, courseId), eq(courseReviews.studentId, studentId)))
-      .limit(1);
+    const { ReviewService } = await import("@/services/review.service");
+    const myReview = await ReviewService.getOwn(studentId, courseId);
 
     const sectionsWithLectures = sections.map((s) => ({
       ...s,
@@ -343,7 +340,8 @@ export class EnrollmentService {
       course,
       sectionsWithLectures,
       progressMap,
-      hasReviewed:   !!hasReviewed,
+      hasReviewed:   !!myReview,
+      myReview,
       totalLectures: allLectures.length,
     };
   }

@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { AnalyticsService, PaymentService, UserService } from "@/services";
+import { AnalyticsService, PaymentService, ReviewService, UserService } from "@/services";
 import { StatCard } from "@/components/ui/Card";
 import { Topbar } from "@/components/layout/Topbar";
-import { BookOpen, Users, CreditCard, GraduationCap, ClipboardCheck } from "lucide-react";
+import { BookOpen, Users, CreditCard, GraduationCap, ClipboardCheck, MessageSquareText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils";
 import { RecentPurchasesTable } from "./RecentPurchasesTable";
@@ -12,10 +12,11 @@ import { RecentUsersTable } from "./RecentUsersTable";
 export const metadata: Metadata = { title: "Admin Dashboard" };
 
 export default async function AdminDashboardPage() {
-  const [stats, recentPurchases, recentUsers] = await Promise.all([
+  const [stats, recentPurchases, recentUsers, reviewCounts] = await Promise.all([
     AnalyticsService.getAdminDashboardStats(),
     PaymentService.getRecentPurchases(5),
     UserService.list({ limit: 5 }),
+    ReviewService.counts(),
   ]);
 
   return (
@@ -27,7 +28,7 @@ export default async function AdminDashboardPage() {
           <p className="mt-1 text-sm text-gray-500">Everything happening on Edquis, at a glance.</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard label="Total Revenue"     value={formatCurrency(stats.totalRevenue)}       delta={`${formatCurrency(stats.monthRevenue)} this month`} deltaType="up"     icon={<CreditCard size={20} />} />
           <StatCard label="Total Students"    value={stats.totalUsers.toLocaleString()}         icon={<Users      size={20} />} />
           <StatCard label="Total Enrollments" value={stats.totalEnrollments.toLocaleString()}   icon={<GraduationCap size={20} />} />
@@ -56,6 +57,25 @@ export default async function AdminDashboardPage() {
                   ? "border-2 border-amber-200 bg-amber-50 group-hover:border-amber-300"
                   : "group-hover:border-brand-200"
               )}
+            />
+          </Link>
+
+          {/* Student reviews — moderation lives on /admin/reviews */}
+          <Link
+            href="/admin/reviews"
+            aria-label={`Student reviews: ${reviewCounts.all} total`}
+            className="group block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          >
+            <StatCard
+              label="Student Reviews"
+              value={reviewCounts.all}
+              delta={[
+                reviewCounts.hidden   ? `${reviewCounts.hidden} hidden` : null,
+                reviewCounts.lowRated ? `${reviewCounts.lowRated} low-rated` : null,
+              ].filter(Boolean).join(" · ") + (reviewCounts.hidden || reviewCounts.lowRated ? " →" : "Moderate reviews →")}
+              deltaType="neutral"
+              icon={<MessageSquareText size={20} />}
+              className="h-full transition-all group-hover:-translate-y-0.5 group-hover:border-brand-200 group-hover:shadow-md"
             />
           </Link>
         </div>
