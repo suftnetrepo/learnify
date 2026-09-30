@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     const { SessionService } = await import("@/services/session.service");
     const upcomingSessions = await SessionService.getUpcomingForCourse(courseId);
-    const requiresSession = upcomingSessions.length > 0 || course.format === "in_person" || course.format === "hybrid";
+    const requiresSession = await SessionService.requiresSession(courseId, course.format);
     if (requiresSession && !sessionId) {
       return validationError({ sessionId: [
         upcomingSessions.length

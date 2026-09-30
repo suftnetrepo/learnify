@@ -50,6 +50,22 @@ export class SessionService {
   }
 
   /** Upcoming scheduled sessions only — for the catalogue / checkout. */
+  /**
+   * Whether enrolling must be tied to a session. In-person/hybrid always are;
+   * an online course is too once it has ever been scheduled — otherwise, when its
+   * last session passes, it would silently become buyable with nothing to attend.
+   * Online courses that have never had sessions are self-paced.
+   */
+  static async requiresSession(courseId: string, format: string): Promise<boolean> {
+    if (format === "in_person" || format === "hybrid") return true;
+    const [row] = await db
+      .select({ id: courseSessions.id })
+      .from(courseSessions)
+      .where(eq(courseSessions.courseId, courseId))
+      .limit(1);
+    return !!row;
+  }
+
   static async getUpcomingForCourse(courseId: string): Promise<SessionWithStats[]> {
     const now  = new Date();
     const rows = await db

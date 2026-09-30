@@ -33,7 +33,7 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
   if (session.user.role === "admin") redirect("/admin");
-  if (session.user.role === "tutor") redirect("/instructor/courses");
+  if (session.user.role === "tutor") redirect("/instructor");
 
   const userId = session.user.id;
 

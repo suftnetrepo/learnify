@@ -38,7 +38,7 @@ export default async function CheckoutPage({ params }: Props) {
   ]);
 
   const assignment     = assignments[0] ?? null;
-  const isSessionCourse = upcomingSessions.length > 0 || course.format === "in_person" || course.format === "hybrid";
+  const isSessionCourse = await SessionService.requiresSession(courseId, course.format);
   const sessionOptions = upcomingSessions.map((item) => ({
     ...item,
     startDatetime: item.startDatetime.toISOString(),

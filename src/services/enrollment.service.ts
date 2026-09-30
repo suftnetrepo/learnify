@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { enrollments, lectureProgress, lectures, courses, courseSections } from "@/db/schema";
-import { eq, and, count, sql } from "drizzle-orm";
+import { enrollments, lectureProgress, lectures, courses, courseSections, courseSessions, users } from "@/db/schema";
+import { eq, and, count, sql, asc, inArray } from "drizzle-orm";
 import { categories } from "@/db/schema";
 import { log } from "@/lib/logger";
 import type { EnrolledCourse, Enrollment } from "@/types";
@@ -348,4 +348,98 @@ export class EnrollmentService {
     };
   }
 
+  /**
+   * Per-student lesson completion for a course, for the tutor/admin Progress tab.
+   * Percentages are computed from lecture_progress over *published* lectures
+   * (same basis as the student's own progress bar), not from enrollments.progress,
+   * which only refreshes when a lesson is completed and goes stale as lectures are added.
+   */
+  static async getCourseProgressReport(courseId: string) {
+    const sections = await db
+      .select({ id: courseSections.id, title: courseSections.title })
+      .from(courseSections)
+      .where(eq(courseSections.courseId, courseId))
+      .orderBy(asc(courseSections.sortOrder), asc(courseSections.createdAt));
+
+    const sectionIds = sections.map((s) => s.id);
+    const lectureRows = sectionIds.length
+      ? await db
+          .select({ id: lectures.id, sectionId: lectures.sectionId, title: lectures.title })
+          .from(lectures)
+          .where(and(inArray(lectures.sectionId, sectionIds), eq(lectures.isPublished, true)))
+          .orderBy(asc(lectures.sortOrder), asc(lectures.createdAt))
+      : [];
+
+    const students = await db
+      .select({
+        studentId:    enrollments.studentId,
+        name:         users.name,
+        email:        users.email,
+        enrolledAt:   enrollments.enrolledAt,
+        completedAt:  enrollments.completedAt,
+        sessionTitle: courseSessions.title,
+      })
+      .from(enrollments)
+      .innerJoin(users, eq(users.id, enrollments.studentId))
+      .leftJoin(courseSessions, eq(courseSessions.id, enrollments.sessionId))
+      .where(eq(enrollments.courseId, courseId))
+      .orderBy(asc(users.name));
+
+    const lectureIds = lectureRows.map((l) => l.id);
+    const progressRows = lectureIds.length && students.length
+      ? await db
+          .select({
+            userId:      lectureProgress.userId,
+            lectureId:   lectureProgress.lectureId,
+            isCompleted: lectureProgress.isCompleted,
+            completedAt: lectureProgress.completedAt,
+            updatedAt:   lectureProgress.updatedAt,
+          })
+          .from(lectureProgress)
+          .where(and(
+            inArray(lectureProgress.lectureId, lectureIds),
+            inArray(lectureProgress.userId, students.map((s) => s.studentId)),
+          ))
+      : [];
+
+    const completedAtByUser = new Map<string, Map<string, Date | null>>();
+    const lastActivityByUser = new Map<string, Date>();
+    for (const p of progressRows) {
+      if (p.isCompleted) {
+        if (!completedAtByUser.has(p.userId)) completedAtByUser.set(p.userId, new Map());
+        completedAtByUser.get(p.userId)!.set(p.lectureId, p.completedAt);
+      }
+      const prev = lastActivityByUser.get(p.userId);
+      if (!prev || p.updatedAt > prev) lastActivityByUser.set(p.userId, p.updatedAt);
+    }
+
+    const modules = sections
+      .map((s) => ({ ...s, lectures: lectureRows.filter((l) => l.sectionId === s.id).map(({ id, title }) => ({ id, title })) }))
+      .filter((m) => m.lectures.length > 0);
+
+    return {
+      totalLectures: lectureRows.length,
+      modules,
+      students: students.map((s) => {
+        const done = completedAtByUser.get(s.studentId) ?? new Map<string, Date | null>();
+        return {
+          ...s,
+          completedLectures: done.size,
+          percent:           lectureRows.length ? Math.round((done.size / lectureRows.length) * 100) : 0,
+          lastActivityAt:    lastActivityByUser.get(s.studentId) ?? null,
+          modules: modules.map((m) => ({
+            id:        m.id,
+            completed: m.lectures.filter((l) => done.has(l.id)).length,
+            total:     m.lectures.length,
+          })),
+          // lectureId → completion time, for the per-lesson ticks
+          completedLectureIds: Object.fromEntries(
+            [...done].map(([id, at]) => [id, at ? at.toISOString() : null])
+          ) as Record<string, string | null>,
+        };
+      }),
+    };
+  }
 }
+
+export type CourseProgressReport = Awaited<ReturnType<typeof EnrollmentService.getCourseProgressReport>>;

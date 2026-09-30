@@ -28,12 +28,15 @@ export function CheckoutButton({ courseId, sessions = [], requiresSession = fals
   );
 
   const hasSessions    = sessions.length > 0;
+  // A session course with nothing upcoming can't be bought — never send it to Stripe
+  const unavailable    = requiresSession && !hasSessions;
   const needsSelection = requiresSession && !selectedSessionId;
   const selectedFull   = selectedSessionId
     ? sessions.find((s) => s.id === selectedSessionId)?.isFull
     : false;
 
   function handleCheckout() {
+    if (unavailable || needsSelection || selectedFull) return;
     startCheckout(courseId, selectedSessionId ?? undefined);
   }
 
@@ -57,19 +60,21 @@ export function CheckoutButton({ courseId, sessions = [], requiresSession = fals
         size="lg"
         onClick={handleCheckout}
         loading={loading}
-        disabled={needsSelection || !!selectedFull}
+        disabled={unavailable || needsSelection || !!selectedFull}
         leftIcon={<Lock size={15} />}
       >
         {loading          ? "Preparing checkout…" :
-         !hasSessions     ? "No sessions available" :
+         unavailable      ? "No sessions available" :
          needsSelection   ? "Select a session to continue" :
          "Enrol now"}
       </Button>
 
       {error && <p className="text-xs text-red-500 text-center">{error}</p>}
-      <p className="text-xs text-gray-400 text-center">
-        You&apos;ll be taken to Stripe&apos;s secure checkout page.
-      </p>
+      {!unavailable && (
+        <p className="text-xs text-gray-400 text-center">
+          You&apos;ll be taken to Stripe&apos;s secure checkout page.
+        </p>
+      )}
     </div>
   );
 }

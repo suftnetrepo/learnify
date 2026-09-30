@@ -16,7 +16,7 @@ export function Navbar({ session }: NavbarProps) {
   const [dropOpen, setDropOpen] = useState(false);
 
   const role     = session?.user?.role;
-  const dashHref = role === "tutor" ? "/instructor/courses" : role === "admin" ? "/admin" : "/dashboard";
+  const dashHref = role === "tutor" ? "/instructor" : role === "admin" ? "/admin" : "/dashboard";
   const initial  = session?.user?.name?.[0]?.toUpperCase() ?? session?.user?.email?.[0]?.toUpperCase() ?? "U";
 
   return (

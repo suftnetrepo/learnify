@@ -12,7 +12,8 @@ import { cn } from "@/lib/utils";
 import { loadStudyMindCourseData } from "@/lib/studymind";
 import { StudyMindDrawer } from "@/components/studymind/StudyMindDrawer";
 import { UnifiedMessagingDrawer } from "@/components/messaging/UnifiedMessagingDrawer";
-import { CourseMessagingService } from "@/services";
+import { CourseMessagingService, EnrollmentService } from "@/services";
+import { CourseProgressPanel } from "@/components/progress/CourseProgressPanel";
 import Link from "next/link";
 
 interface Props {
@@ -34,7 +35,7 @@ export default async function InstructorCourseEditPage({ params }: Props) {
   );
   if (!allowed) redirect("/instructor/courses");
 
-  const [course, sectionsWithLectures, assignment, categories, liveSession] = await Promise.all([
+  const [course, sectionsWithLectures, assignment, categories, liveSession, progressReport] = await Promise.all([
     CourseService.findById(courseId),
     CourseService.getSectionsWithLectures(courseId),
     session.user.role === "tutor"
@@ -42,6 +43,7 @@ export default async function InstructorCourseEditPage({ params }: Props) {
       : Promise.resolve(null),
     CourseService.getCategories(),
     CourseMessagingService.activeSession(courseId),
+    EnrollmentService.getCourseProgressReport(courseId),
   ]);
   if (!course) notFound();
 
@@ -178,6 +180,7 @@ export default async function InstructorCourseEditPage({ params }: Props) {
         }
         tutors={null}
         sessions={null}
+        progress={<CourseProgressPanel report={progressReport} />}
       />
 
       {studyMindCourse && (

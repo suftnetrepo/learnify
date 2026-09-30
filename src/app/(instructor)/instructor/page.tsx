@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { TutorService } from "@/services/tutor.service";
 import { SessionService } from "@/services/session.service";
 import { AnalyticsService } from "@/services/analytics.service";
+import { EnrollmentService } from "@/services/enrollment.service";
 import { formatCurrency } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,7 +51,12 @@ export default async function InstructorDashboardPage() {
     allSessions.map((s) => new Date(s.startDatetime).toDateString())
   );
 
-  const avgCompletion = 0; // placeholder until lecture progress is summed per instructor
+  // Mean lesson completion over every student enrolled in the tutor's courses
+  const reports = await Promise.all(assigned.map((a) => EnrollmentService.getCourseProgressReport(a.courseId)));
+  const percents = reports.flatMap((r) => r.students.map((s) => s.percent));
+  const avgCompletion = percents.length
+    ? Math.round(percents.reduce((sum, p) => sum + p, 0) / percents.length)
+    : 0;
 
   const statCards = [
     { label: "Assigned courses",  value: assigned.length,          sub: "Active assignments" },

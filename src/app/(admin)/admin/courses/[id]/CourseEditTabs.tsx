@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { BookOpen, Users, Calendar, Settings } from "lucide-react";
+import { BookOpen, Users, Calendar, Settings, BarChart3 } from "lucide-react";
 
 const TABS = [
   { id: "overview",    label: "Overview",    icon: Settings  },
   { id: "curriculum",  label: "Curriculum",  icon: BookOpen  },
   { id: "tutors",      label: "Tutors",      icon: Users     },
   { id: "sessions",    label: "Sessions",    icon: Calendar  },
+  { id: "progress",    label: "Progress",    icon: BarChart3 },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
@@ -18,19 +19,21 @@ interface Props {
   curriculum:  React.ReactNode;
   tutors:      React.ReactNode | null;
   sessions:    React.ReactNode | null;
+  progress?:   React.ReactNode | null; // student lesson completion; tab hidden when absent
   defaultTab?: TabId;
   role?:       "admin" | "tutor"; // default "admin"
 }
 
-export function CourseEditTabs({ overview, curriculum, tutors, sessions, defaultTab = "overview", role = "admin" }: Props) {
+export function CourseEditTabs({ overview, curriculum, tutors, sessions, progress, defaultTab = "overview", role = "admin" }: Props) {
   const [active, setActive] = useState<TabId>(defaultTab);
 
   const visibleTabs = TABS.filter((t) => {
     if (role === "tutor" && (t.id === "tutors" || t.id === "sessions")) return false;
+    if (t.id === "progress" && !progress) return false;
     return true;
   });
 
-  const panels = { overview, curriculum, tutors, sessions };
+  const panels = { overview, curriculum, tutors, sessions, progress };
 
   // This page lives inside DashboardShell, which already owns the page's one
   // scroll container (`<main><div className="overflow-y-auto">`). Making the
@@ -58,8 +61,9 @@ export function CourseEditTabs({ overview, curriculum, tutors, sessions, default
         ))}
       </div>
 
-      {/* Panel */}
-      <div className="p-6">
+      {/* Panel — pb-24 lets the form's bottom actions (Save Changes) scroll clear
+          of the floating Messages button both course pages pin at bottom-6 right-6 */}
+      <div className="p-6 pb-24">
         {panels[active]}
       </div>
     </div>

@@ -9,6 +9,8 @@ import { CourseStatusBadge } from "@/components/ui/Badge";
 import { SessionsManager } from "@/components/sessions/SessionsManager";
 import { SectionsManager } from "./sections/SectionsManager";
 import { CourseEditTabs } from "./CourseEditTabs";
+import { CourseProgressPanel } from "@/components/progress/CourseProgressPanel";
+import { EnrollmentService } from "@/services/enrollment.service";
 import { StudyMindDrawer } from "@/components/studymind/StudyMindDrawer";
 import { loadStudyMindCourseData } from "@/lib/studymind";
 import { UnifiedMessagingDrawer } from "@/components/messaging/UnifiedMessagingDrawer";
@@ -23,10 +25,11 @@ export default async function EditCoursePage({ params }: Props) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const [result, sectionsWithLectures, liveSession] = await Promise.all([
+  const [result, sectionsWithLectures, liveSession, progressReport] = await Promise.all([
     CourseService.getAdminCourseEditData(id),
     CourseService.getSectionsWithLectures(id),
     CourseMessagingService.activeSession(id),
+    EnrollmentService.getCourseProgressReport(id),
   ]);
   if (!result) notFound();
   const { course, categories: allCategories, sessions } = result;
@@ -94,6 +97,7 @@ export default async function EditCoursePage({ params }: Props) {
             sessions={sessions}
           />
         }
+        progress={<CourseProgressPanel report={progressReport} />}
       />
 
       {studyMindCourse && (
