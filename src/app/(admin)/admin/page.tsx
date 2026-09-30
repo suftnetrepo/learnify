@@ -3,7 +3,8 @@ import Link from "next/link";
 import { AnalyticsService, PaymentService, UserService } from "@/services";
 import { StatCard } from "@/components/ui/Card";
 import { Topbar } from "@/components/layout/Topbar";
-import { BookOpen, Users, CreditCard, GraduationCap } from "lucide-react";
+import { BookOpen, Users, CreditCard, GraduationCap, ClipboardCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils";
 import { RecentPurchasesTable } from "./RecentPurchasesTable";
 import { RecentUsersTable } from "./RecentUsersTable";
@@ -22,11 +23,11 @@ export default async function AdminDashboardPage() {
       <Topbar breadcrumbs={[{ label: "Admin" }, { label: "Dashboard" }]} />
       <div className="p-4 sm:p-6 space-y-8">
         <div>
-          <h1 className="heading-1 text-gray-900">Platform Overview</h1>
+          <h1 className="heading-1 text-gray-900">Overview</h1>
           <p className="mt-1 text-sm text-gray-500">Everything happening on Edquis, at a glance.</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <StatCard label="Total Revenue"     value={formatCurrency(stats.totalRevenue)}       delta={`${formatCurrency(stats.monthRevenue)} this month`} deltaType="up"     icon={<CreditCard size={20} />} />
           <StatCard label="Total Students"    value={stats.totalUsers.toLocaleString()}         icon={<Users      size={20} />} />
           <StatCard label="Total Enrollments" value={stats.totalEnrollments.toLocaleString()}   icon={<GraduationCap size={20} />} />
@@ -35,17 +36,28 @@ export default async function AdminDashboardPage() {
             deltaType={stats.pendingTutors > 0 ? "down" : "neutral"}
             icon={<BookOpen size={20} />} />
 
-          {stats.pendingReviewCourses > 0 && (
-            <Link href="/admin/courses/pending"
-              className="rounded-2xl border-2 border-amber-200 bg-amber-50 p-5 flex items-center justify-between hover:bg-amber-100 transition-colors">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">Needs attention</p>
-                <p className="font-display text-3xl font-extrabold text-amber-800">{stats.pendingReviewCourses}</p>
-                <p className="text-sm text-amber-600 mt-0.5">Course{stats.pendingReviewCourses > 1 ? "s" : ""} pending review</p>
-              </div>
-              <div className="h-3 w-3 rounded-full bg-amber-400 animate-pulse" />
-            </Link>
-          )}
+          {/* Course review — replaces the old sidebar "Review" link */}
+          <Link
+            href="/admin/courses/pending"
+            aria-label={`Course review: ${stats.pendingReviewCourses} pending`}
+            className="group block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          >
+            <StatCard
+              label="Course Review"
+              value={stats.pendingReviewCourses}
+              delta={stats.pendingReviewCourses > 0
+                ? `Course${stats.pendingReviewCourses > 1 ? "s" : ""} awaiting approval →`
+                : "All caught up →"}
+              deltaType="neutral"
+              icon={<ClipboardCheck size={20} />}
+              className={cn(
+                "h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md",
+                stats.pendingReviewCourses > 0
+                  ? "border-2 border-amber-200 bg-amber-50 group-hover:border-amber-300"
+                  : "group-hover:border-brand-200"
+              )}
+            />
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">

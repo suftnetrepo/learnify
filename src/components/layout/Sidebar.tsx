@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, BookOpen, Users, GraduationCap, Calendar,
   BarChart3, CreditCard, LogOut, X,
-  Award, Settings, Clock, CalendarDays, MessageCircle, ChevronRight,
+  Award, Settings, CalendarDays, MessageCircle, ChevronRight,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -34,7 +34,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Tutors",     href: "/admin/tutors",          icon: <GraduationCap   size={18} />, roles: ["admin"] },
   { label: "Analytics",  href: "/admin/analytics",       icon: <BarChart3       size={18} />, roles: ["admin"] },
   { label: "Payments",   href: "/admin/payments",        icon: <CreditCard      size={18} />, roles: ["admin"] },
-  { label: "Review", href: "/admin/courses/pending", icon: <Clock       size={18} />, roles: ["admin"] },
   { label: "Users",      href: "/admin/users",           icon: <Users           size={18} />, roles: ["admin"] },
   { label: "Messages",   href: "/admin/messages",        icon: <MessageCircle   size={18} />, roles: ["admin"], badge: "messages" },
   // Instructor
