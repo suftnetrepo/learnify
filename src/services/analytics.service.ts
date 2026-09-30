@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { purchases, enrollments, users, courses, courseReviews } from "@/db/schema";
-import { eq, gte, desc, count, sum, avg, and } from "drizzle-orm";
+import { eq, gte, lt, desc, count, countDistinct, sum, avg, and, isNull, sql } from "drizzle-orm";
 import type {
   PlatformStats, AdminDashboardStats, TopCourse,
   RecentTransaction, InstructorStats, InstructorTopCourse,
@@ -53,56 +53,65 @@ export class AnalyticsService {
    * Full analytics stats for the analytics page.
    */
   static async getPlatformStats(): Promise<PlatformStats> {
-    const now        = new Date();
-    const thirtyAgo  = new Date(now.getTime() - 30 * 86400000);
-    const sixtyAgo   = new Date(now.getTime() - 60 * 86400000);
+    const now       = new Date();
+    const thirtyAgo = new Date(now.getTime() - 30 * 86400000);
+    const sixtyAgo  = new Date(now.getTime() - 60 * 86400000);
+
+    // "Students" = active, non-deleted student accounts (suspended/deleted excluded)
+    const activeStudent = and(eq(users.role, "student"), eq(users.status, "active"), isNull(users.deletedAt));
+    const completed     = eq(purchases.status, "completed");
+    const published     = eq(courseReviews.isPublished, true);
 
     const [
       [totalRevenue],
-      [prevRevenue],
       [monthRevenue],
+      [prevMonthRevenue],
       [totalStudents],
       [newStudents],
+      [prevNewStudents],
+      [enrolledStudents],
       [totalEnrollments],
-      [avgRating],
+      [reviews],
       [publishedCount],
-      [totalReviews],
     ] = await Promise.all([
-      db.select({ v: sum(purchases.amount) }).from(purchases).where(eq(purchases.status, "completed")),
+      db.select({ v: sum(purchases.amount) }).from(purchases).where(completed),
+      db.select({ v: sum(purchases.amount) }).from(purchases).where(and(completed, gte(purchases.createdAt, thirtyAgo))),
       db.select({ v: sum(purchases.amount) }).from(purchases).where(
-        and(eq(purchases.status, "completed"), gte(purchases.createdAt, sixtyAgo))
+        and(completed, gte(purchases.createdAt, sixtyAgo), lt(purchases.createdAt, thirtyAgo))
       ),
-      db.select({ v: sum(purchases.amount) }).from(purchases).where(
-        and(eq(purchases.status, "completed"), gte(purchases.createdAt, thirtyAgo))
-      ),
-      db.select({ v: count() }).from(users).where(eq(users.role, "student")),
+      db.select({ v: count() }).from(users).where(activeStudent),
+      db.select({ v: count() }).from(users).where(and(activeStudent, gte(users.createdAt, thirtyAgo))),
       db.select({ v: count() }).from(users).where(
-        and(eq(users.role, "student"), gte(users.createdAt, thirtyAgo))
+        and(activeStudent, gte(users.createdAt, sixtyAgo), lt(users.createdAt, thirtyAgo))
       ),
+      db.select({ v: countDistinct(enrollments.studentId) })
+        .from(enrollments)
+        .innerJoin(users, eq(users.id, enrollments.studentId))
+        .where(activeStudent),
       db.select({ v: count() }).from(enrollments),
-      db.select({ v: avg(courseReviews.rating) }).from(courseReviews).where(eq(courseReviews.isPublished, true)),
+      // Rating and review count use the same set: published reviews only
+      db.select({ avg: avg(courseReviews.rating), n: count() }).from(courseReviews).where(published),
       db.select({ v: count() }).from(courses).where(eq(courses.status, "published")),
-      db.select({ v: count() }).from(courseReviews),
     ]);
 
-    const totalRev  = Number(totalRevenue.v ?? 0);
-    const monthRev  = Number(monthRevenue.v ?? 0);
-    const prevRev   = Number(prevRevenue.v  ?? 0);
-    const prevMonth = prevRev - monthRev;
-    const revenueChange = prevMonth > 0
-      ? Math.round(((monthRev - prevMonth) / prevMonth) * 100)
-      : 0;
+    const monthRev = Number(monthRevenue.v ?? 0);
+    const prevRev  = Number(prevMonthRevenue.v ?? 0);
 
     return {
-      totalRevenue:     totalRev,
+      totalRevenue:     Number(totalRevenue.v ?? 0),
       monthRevenue:     monthRev,
-      revenueChange,
+      prevMonthRevenue: prevRev,
+      revenueChange:    prevRev > 0 ? Math.round(((monthRev - prevRev) / prevRev) * 100) : null,
+      revenueTrend:     trend(monthRev, prevRev),
       totalStudents:    totalStudents.v,
       newStudents:      newStudents.v,
+      prevNewStudents:  prevNewStudents.v,
+      studentsTrend:    trend(newStudents.v, prevNewStudents.v),
+      enrolledStudents: enrolledStudents.v,
       totalEnrollments: totalEnrollments.v,
-      avgRating:        Number(avgRating.v ?? 0).toFixed(1),
+      avgRating:        Number(reviews.avg ?? 0).toFixed(1),
+      totalReviews:     reviews.n,
       publishedCourses: publishedCount.v,
-      totalReviews:     totalReviews.v,
     };
   }
 
@@ -126,7 +135,8 @@ export class AnalyticsService {
       )
       .where(eq(courses.status, "published"))
       .groupBy(courses.id)
-      .orderBy(desc(sum(purchases.amount)))
+      // Courses with no sales have a NULL sum, which Postgres sorts first in DESC — treat as 0
+      .orderBy(desc(sql`coalesce(${sum(purchases.amount)}, 0)`), desc(courses.enrollmentCount))
       .limit(limit) as Promise<TopCourse[]>;
   }
 
@@ -255,4 +265,9 @@ export class AnalyticsService {
       earnings: Number(r.earnings ?? 0),
     }));
   }
+}
+
+/** Direction of this period vs the previous one, for up/down/neutral indicators. */
+function trend(current: number, previous: number): "up" | "down" | "neutral" {
+  return current > previous ? "up" : current < previous ? "down" : "neutral";
 }

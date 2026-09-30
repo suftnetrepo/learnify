@@ -1,13 +1,20 @@
+export type Trend = "up" | "down" | "neutral";
+
 export interface PlatformStats {
   totalRevenue:     number;
-  monthRevenue:     number;
-  revenueChange:    number;
-  totalStudents:    number;
+  monthRevenue:     number;       // completed sales, last 30 days
+  prevMonthRevenue: number;       // completed sales, the 30 days before that
+  revenueChange:    number | null; // % vs previous 30 days; null when there's nothing to compare
+  revenueTrend:     Trend;
+  totalStudents:    number;       // active, non-deleted students
   newStudents:      number;
+  prevNewStudents:  number;
+  studentsTrend:    Trend;
+  enrolledStudents: number;       // active students with at least one enrollment
   totalEnrollments: number;
-  avgRating:        string;
+  avgRating:        string;       // published reviews only
   publishedCourses: number;
-  totalReviews:     number;
+  totalReviews:     number;       // published reviews only
 }
 
 export interface AdminDashboardStats {
