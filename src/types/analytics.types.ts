@@ -18,7 +18,7 @@ export interface PlatformStats {
 }
 
 export interface AdminDashboardStats {
-  totalUsers:       number;
+  totalStudents:    number;   // active, non-deleted students
   totalCourses:     number;
   publishedCourses: number;
   totalRevenue:     number;

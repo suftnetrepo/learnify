@@ -14,7 +14,7 @@ export class AnalyticsService {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
 
     const [
-      [totalUsers],
+      [totalStudents],
       [totalCourses],
       [publishedCourses],
       [totalRevenue],
@@ -23,7 +23,10 @@ export class AnalyticsService {
       [pendingTutors],
       [pendingReviewCourses],
     ] = await Promise.all([
-      db.select({ count: count() }).from(users),
+      // Students only — active, not deleted (same definition as the Analytics page)
+      db.select({ count: count() }).from(users).where(
+        and(eq(users.role, "student"), eq(users.status, "active"), isNull(users.deletedAt))
+      ),
       db.select({ count: count() }).from(courses),
       db.select({ count: count() }).from(courses).where(eq(courses.status, "published")),
       db.select({ total: sum(purchases.amount) }).from(purchases).where(eq(purchases.status, "completed")),
@@ -38,7 +41,7 @@ export class AnalyticsService {
     ]);
 
     return {
-      totalUsers:       totalUsers.count,
+      totalStudents:    totalStudents.count,
       totalCourses:     totalCourses.count,
       publishedCourses: publishedCourses.count,
       totalRevenue:     Number(totalRevenue.total  ?? 0),

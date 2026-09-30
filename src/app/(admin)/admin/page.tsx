@@ -30,7 +30,7 @@ export default async function AdminDashboardPage() {
 
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-6">
           <StatCard compact label="Total Revenue"     value={formatCurrency(stats.totalRevenue)}       delta={`${formatCurrency(stats.monthRevenue)} this month`} deltaType="up"     icon={<CreditCard size={20} />} />
-          <StatCard compact label="Total Students"    value={stats.totalUsers.toLocaleString()}         icon={<Users      size={20} />} />
+          <StatCard compact label="Total Students"    value={stats.totalStudents.toLocaleString()}         icon={<Users      size={20} />} />
           <StatCard compact label="Total Enrollments" value={stats.totalEnrollments.toLocaleString()}   icon={<GraduationCap size={20} />} />
           <StatCard compact label="Live Courses"      value={`${stats.publishedCourses} / ${stats.totalCourses}`}
             delta={stats.pendingTutors > 0 ? `${stats.pendingTutors} tutor${stats.pendingTutors > 1 ? "s" : ""} pending` : undefined}
