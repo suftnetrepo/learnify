@@ -28,11 +28,11 @@ export default async function AdminDashboardPage() {
           <p className="mt-1 text-sm text-gray-500">Everything happening on Edquis, at a glance.</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <StatCard label="Total Revenue"     value={formatCurrency(stats.totalRevenue)}       delta={`${formatCurrency(stats.monthRevenue)} this month`} deltaType="up"     icon={<CreditCard size={20} />} />
-          <StatCard label="Total Students"    value={stats.totalUsers.toLocaleString()}         icon={<Users      size={20} />} />
-          <StatCard label="Total Enrollments" value={stats.totalEnrollments.toLocaleString()}   icon={<GraduationCap size={20} />} />
-          <StatCard label="Live Courses"      value={`${stats.publishedCourses} / ${stats.totalCourses}`}
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-6">
+          <StatCard compact label="Total Revenue"     value={formatCurrency(stats.totalRevenue)}       delta={`${formatCurrency(stats.monthRevenue)} this month`} deltaType="up"     icon={<CreditCard size={20} />} />
+          <StatCard compact label="Total Students"    value={stats.totalUsers.toLocaleString()}         icon={<Users      size={20} />} />
+          <StatCard compact label="Total Enrollments" value={stats.totalEnrollments.toLocaleString()}   icon={<GraduationCap size={20} />} />
+          <StatCard compact label="Live Courses"      value={`${stats.publishedCourses} / ${stats.totalCourses}`}
             delta={stats.pendingTutors > 0 ? `${stats.pendingTutors} tutor${stats.pendingTutors > 1 ? "s" : ""} pending` : undefined}
             deltaType={stats.pendingTutors > 0 ? "down" : "neutral"}
             icon={<BookOpen size={20} />} />
@@ -44,6 +44,7 @@ export default async function AdminDashboardPage() {
             className="group block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             <StatCard
+              compact
               label="Course Review"
               value={stats.pendingReviewCourses}
               delta={stats.pendingReviewCourses > 0
@@ -67,6 +68,7 @@ export default async function AdminDashboardPage() {
             className="group block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             <StatCard
+              compact
               label="Student Reviews"
               value={reviewCounts.all}
               delta={[

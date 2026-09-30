@@ -36,9 +36,36 @@ interface StatCardProps {
   deltaType?: "up" | "down" | "neutral";
   icon?:      React.ReactNode;
   className?: string;
+  /** Narrow layout for dense rows: small icon beside the label, value and delta full width below. */
+  compact?:   boolean;
 }
 
-export function StatCard({ label, value, delta, deltaType = "neutral", icon, className }: StatCardProps) {
+export function StatCard({ label, value, delta, deltaType = "neutral", icon, className, compact }: StatCardProps) {
+  if (compact) {
+    return (
+      <Card padding="sm" className={cn("min-w-0 p-3.5 2xl:p-4", className)}>
+        <div className="flex items-center gap-2">
+          {icon && (
+            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 [&_svg]:h-[15px] [&_svg]:w-[15px]">
+              {icon}
+            </div>
+          )}
+          <p className="min-w-0 text-[11px] font-medium uppercase leading-tight tracking-wide text-gray-400">{label}</p>
+        </div>
+        <p className="mt-3 truncate font-display text-2xl font-bold text-gray-900" title={String(value)}>{value}</p>
+        {delta && (
+          <p className={cn("mt-1 text-xs font-medium leading-snug", {
+            "text-emerald-600": deltaType === "up",
+            "text-red-500":     deltaType === "down",
+            "text-gray-400":    deltaType === "neutral",
+          })}>
+            {deltaType === "up" && <TrendingUp size={11} className="inline mr-0.5" />}{deltaType === "down" && <TrendingDown size={11} className="inline mr-0.5" />}{delta}
+          </p>
+        )}
+      </Card>
+    );
+  }
+
   return (
     <Card className={cn("flex items-start justify-between", className)}>
       <div className="min-w-0">
