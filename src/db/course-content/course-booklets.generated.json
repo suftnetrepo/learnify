@@ -1,0 +1,768 @@
+[
+  {
+    "title": "Introduction to AI Agents",
+    "slug": "introduction-to-ai-agents",
+    "category": {
+      "name": "Artificial Intelligence",
+      "slug": "artificial-intelligence"
+    },
+    "shortDescription": "Understand how AI agents reason, use tools and act autonomously, and learn when agentic systems are the right solution for a real problem.",
+    "days": 5,
+    "requirements": [
+      "No previous AI or programming experience is required",
+      "A computer with internet access",
+      "Time to complete the guided exercises and final assessment"
+    ],
+    "sourceFilename": "AI AGENT COMPLETE COURSE BOOKLET.pdf",
+    "description": "What Are AI Agents?\nYou've probably heard about AI agents and how they're changing the game for knowledge work.\nThis course breaks down what agents actually are and how they're different from regular AI\nworkflows .\nAI agents are applications built on generative AI that can reason over and generate natural\nlanguage, automate tasks by using tools, and respond to contextual conditions to take\nappropriate action .\nThe Core Distinction\nSystem What It Does Autonomy\nChatbot/Assistant Responds to queries None - waits for input\nAutomation Script Follows fixed rules None - predetermined\nAI Agent Pursues goals, uses tools, adapts Some - plans and acts\nWhat You Will Learn\nBy the end of this 5-day course, you will be able to:\nUnderstand what AI agents are and how they differ from regular AI workflows\nIdentify the building blocks that make agents autonomous\nDistinguish between AI assistants, AI agents, and agentic AI\nUnderstand agent architecture and design patterns\nDetermine when to use AI agents (and when not to)\nImplement agents in your workplace\nPrerequisites\nNone. This course is designed for beginners with no coding background required .",
+    "whatYouLearn": [
+      "Understand what AI agents are and how they differ from regular AI workflows",
+      "Identify the building blocks that make agents autonomous",
+      "Distinguish between AI assistants, AI agents, and agentic AI",
+      "Understand agent architecture and design patterns",
+      "Determine when to use AI agents (and when not to)",
+      "Implement agents in your workplace"
+    ],
+    "modules": [
+      {
+        "title": "Start Here — Course Orientation & 5-Day Plan",
+        "description": "Understand the course outcomes, learning method and recommended 5-day journey.",
+        "lessons": [
+          {
+            "title": "Welcome, outcomes and how to use this course",
+            "durationMinutes": 30,
+            "isFree": true,
+            "content": "What Are AI Agents?\nYou've probably heard about AI agents and how they're changing the game for knowledge work.\nThis course breaks down what agents actually are and how they're different from regular AI\nworkflows .\nAI agents are applications built on generative AI that can reason over and generate natural\nlanguage, automate tasks by using tools, and respond to contextual conditions to take\nappropriate action .\nThe Core Distinction\nSystem What It Does Autonomy\nChatbot/Assistant Responds to queries None - waits for input\nAutomation Script Follows fixed rules None - predetermined\nAI Agent Pursues goals, uses tools, adapts Some - plans and acts\nWhat You Will Learn\nBy the end of this 5-day course, you will be able to:\nUnderstand what AI agents are and how they differ from regular AI workflows\nIdentify the building blocks that make agents autonomous\nDistinguish between AI assistants, AI agents, and agentic AI\nUnderstand agent architecture and design patterns\nDetermine when to use AI agents (and when not to)\nImplement agents in your workplace\nPrerequisites\nNone. This course is designed for beginners with no coding background required ."
+          }
+        ]
+      },
+      {
+        "title": "Day 1 — What Are AI Agents?",
+        "description": "Complete the Day 1 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 1 learning objectives",
+            "durationMinutes": 20,
+            "content": "Learning Objectives\nBy the end of Day 1, you will be able to:\nDefine AI agents and their core characteristics\nUnderstand the evolution from LLMs to agents\nIdentify the key differences between agents and chatbots"
+          },
+          {
+            "title": "The Three Levels of AI Systems",
+            "durationMinutes": 55,
+            "content": "To understand AI agents, we need to understand three basic levels of AI systems :\nLevel 1: Large Language Models (LLMs)\nA large language model is essentially a \"super language engine\" — given input, it outputs text. It's\npassive, has no memory, and doesn't take action .\nExamples: GPT, Claude, DeepSeek, Qwen\nLevel 2: AI Assistants\nAn AI assistant wraps a large model with an interactive interface and memory management. It can\nhandle multi-turn conversations, but it's still fundamentally \"human asks, AI answers\" — the\nboundary of execution stops at text response .\nExamples: ChatGPT, Siri, Alexa, Copilot\nLevel 3: AI Agents\nAn AI agent is an AI system that can autonomously perceive its environment, independently\nmake plans, call tools, execute actions, and dynamically adjust strategies based on feedback .\nSimple Analogy:\nLLM = The \"brain\"\nAI Assistant = The \"talking brain\"\nAI Agent = A \"digital employee who can act, collaborate, and learn\""
+          },
+          {
+            "title": "Core Characteristics of AI Agents",
+            "durationMinutes": 55,
+            "content": "AI agents have four core characteristics :\nCharacteristic Description\nAutonomous Goal\nDecomposition\nCan break down high-level instructions into executable sub-\ntask sequences\nTool Calling Ability Can call search engines, databases, APIs, code executors,\nand even other AI models\nClosed-Loop Action Forms a complete autonomous decision cycle: \"perceive →\nplan → act → feedback → revise\"\nPersistent Memory & State\nManagement\nCan maintain context across sessions, like a real \"working\"\nrole"
+          },
+          {
+            "title": "How AI Agents Differ from Chatbots",
+            "durationMinutes": 55,
+            "content": "Capability Chatbot AI Agent\nInput Handling Responds to specific\nqueries Interprets open-ended requests\nDecision\nMaking Prescripted paths AI-driven reasoning\nTool Use Limited or none Dynamic tool selection\nGoal Pursuit Answers individual queries Pursues goals through multi-step\nreasoning\nExample:\nA chatbot might answer \"What's my account balance?\" with information from a database\nAn AI agent could fetch your balance, proactively alert you if it detects unusual spending, and\neven transfer funds or schedule a meeting with your financial advisor"
+          },
+          {
+            "title": "Day 1 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 1.1: Identify the System Type\nInstructions: Classify each system as LLM, AI Assistant, or AI Agent.\nSystem Type\nAnswers \"What's the weather?\"\nBooks a flight and hotel based on a goal\nGenerates a poem about cats\nMonitors servers and fixes issues\nExercise 1.2: Agent Characteristics\nInstructions: Which characteristic is being demonstrated?\nScenario Characteristic\nAgent breaks a complex task into 5 steps\nAgent searches the web for information\nScenario Characteristic\nAgent remembers your preferences from last week\nAgent tries a solution, fails, and tries another"
+          },
+          {
+            "title": "Day 1 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. AI agents are goal-driven AI systems that can reason, use tools, and take actions\n2. The evolution: LLM → AI Assistant → AI Agent\n3. Core characteristics: Autonomous decomposition, Tool calling, Closed-loop action,\nPersistent memory\n4. Agents pursue goals; chatbots respond to queries\nQuiz Yourself\n1. What are the three levels of AI systems?\n2. What are the four core characteristics of AI agents?\n3. How does an AI agent differ from a chatbot?\n4. Give an example of agent behavior."
+          }
+        ]
+      },
+      {
+        "title": "Day 2 — How AI Agents Work - The Building",
+        "description": "Complete the Day 2 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 2 learning objectives",
+            "durationMinutes": 20,
+            "content": "Blocks\nLearning Objectives\nBy the end of Day 2, you will be able to:\nIdentify the three key components of an AI agent\nUnderstand how retrieval and tool integration work\nExplain the agent reasoning loop"
+          },
+          {
+            "title": "The Three Components of an AI Agent",
+            "durationMinutes": 55,
+            "content": "AI agents have three key elements :\nComponent 1: Large Language Model (The Brain)\nThe LLM is the agent's brain — it uses generative AI for language understanding and reasoning .\nComponent 2: Instructions (The Job Description)\nInstructions are a system prompt that defines the agent's role and behavior. Think of it as the\nagent's job description .\nComponent 3: Tools (The Hands)\nTools are what the agent uses to interact with the world :\nTool Type Purpose Examples\nKnowledge Tools Access information Search engines, databases\nAction Tools Perform tasks Sending emails, updating calendars"
+          },
+          {
+            "title": "The Agent Reasoning Loop",
+            "durationMinutes": 55,
+            "content": "Agents operate in a loop of reasoning and acting :\nReason → Act → Observe → Repeat\n1. Reason: Agent decides what to do next\n2. Act: Agent takes an action (like calling a tool)\n3. Observe: Agent observes the result\n4. Repeat: Agent decides whether to take another action or provide a final response\nThis loop continues until the agent's goal is accomplished or it reaches a stopping condition ."
+          },
+          {
+            "title": "Retrieval and Tool Integration",
+            "durationMinutes": 55,
+            "content": "Retrieval Systems\nRetrieval allows agents to access external knowledge sources, such as documents and databases,\nto generate more accurate and informative responses .\nTool Integration\nTool integration enables agents to perform actions in the world :\nCalling APIs\nQuerying databases\nExecuting code\nInteracting with other systems\nFrameworks That Enable Agents\nFramework Purpose\nReAct Couples reasoning and acting in a unified loop\nRAG Retrieval-Augmented Generation — grounds responses in factual data"
+          },
+          {
+            "title": "Programming Patterns for Agentic Systems",
+            "durationMinutes": 55,
+            "content": "Programming agentic systems often utilizes key patterns :\nPattern Description\nPrompt Chaining Linking prompts where each step's output feeds the next\nRouting Decision-making by LLMs\nParallelization Concurrent prompt execution\nEvaluation Self-assessment of outputs"
+          },
+          {
+            "title": "Day 2 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 2.1: Agent Components\nInstructions: Match each component to its function.\nComponent Function\nLLM\nInstructions\nTools\nFunctions:\nThe agent's job description\nThe agent's brain\nThe agent's hands\nExercise 2.2: The Reasoning Loop\nInstructions: Order the steps of the agent reasoning loop.\nStep Order\nObserve\nReason\nRepeat\nAct\nExercise 2.3: Tool Types\nInstructions: Classify each tool as Knowledge or Action.\nTool Type\nSearch engine\nEmail sender\nDatabase\nCalendar updater"
+          },
+          {
+            "title": "Day 2 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. AI agents have three components: LLM, Instructions, Tools\n2. The reasoning loop: Reason → Act → Observe → Repeat\n3. Retrieval accesses information; Tool Integration performs actions\n4. Key patterns: Prompt Chaining, Routing, Parallelization, Evaluation\nQuiz Yourself\n1. What are the three components of an AI agent?\n2. What is the agent reasoning loop?\n3. What is the difference between retrieval and tool integration?\n4. Name two programming patterns for agentic systems."
+          }
+        ]
+      },
+      {
+        "title": "Day 3 — AI Agents vs. Workflows vs.",
+        "description": "Complete the Day 3 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 3 learning objectives",
+            "durationMinutes": 20,
+            "content": "Assistants\nLearning Objectives\nBy the end of Day 3, you will be able to:\nDistinguish between AI assistants, AI agents, and agentic AI\nUnderstand the difference between workflows and agents\nIdentify when each approach is appropriate"
+          },
+          {
+            "title": "The Spectrum: Assistant → Agent → Agentic AI",
+            "durationMinutes": 55,
+            "content": "A useful framework starts with the business need rather than the label :\nSystem Description Example\nAI\nAssistant Helps a person perform a task better Chatbot answering FAQs\nAI Agent Takes actions toward a defined outcome\nwith some autonomy Books meetings, updates CRM\nAgentic AI Coordinates across tools, decisions, and\nworkflows dynamically\nAssesses sentiment, routes to\nteams, adjusts strategy\nRule of Thumb\nReactive = Assistant\nGoal-driven with bounded autonomy = Agent\nBroader adaptive orchestration = Agentic AI"
+          },
+          {
+            "title": "Workflows vs. Agents",
+            "durationMinutes": 55,
+            "content": "Aspect Workflow Agent\nPath Predefined sequence Decides its own path\nFlexibility Rigid Adaptive\nAutonomy None Some to full\nUse Case Predictable tasks Open-ended goals\nKey Insight: Agentic workflows follow a specific sequence of steps managed by an augmented\nLLM, while autonomous agents are given a task and decide independently on their course of\naction ."
+          },
+          {
+            "title": "The Assistant vs. Agent Distinction in Practice",
+            "durationMinutes": 55,
+            "content": "A system is behaving like an assistant when it :\nProduces suggestions or explanations\nDoes not take repository actions\nRequires the user to apply each step manually\nA system is behaving like an agent when it can :\nMaintain a goal across multiple steps\nDecide intermediate actions\nCreate or modify durable artifacts\nIterate based on feedback signals"
+          },
+          {
+            "title": "Multi-Agent Systems",
+            "durationMinutes": 55,
+            "content": "Agents can work with one another in multi-agent systems :\nOne agent might gather data\nAnother might analyze it\nA third might take action\nTogether, they form an AI-powered workforce that can handle complex workflows, just like a\nhuman team .\nAgents communicate with each other through prompts, using generative AI to determine what\ntasks are required and which agents are responsible for completing them ."
+          },
+          {
+            "title": "Day 3 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 3.1: Classify the System\nInstructions: Classify each as Assistant, Agent, or Agentic AI.\nSystem Classification\nFAQ chatbot\nAgent that books meetings\nSystem that coordinates multiple agents\nCode completion tool\nExercise 3.2: Workflow or Agent?\nInstructions: Identify whether each is a workflow or an agent.\nScenario Workflow or Agent?\nFixed sequence of steps\nDecides its own path\nPredictable tasks\nOpen-ended goals\nExercise 3.3: Assistant vs. Agent Behavior\nInstructions: Identify whether each describes assistant or agent behavior.\nBehavior Assistant or Agent?\nSuggests code changes\nCreates a branch and opens a PR\nExplains output\nBehavior Assistant or Agent?\nIterates based on feedback"
+          },
+          {
+            "title": "Day 3 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. The spectrum: Assistant → Agent → Agentic AI\n2. Workflows follow predefined paths; Agents decide their own path\n3. Assistants suggest; Agents take action\n4. Multi-agent systems enable complex workflows through collaboration\nQuiz Yourself\n1. What is the difference between an assistant and an agent?\n2. What is the difference between a workflow and an agent?\n3. What is agentic AI?\n4. What is a multi-agent system?"
+          }
+        ]
+      },
+      {
+        "title": "Day 4 — Agent Architecture & Design Patterns",
+        "description": "Complete the Day 4 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 4 learning objectives",
+            "durationMinutes": 20,
+            "content": "Learning Objectives\nBy the end of Day 4, you will be able to:\nUnderstand agent architecture principles\nIdentify common agent design patterns\nUnderstand how to build more complex workflows"
+          },
+          {
+            "title": "Agent Architecture Overview",
+            "durationMinutes": 55,
+            "content": "A practical course on AI agents covers these architectural topics :\nTopic Description\nAgent Design Template A reusable structure for designing agents\nTopic Description\nSystem Prompt Design Crafting effective instructions\nHard-coded vs. LLM-determined Design When to fix behavior vs. let the LLM decide\nMulti-Agent Architectures Designing systems with multiple agents"
+          },
+          {
+            "title": "Design Patterns for AI Agents",
+            "durationMinutes": 55,
+            "content": "Pattern 1: Prompt Chaining\nPrompt chaining sequences reasoning within a single agent — each step's output feeds the next,\nkeeping the LLM focused on one analytical problem at a time .\nWhen to use: Your workflow has natural stages where each step depends on the previous step's\noutput .\nPattern 2: Routing\nRouting involves decision-making by LLMs — directing requests to the appropriate handler based\non the request type .\nPattern 3: Parallelization\nParallelization executes prompts concurrently to improve throughput .\nPattern 4: Evaluation\nEvaluation involves self-assessment of outputs to ensure quality .\nPattern 5: Plan-and-Execute\nPlan-and-execute architectures give you a checkpoint between planning and execution so you\ncan review the plan before running it .\nPattern 6: Reflection and Replanning\nReflection and replanning extend this further — when mid-execution findings change what's\nneeded, the system updates its plan rather than continuing down the wrong path ."
+          },
+          {
+            "title": "Task Decomposition",
+            "durationMinutes": 55,
+            "content": "Task decomposition transforms static agent orchestration into adaptive workflows that respond to\nactual request complexity .\nDecomposition Granularity\nOptimal granularity varies by task type :\nSome tasks work better with a single agent\nOthers benefit from multi-agent decomposition\nOver-decomposition adds overhead without adding quality\nTask Boundaries\nTask boundaries work best at natural capability interfaces where one agent's complete output is\nwhat the next agent needs ."
+          },
+          {
+            "title": "Multi-Agent Orchestration",
+            "durationMinutes": 55,
+            "content": "Orchestration Patterns\nPattern Description\nSequential Agents run one after another\nConcurrent Agents run in parallel\nHandoff Agents transfer tasks peer-to-peer\nMagentic Designed for open-ended, complex problems without predetermined plans\nContext Management in Multi-Agent Systems\nAI agents often have limited context windows. This constraint can affect their ability to process\ncomplex tasks, especially as context grows with each agent transition .\nMitigation strategies:\nUse context compaction (summarization or selective pruning) between agents\nPersist shared state externally for long-running tasks\nScope persisted state to the minimum necessary information"
+          },
+          {
+            "title": "Reliability and Security",
+            "durationMinutes": 55,
+            "content": "Reliability Patterns\nFor multi-agent systems, implement :\nTimeout and retry mechanisms\nGraceful degradation\nError surfacing\nOutput validation before passing to next agent\nSecurity Considerations\nImplement :\nAuthentication between agents\nData privacy protections\nAudit trails\nPrinciple of least privilege\nContent safety guardrails"
+          },
+          {
+            "title": "Day 4 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 4.1: Design Patterns\nInstructions: Match each pattern to its description.\nPattern Description\nPrompt Chaining\nRouting\nParallelization\nEvaluation\nDescriptions:\nConcurrent prompt execution\nLinking prompts where each step feeds the next\nSelf-assessment of outputs\nDecision-making by LLMs\nExercise 4.2: Orchestration Patterns\nInstructions: Identify the orchestration pattern.\nScenario Pattern\nAgent A completes, then Agent B starts\nAgents A, B, and C run simultaneously\nAgent A hands off to Agent B\nManager agent iterates until plan works\nExercise 4.3: Context Management\nInstructions: What context management strategy would you use?\nScenario Strategy\nContext is growing too large\nLong-running task spans multiple sessions\nNeed to preserve privacy"
+          },
+          {
+            "title": "Day 4 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. Design patterns: Prompt Chaining, Routing, Parallelization, Evaluation, Plan-and-Execute,\nReflection\n2. Task decomposition should match task complexity\n3. Multi-agent orchestration: Sequential, Concurrent, Handoff, Magentic\n4. Context management is critical for complex systems\nQuiz Yourself\n1. What is prompt chaining?\n2. What is the difference between plan-and-execute and reflection?\n3. What are the multi-agent orchestration patterns?\n4. Why is context management important?"
+          }
+        ]
+      },
+      {
+        "title": "Day 5 — When to Use AI Agents (and When",
+        "description": "Complete the Day 5 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 5 learning objectives",
+            "durationMinutes": 20,
+            "content": "Not To)\nLearning Objectives\nBy the end of Day 5, you will be able to:\nDetermine when AI agents are appropriate\nUnderstand the risks and limitations of agents\nImplement agents in your workplace responsibly"
+          },
+          {
+            "title": "When to Use AI Agents",
+            "durationMinutes": 55,
+            "content": "AI agents are most effective in scenarios where tasks :\nCriterion Description\nRequire integrating information From multiple sources or systems\nInvolve multiple steps Or decisions\nBenefit from automation With minimal human oversight\nGood Use Cases\nMonitoring servers and fixing issues\nFinding customers who overpaid and initiating refunds\nResearching and synthesizing information\nCoordinating complex workflows\nWhen a Simple Query Suffices\nIf a task is straightforward and single-step (like \"show latest sales figures\"), a simple query or bot\nmight suffice ."
+          },
+          {
+            "title": "The Risks of AI Agents",
+            "durationMinutes": 55,
+            "content": "The Verification Problem\nOne big risk area comes from the fact that it is often very easy to get agents to do certain types\nof work for you. Because it is so easy, people may not put enough effort into verifying that it is\ndoing the right thing .\nBugs will be introduced, private data will get leaked — this is already happening .\nThe Human Error Problem\nAgents aren't perfect. They might make mistakes because they are not well-trained. But even if\nthey are very competent, if a human doesn't use them appropriately or gives them an instruction\nthat is too vague, the AI agent could make a mistake because the human made a mistake .\nThe High-Stakes Problem\nFor cases that are high-stakes or safety-critical (like medicine, security, high-level business\npolicies), the technology might not be ready for AI to completely automate those processes ."
+          },
+          {
+            "title": "Implementing Agents in Your Workplace",
+            "durationMinutes": 55,
+            "content": "Start Simple\nStarting an agentic system should aim for simplicity. Begin with a basic implementation and add\ncomplexity only with clear reasons. This keeps the system manageable and focused .\nHuman Oversight is Essential\nWhile agents can help automate parts of workflows, the final outcome is still the responsibility of\nhumans. Before acting on information from an agent, you should :\nReview the results\nVerify important information\nReview recommendations\nUse business knowledge and judgment\nThe Framework for Assessment\nA practical framework starts with the business need :\nQuestion Consideration\nIs it mainly helping a human, or acting toward an outcome? Assistant vs. Agent\nIs the flow fixed, or does it need dynamic planning? Workflow vs. Agent\nQuestion Consideration\nDoes it just generate/recommend, or also use tools and take actions? Passive vs. Active\nHow much human approval is needed? Autonomy level\nWhat's the risk if it gets something wrong? Criticality"
+          },
+          {
+            "title": "The Future of AI Agents",
+            "durationMinutes": 55,
+            "content": "The deployment of AI agents has recently exploded. A November 2025 report found that 35\npercent of surveyed businesses had already deployed AI agents, while another 44 percent\nplanned to implement agentic AI soon .\nWhat's Working\nThe area with the most success has been coding agents. This evolved from generative AI —\npeople trained language models on code, and then agents can learn by going through a feedback\nloop where they try out different solutions and check to see if they got the answer right .\nThe Balance\nThere is always a balance between automating decision making versus simply assisting and\ninforming humans. Analytical AI methods that help predict possible outcomes are not agentic in\nnature, but are very informative to human decision-makers ."
+          },
+          {
+            "title": "Day 5 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 5.1: When to Use Agents\nInstructions: Should you use an AI agent for each task?\nTask Use Agent? Why?\nShow latest sales figures\nMonitor servers and fix issues\nFind customers who overpaid\nAnswer \"What's the weather?\"\nExercise 5.2: Risk Assessment\nInstructions: What risk is being described?\nScenario Risk\nAgent introduces bugs because no one verified\nAgent makes mistake because instruction was vague\nAgent is used for medical decisions\nExercise 5.3: Implementation Plan\nInstructions: Create a plan for implementing an agent.\nQuestion Your Answer\nWhat task will the agent handle?\nIs it helping or acting?\nWhat tools does it need?\nHow will you verify outputs?"
+          },
+          {
+            "title": "Day 5 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. Use agents for multi-step, information-integrating tasks\n2. Risks: verification problems, human error, high-stakes use\n3. Start simple and add complexity only with clear reasons\n4. Human oversight is essential\n5. 35% of businesses have already deployed AI agents\nQuiz Yourself\n1. When should you use an AI agent?\n2. What are the risks of AI agents?\n3. How should you implement agents responsibly?\n4. What percentage of businesses have deployed AI agents?"
+          }
+        ]
+      },
+      {
+        "title": "Final Assessment",
+        "description": "Demonstrate understanding across the complete 5-day programme.",
+        "lessons": [
+          {
+            "title": "Introduction to AI Agents final assessment",
+            "durationMinutes": 90,
+            "content": "Introduction to AI Agents Test\nSection 1: Concepts (25 points)\n1. What is an AI agent?\n2. What are the three levels of AI systems?\n3. What are the four core characteristics of AI agents?\n4. How does an AI agent differ from a chatbot?\n5. What is the difference between an assistant and an agent?\nSection 2: How Agents Work (25 points)\n1. What are the three components of an AI agent?\n2. What is the agent reasoning loop?\n3. What is the difference between retrieval and tool integration?\n4. What is prompt chaining?\n5. What is the purpose of evaluation in agentic systems?\nSection 3: Architecture & Patterns (25 points)\n1. Name three design patterns for AI agents.\n2. What is the difference between plan-and-execute and reflection?\n3. What are the multi-agent orchestration patterns?\n4. Why is context management important in multi-agent systems?\n5. What reliability patterns should be implemented?\nSection 4: Application (25 points)\n1. When should you use an AI agent?\n2. What are the risks of AI agents?\n3. How should you implement agents responsibly?\n4. What questions should you ask when assessing a use case?"
+          }
+        ]
+      }
+    ],
+    "audit": {
+      "moduleCount": 7,
+      "lessonCount": 37
+    }
+  },
+  {
+    "title": "AI for Data Visualization",
+    "slug": "ai-for-data-visualization",
+    "category": {
+      "name": "Data & Analytics",
+      "slug": "data-analytics"
+    },
+    "shortDescription": "Use embedded AI agents in Excel, Power BI and Tableau to explore data, create visualisations and communicate trustworthy insights.",
+    "days": 5,
+    "requirements": [
+      "Basic familiarity with spreadsheets and charts is helpful",
+      "Access to a computer with relevant data tools",
+      "Time to complete demonstrations, exercises and the final assessment"
+    ],
+    "sourceFilename": "AI FOR DATA Visualization COMPLETE COURSE BOOKLET.pdf",
+    "description": "What is AI for Data Visualization?\nAI for Data Visualization refers to the integration of AI agents into common data analysis and\nvisualization software—such as Excel, Power BI, and Tableau—to assist with basic data analysis and\nvisualization tasks.\nThis course provides an introductory overview of AI agents built into these platforms, including:\nMicrosoft Copilot in Excel and Power BI\nTableau Agent in Tableau\nYou will see a clear breakdown of different use cases for embedded AI agents, gain an\nunderstanding of their limitations, and view demonstrations of the agents in use.\nWhat You Will Learn\nBy the end of this course, you will be able to:\nDiscover the key concepts and technologies covered in this course\nImplement data analysis and visualization prompting using Copilot in Microsoft Excel, and\napply best practices to avoid erroneous results\nImplement data analysis and visualization prompting using Copilot in Microsoft Power BI, and\napply best practices to avoid erroneous results\nDetermine whether and how to incorporate Copilot or Tableau Agent into workflows for basic\ndata analysis and visualization tasks\nPrerequisites\nNone. This course is designed for beginners with no prior experience required.\nCourse Format\nThis course is based on the AI for Data Visualization course from Codecademy, which provides\nexpert-led videos and hands-on demonstrations.",
+    "whatYouLearn": [
+      "Discover the key concepts and technologies covered in this course",
+      "Implement data analysis and visualization prompting using Copilot in Microsoft Excel, and apply best practices to avoid erroneous results",
+      "Implement data analysis and visualization prompting using Copilot in Microsoft Power BI, and apply best practices to avoid erroneous results",
+      "Determine whether and how to incorporate Copilot or Tableau Agent into workflows for basic",
+      "data analysis and visualization tasks"
+    ],
+    "modules": [
+      {
+        "title": "Start Here — Course Orientation & 5-Day Plan",
+        "description": "Understand the course outcomes, learning method and recommended 5-day journey.",
+        "lessons": [
+          {
+            "title": "Welcome, outcomes and how to use this course",
+            "durationMinutes": 30,
+            "isFree": true,
+            "content": "What is AI for Data Visualization?\nAI for Data Visualization refers to the integration of AI agents into common data analysis and\nvisualization software—such as Excel, Power BI, and Tableau—to assist with basic data analysis and\nvisualization tasks.\nThis course provides an introductory overview of AI agents built into these platforms, including:\nMicrosoft Copilot in Excel and Power BI\nTableau Agent in Tableau\nYou will see a clear breakdown of different use cases for embedded AI agents, gain an\nunderstanding of their limitations, and view demonstrations of the agents in use.\nWhat You Will Learn\nBy the end of this course, you will be able to:\nDiscover the key concepts and technologies covered in this course\nImplement data analysis and visualization prompting using Copilot in Microsoft Excel, and\napply best practices to avoid erroneous results\nImplement data analysis and visualization prompting using Copilot in Microsoft Power BI, and\napply best practices to avoid erroneous results\nDetermine whether and how to incorporate Copilot or Tableau Agent into workflows for basic\ndata analysis and visualization tasks\nPrerequisites\nNone. This course is designed for beginners with no prior experience required.\nCourse Format\nThis course is based on the AI for Data Visualization course from Codecademy, which provides\nexpert-led videos and hands-on demonstrations."
+          }
+        ]
+      },
+      {
+        "title": "Day 1 — Introduction to AI Agents in Data",
+        "description": "Complete the Day 1 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 1 learning objectives",
+            "durationMinutes": 20,
+            "content": "Visualization\nLearning Objectives\nBy the end of Day 1, you will be able to:\nDefine AI agents and their role in data visualization\nUnderstand the landscape of AI tools in data analysis software\nIdentify the main platforms with embedded AI agents\nRecognize common use cases for AI in data visualization"
+          },
+          {
+            "title": "What Are AI Agents?",
+            "durationMinutes": 55,
+            "content": "The Definition\nAI agents are AI-powered assistants built into software applications that help users perform tasks\nthrough natural language prompts. In the context of data visualization, these agents can:\nGenerate charts and graphs from natural language descriptions\nAnalyze data and provide insights\nSuggest visualizations based on data patterns\nAutomate repetitive data analysis tasks\nAI Agents in Data Visualization Software\nPlatform AI Agent Primary Use\nMicrosoft Excel Copilot Data analysis, formula generation, chart suggestions\nMicrosoft Power BI Copilot Report creation, DAX generation, insights\nTableau Tableau Agent Visualization suggestions, calculations, insights\nWhy AI Agents Matter\nAI agents are transforming how people interact with data by:\nLowering the barrier to complex analysis\nAccelerating visualization creation\nEnabling natural language interaction with data\nDemocratizing data insights for non-technical users"
+          },
+          {
+            "title": "The AI Agent Landscape",
+            "durationMinutes": 55,
+            "content": "Types of AI Agents in Data Tools\nAgent Type Description Examples\nNatural Language\nQuery Ask questions in plain English \"Show me sales by region\"\nFormula Generation Create formulas from\ndescriptions\n\"Calculate year-over-year\ngrowth\"\nVisualization\nSuggestion Recommend chart types \"Best way to show trends\"\nInsight Generation Find patterns and anomalies \"What's driving the increase?\"\nData Cleaning Identify and fix data issues \"Find duplicates\"\nKey Concepts\nNatural Language Processing (NLP): The technology that allows AI agents to understand and\nrespond to human language.\nPrompt: The natural language request you provide to an AI agent.\nContext: The data and environment the AI agent has access to.\nHallucination: When an AI agent generates plausible but incorrect information."
+          },
+          {
+            "title": "Use Cases for AI in Data Visualization",
+            "durationMinutes": 55,
+            "content": "Common Use Cases\nUse Case Description Example\nQuick Analysis Get fast insights from data \"What are the top 5 products?\"\nChart Creation Generate visualizations from\ndescriptions\n\"Create a bar chart of sales by\nmonth\"\nFormula Help Write complex formulas \"Calculate running total\"\nData Exploration Discover patterns \"Find correlations in this data\"\nReport\nAutomation Speed up repetitive tasks \"Create a summary report\"\nWhen to Use AI Agents\nGood Use Cases:\nExploratory data analysis\nQuick visualizations\nLearning formulas\nRepetitive tasks\nPoor Use Cases:\nCritical decisions without verification\nComplex statistical analysis\nProprietary or sensitive data without review\nTasks requiring deep domain expertise"
+          },
+          {
+            "title": "Day 1 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 1.1: Identify the AI Agent\nInstructions: Match each platform to its AI agent.\nPlatform AI Agent\nMicrosoft Excel\nMicrosoft Power BI\nTableau\nOptions: Copilot, Tableau Agent\nExercise 1.2: Use Case Classification\nInstructions: Classify each task as a good or poor use case for AI agents.\nTask Good or Poor?\nQuick exploratory analysis\nCritical financial decision\nCreating a simple bar chart\nComplex statistical modeling\nLearning a new formula"
+          },
+          {
+            "title": "Day 1 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. AI agents are AI-powered assistants built into data tools\n2. Microsoft Copilot is in Excel and Power BI; Tableau Agent is in Tableau\n3. AI agents lower barriers, accelerate work, and democratize insights\n4. Good use cases: exploratory analysis, quick visualizations\n5. Poor use cases: critical decisions, complex statistics\nQuiz Yourself\n1. What is an AI agent?\n2. Which platforms have embedded AI agents?\n3. What are three common use cases for AI in data visualization?\n4. When should you NOT use AI agents?"
+          }
+        ]
+      },
+      {
+        "title": "Day 2 — AI Agents in Microsoft Excel",
+        "description": "Complete the Day 2 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 2 learning objectives",
+            "durationMinutes": 20,
+            "content": "Learning Objectives\nBy the end of Day 2, you will be able to:\nUse Copilot in Microsoft Excel for data analysis\nImplement visualization prompting with Copilot\nApply best practices to avoid erroneous results\nUnderstand limitations of Copilot in Excel"
+          },
+          {
+            "title": "Introduction to Copilot in Excel",
+            "durationMinutes": 55,
+            "content": "What is Copilot in Excel?\nMicrosoft Copilot is an AI assistant integrated into Excel that helps users:\nAnalyze data using natural language\nGenerate formulas and calculations\nCreate charts and visualizations\nIdentify trends and patterns\nGetting Started with Copilot in Excel\nStep Action\n1 Open Excel with a Microsoft 365 subscription\n2 Ensure Copilot is enabled\n3 Select your data range\n4 Open the Copilot pane\n5 Type your prompt"
+          },
+          {
+            "title": "Data Analysis with Copilot",
+            "durationMinutes": 55,
+            "content": "Natural Language Queries\nYou can ask Copilot questions about your data in plain English:\nPrompt Expected Result\n\"What is the total sales for Q1?\" Calculates sum for Q1\n\"Show me the top 10 customers by revenue\" Sorts and filters data\n\"What is the average order value?\" Calculates average\n\"Find any duplicate entries\" Identifies duplicates\nFormula Generation\nCopilot can generate complex formulas from descriptions:\nPrompt Generated Formula\n\"Calculate year-over-year growth\" =(B2-B1)/B1\n\"Sum values where region is North\" =SUMIF(A:A,\"North\",B:B)\n\"Count unique customers\" =SUMPRODUCT(1/COUNTIF(A2:A100,A2:A100))"
+          },
+          {
+            "title": "Visualization Prompting with Copilot",
+            "durationMinutes": 55,
+            "content": "Creating Charts\nCopilot can suggest and create visualizations:\nPrompt Suggested Chart\n\"Show sales trend over time\" Line chart\n\"Compare sales by region\" Bar chart\n\"Show market share\" Pie chart\n\"Display correlation between price and sales\" Scatter plot\nBest Practices for Visualization Prompting\n1. Be specific about the chart type you want\n2. Describe the data you want to visualize\n3. Specify the insight you're looking for\n4. Review the output before using it"
+          },
+          {
+            "title": "Limitations and Best Practices",
+            "durationMinutes": 55,
+            "content": "Common Limitations\nLimitation Description\nHallucination May generate incorrect formulas or insights\nData privacy Sensitive data may not be appropriate for AI\nComplexity May struggle with complex analysis\nContext May not understand your specific business context\nBest Practices to Avoid Erroneous Results\n1. Always verify Copilot's output\n2. Start simple with basic queries\n3. Provide context in your prompts\n4. Check formulas before applying\n5. Don't rely on AI for critical decisions"
+          },
+          {
+            "title": "Day 2 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 2.1: Copilot Prompts\nInstructions: Write a Copilot prompt for each task.\nTask Your Prompt\nFind total sales\nCreate a bar chart of sales by region\nCalculate average order value\nIdentify top 5 products\nExercise 2.2: Verify the Output\nInstructions: Copilot generated this formula: =SUM(A:A) . What could be wrong?\nIssue: ________________________________\nBetter approach: ________________________________\nExercise 2.3: Best Practices\nInstructions: What best practice is being violated?\nScenario Best Practice\nUsing Copilot for financial decisions without verification\nNot providing context in prompts\nUsing vague prompts"
+          },
+          {
+            "title": "Day 2 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. Copilot in Excel helps with analysis, formulas, and charts\n2. Natural language prompts make data analysis accessible\n3. Best practices: verify output, provide context, start simple\n4. Limitations: hallucination, privacy, complexity\nQuiz Yourself\n1. What can Copilot in Excel do?\n2. What are best practices for visualization prompting?\n3. What are common limitations of Copilot?\n4. How can you avoid erroneous results?"
+          }
+        ]
+      },
+      {
+        "title": "Day 3 — AI Agents in Microsoft Power BI",
+        "description": "Complete the Day 3 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 3 learning objectives",
+            "durationMinutes": 20,
+            "content": "Learning Objectives\nBy the end of Day 3, you will be able to:\nUse Copilot in Microsoft Power BI for report creation\nImplement visualization prompting with Copilot\nApply best practices to avoid erroneous results\nUnderstand limitations of Copilot in Power BI"
+          },
+          {
+            "title": "Introduction to Copilot in Power BI",
+            "durationMinutes": 55,
+            "content": "What is Copilot in Power BI?\nMicrosoft Copilot in Power BI helps users:\nCreate reports using natural language\nGenerate DAX (Data Analysis Expressions) formulas\nSummarize data and provide insights\nSuggest visualizations\nGetting Started with Copilot in Power BI\nStep Action\n1 Open Power BI Desktop or Service\n2 Ensure Copilot is enabled\n3 Select your data\n4 Open the Copilot pane\n5 Type your prompt"
+          },
+          {
+            "title": "Report Creation with Copilot",
+            "durationMinutes": 55,
+            "content": "Natural Language Report Building\nPrompt Expected Result\n\"Create a sales report\" Generates report with sales visuals\nPrompt Expected Result\n\"Show me revenue by product category\" Creates chart\n\"Summarize this data\" Provides text summary\n\"What insights can you find?\" Identifies patterns\nDAX Generation\nCopilot can generate DAX formulas:\nPrompt Generated DAX\n\"Calculate total sales\" Total Sales = SUM(Sales[Amount])\n\"Calculate year-over-\nyear growth\" YoY Growth = DIVIDE([Current Year], [Prior Year]) - 1\n\"Count active\ncustomers\"\nActive Customers = COUNTROWS(FILTER(Customers,\nCustomers[Status] = \"Active\"))"
+          },
+          {
+            "title": "Visualization Prompting with Copilot",
+            "durationMinutes": 55,
+            "content": "Creating Visuals\nPrompt Suggested Visual\n\"Show sales trend\" Line chart\n\"Compare regions\" Bar chart\n\"Show composition\" Donut chart\n\"Display KPIs\" Card visuals\nBest Practices for Power BI Copilot\n1. Use clear, specific prompts\n2. Review generated DAX before applying\n3. Validate insights against source data\n4. Iterate on prompts for better results"
+          },
+          {
+            "title": "Limitations and Best Practices",
+            "durationMinutes": 55,
+            "content": "Common Limitations\nLimitation Description\nDAX accuracy May generate incorrect formulas\nContext understanding May not grasp business rules\nComplex logic Struggles with advanced scenarios\nData model May not understand relationships\nBest Practices\n1. Test DAX in a safe environment\n2. Understand the logic behind generated formulas\n3. Verify insights with domain experts\n4. Document AI-generated content"
+          },
+          {
+            "title": "Day 3 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 3.1: Power BI Prompts\nInstructions: Write a Copilot prompt for each task.\nTask Your Prompt\nCreate a sales dashboard\nCalculate profit margin\nShow top customers\nSummarize key trends\nExercise 3.2: DAX Review\nInstructions: Review this DAX: Total = SUM(Sales[Amount]) . Is this correct?\nAssessment: ________________________________\nWhen might it fail? ________________________________\nExercise 3.3: Best Practices\nInstructions: What best practice applies?\nScenario Best Practice\nCopilot generates a DAX formula\nCopilot provides insights\nCopilot creates a visual"
+          },
+          {
+            "title": "Day 3 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. Copilot in Power BI helps with reports, DAX, and insights\n2. DAX generation can accelerate development\n3. Best practices: test DAX, verify insights, document\n4. Limitations: DAX accuracy, context understanding\nQuiz Yourself\n1. What can Copilot in Power BI do?\n2. What are best practices for Power BI Copilot?\n3. What are common limitations?\n4. How should you review generated DAX?"
+          }
+        ]
+      },
+      {
+        "title": "Day 4 — AI Agents in Tableau",
+        "description": "Complete the Day 4 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 4 learning objectives",
+            "durationMinutes": 20,
+            "content": "Learning Objectives\nBy the end of Day 4, you will be able to:\nUse Tableau Agent for visualization tasks\nImplement visualization prompting with Tableau Agent\nApply best practices to avoid erroneous results\nUnderstand limitations of Tableau Agent"
+          },
+          {
+            "title": "Introduction to Tableau Agent",
+            "durationMinutes": 55,
+            "content": "What is Tableau Agent?\nTableau Agent is an AI assistant integrated into Tableau that helps users:\nCreate visualizations using natural language\nGenerate calculations\nDiscover insights\nAccelerate analysis\nGetting Started with Tableau Agent\nStep Action\n1 Open Tableau Desktop or Cloud\n2 Ensure Tableau Agent is enabled\n3 Connect to your data\n4 Open the Agent pane\n5 Type your prompt"
+          },
+          {
+            "title": "Visualization Prompting with Tableau Agent",
+            "durationMinutes": 55,
+            "content": "Creating Visualizations\nPrompt Suggested Visual\n\"Show sales by region\" Map or bar chart\n\"Display trend over time\" Line chart\n\"Compare categories\" Bar chart\n\"Show distribution\" Histogram\nCalculation Generation\nPrompt Generated Calculation\n\"Calculate profit margin\" SUM([Profit]) / SUM([Sales])\nPrompt Generated Calculation\n\"Show year-over-year\ngrowth\"\n(SUM([Sales]) - LOOKUP(SUM([Sales]), -1)) /\nLOOKUP(SUM([Sales]), -1)\n\"Count distinct\ncustomers\" COUNTD([Customer ID])"
+          },
+          {
+            "title": "Best Practices for Tableau Agent",
+            "durationMinutes": 55,
+            "content": "Prompting Best Practices\n1. Be specific about what you want\n2. Describe the data field you want to use\n3. Specify the insight you're looking for\n4. Review generated calculations\nVisualization Best Practices\n1. Choose the right chart for your data\n2. Label clearly for readability\n3. Validate the visualization\n4. Iterate on prompts"
+          },
+          {
+            "title": "Limitations and Best Practices",
+            "durationMinutes": 55,
+            "content": "Common Limitations\nLimitation Description\nCalculation accuracy May generate incorrect formulas\nContext awareness May not understand business rules\nComplex analysis Struggles with advanced scenarios\nData understanding May misinterpret data\nBest Practices\n1. Verify calculations before using\n2. Understand the logic behind suggestions\n3. Test visualizations with stakeholders\n4. Document AI-assisted work"
+          },
+          {
+            "title": "Day 4 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 4.1: Tableau Agent Prompts\nInstructions: Write a Tableau Agent prompt for each task.\nTask Your Prompt\nShow sales by category\nCalculate profit margin\nDisplay trend over time\nFind top products\nExercise 4.2: Calculation Review\nInstructions: Review this calculation: SUM([Profit]) / SUM([Sales]) . What is it calculating?\nCalculation: ________________________________\nWhen might it fail? ________________________________\nExercise 4.3: Visualization Selection\nInstructions: What chart type would Tableau Agent likely suggest?\nPrompt Chart Type\n\"Show sales by region\"\n\"Display trend over time\"\n\"Compare categories\""
+          },
+          {
+            "title": "Day 4 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. Tableau Agent helps create visualizations and calculations\n2. Natural language prompts make analysis accessible\n3. Best practices: be specific, verify, iterate\n4. Limitations: calculation accuracy, context awareness\nQuiz Yourself\n1. What is Tableau Agent?\n2. What can Tableau Agent do?\n3. What are best practices for Tableau Agent?\n4. What are common limitations?"
+          }
+        ]
+      },
+      {
+        "title": "Day 5 — Choosing the Right Tool & Applying",
+        "description": "Complete the Day 5 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 5 learning objectives",
+            "durationMinutes": 20,
+            "content": "Best Practices\nLearning Objectives\nBy the end of Day 5, you will be able to:\nCompare AI agents across platforms\nChoose the right tool for your workflow\nApply best practices across all platforms\nDetermine whether to incorporate AI agents"
+          },
+          {
+            "title": "Comparing AI Agents",
+            "durationMinutes": 55,
+            "content": "Platform Comparison\nFeature Excel Copilot Power BI Copilot Tableau Agent\nPrimary Use Data analysis,\nformulas Reports, DAX Visualizations,\ncalculations\nBest For Quick analysis Dashboard\ncreation Interactive visuals\nFeature Excel Copilot Power BI Copilot Tableau Agent\nLearning\nCurve Low Medium Medium\nIntegration Microsoft 365 Power BI Tableau ecosystem\nWhen to Use Each\nPlatform Best When\nExcel Copilot Working with spreadsheets, quick analysis\nPower BI Copilot Building dashboards, enterprise reporting\nTableau Agent Creating interactive visualizations"
+          },
+          {
+            "title": "Choosing the Right Tool",
+            "durationMinutes": 55,
+            "content": "Decision Framework\nQuestion 1: What type of data are you working with?\nSpreadsheets → Excel Copilot\nMultiple data sources → Power BI Copilot\nComplex data → Tableau Agent\nQuestion 2: What is your primary task?\nQuick analysis → Excel Copilot\nDashboard creation → Power BI Copilot\nExploration → Tableau Agent\nQuestion 3: What is your organization's ecosystem?\nMicrosoft → Excel/Power BI Copilot\nTableau → Tableau Agent"
+          },
+          {
+            "title": "Best Practices Across All Platforms",
+            "durationMinutes": 55,
+            "content": "Universal Best Practices\nPractice Description\nVerify Output Always check AI-generated results\nProvide Context Give the AI enough information\nStart Simple Begin with basic prompts\nIterate Refine prompts for better results\nDocument Keep track of AI-assisted work\nRespect Privacy Don't share sensitive data inappropriately\nAvoiding Erroneous Results\n1. Understand the logic behind AI suggestions\n2. Test in a safe environment before applying\n3. Validate with stakeholders when appropriate\n4. Use domain expertise to review outputs"
+          },
+          {
+            "title": "Deciding Whether to Incorporate AI Agents",
+            "durationMinutes": 55,
+            "content": "Questions to Ask\nQuestion Consideration\nIs the task repetitive? AI excels at automation\nIs speed important? AI accelerates work\nIs accuracy critical? Requires verification\nIs data sensitive? Consider privacy implications\nDo you have domain expertise? Needed to validate output\nWhen to Use AI Agents\nUse AI agents when:\nExploring data quickly\nLearning new formulas\nCreating initial visualizations\nAutomating repetitive tasks\nDon't use AI agents when:\nMaking critical decisions\nWorking with sensitive data\nTask requires deep expertise\nOutput cannot be verified"
+          },
+          {
+            "title": "Day 5 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 5.1: Tool Selection\nInstructions: Choose the best tool for each scenario.\nScenario Tool Why\nQuick data analysis in a spreadsheet\nBuilding an enterprise dashboard\nCreating interactive visualizations\nCalculating complex formulas\nExercise 5.2: Best Practices Checklist\nInstructions: Create a checklist for using AI agents.\nPractice Your Checklist Item\nVerify Output\nProvide Context\nStart Simple\nDocument\nExercise 5.3: Decision Making\nInstructions: Should you use an AI agent for each scenario?\nScenario Use AI? Why?\nExploring sales data\nFinalizing financial statements\nCreating a rough draft chart\nAnalyzing sensitive HR data"
+          },
+          {
+            "title": "Day 5 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. Each platform has strengths: Excel (analysis), Power BI (reports), Tableau (visualizations)\n2. Choose based on data type, task, and ecosystem\n3. Universal best practices: verify, provide context, start simple, iterate\n4. Use AI agents for exploration and automation; avoid for critical decisions\nQuiz Yourself\n1. What are the strengths of each AI agent?\n2. How do you choose the right tool?\n3. What are universal best practices?\n4. When should you NOT use AI agents?"
+          }
+        ]
+      },
+      {
+        "title": "Final Assessment",
+        "description": "Demonstrate understanding across the complete 5-day programme.",
+        "lessons": [
+          {
+            "title": "AI for Data Visualization final assessment",
+            "durationMinutes": 90,
+            "content": "AI for Data Visualization Test\nSection 1: Concepts (25 points)\n1. What is an AI agent in data visualization?\n2. Name three platforms with embedded AI agents.\n3. What is the primary use of Copilot in Excel?\n4. What is the primary use of Tableau Agent?\n5. What is hallucination?\nSection 2: Platform Knowledge (25 points)\n1. What can Copilot in Excel do?\n2. What can Copilot in Power BI do?\n3. What can Tableau Agent do?\n4. What is DAX?\n5. What is a best practice for visualization prompting?\nSection 3: Application (25 points)\nScenario: You need to create a sales dashboard for your company.\n1. Which tool would you choose and why?\n2. What prompts would you use?\n3. How would you verify the output?\n4. What are potential limitations?\n5. How would you address them?\nSection 4: Best Practices (25 points)\n1. What are three universal best practices for using AI agents?\n2. How do you avoid erroneous results?\n3. When should you NOT use AI agents?\n4. How do you decide whether to incorporate AI agents?"
+          }
+        ]
+      }
+    ],
+    "audit": {
+      "moduleCount": 7,
+      "lessonCount": 36
+    }
+  },
+  {
+    "title": "Generative AI for Everyone",
+    "slug": "generative-ai-for-everyone",
+    "category": {
+      "name": "Artificial Intelligence",
+      "slug": "artificial-intelligence"
+    },
+    "shortDescription": "Understand how generative AI works, plan valuable projects, evaluate business applications and use the technology responsibly.",
+    "days": 5,
+    "requirements": [
+      "No previous AI or technical experience is required",
+      "A computer with internet access",
+      "Time to complete the activities and final assessment"
+    ],
+    "sourceFilename": "GENERATIVE AL COMPLETE COURSE BOOKLET.pdf",
+    "description": "What is Generative AI?\nGenerative AI is a type of artificial intelligence that can create original content—such as natural\nlanguage, images, audio, and code—based on the inputs you provide . Unlike traditional AI systems\nthat primarily analyze data, classify information, or make predictions, generative AI goes further by\nproducing new content .\nThe Core Insight\nImagine having an AI that can:\nWrite compelling marketing copy or summarize lengthy reports\nGenerate innovative product designs or draft customer support responses\nCreate realistic images or videos for training and simulation\nThis is what generative AI enables today.\nWhat You Will Learn\nBy the end of this 5-day course, you will be able to:\nUnderstand what generative AI is and how it works\nIdentify common use cases and practical applications\nUnderstand the lifecycle of a generative AI project\nRecognize opportunities and risks for individuals, businesses, and society\nApply generative AI tools in your daily work\nUse effective prompt engineering techniques\nPrerequisites\nNone. This course is designed for everyone—no coding skills or prior AI knowledge required .\nWhether you're a business leader, professional, student, or simply curious, this course is for you.\nCourse Format\nThis course is based on the popular \"Generative AI for Everyone\" course by Andrew Ng, which\nbecame the fastest-growing course on Coursera with 43,000 enrollments in its first 7 days .",
+    "whatYouLearn": [
+      "Understand what generative AI is and how it works",
+      "Identify common use cases and practical applications",
+      "Understand the lifecycle of a generative AI project",
+      "Recognize opportunities and risks for individuals, businesses, and society",
+      "Apply generative AI tools in your daily work",
+      "Use effective prompt engineering techniques"
+    ],
+    "modules": [
+      {
+        "title": "Start Here — Course Orientation & 5-Day Plan",
+        "description": "Understand the course outcomes, learning method and recommended 5-day journey.",
+        "lessons": [
+          {
+            "title": "Welcome, outcomes and how to use this course",
+            "durationMinutes": 30,
+            "isFree": true,
+            "content": "What is Generative AI?\nGenerative AI is a type of artificial intelligence that can create original content—such as natural\nlanguage, images, audio, and code—based on the inputs you provide . Unlike traditional AI systems\nthat primarily analyze data, classify information, or make predictions, generative AI goes further by\nproducing new content .\nThe Core Insight\nImagine having an AI that can:\nWrite compelling marketing copy or summarize lengthy reports\nGenerate innovative product designs or draft customer support responses\nCreate realistic images or videos for training and simulation\nThis is what generative AI enables today.\nWhat You Will Learn\nBy the end of this 5-day course, you will be able to:\nUnderstand what generative AI is and how it works\nIdentify common use cases and practical applications\nUnderstand the lifecycle of a generative AI project\nRecognize opportunities and risks for individuals, businesses, and society\nApply generative AI tools in your daily work\nUse effective prompt engineering techniques\nPrerequisites\nNone. This course is designed for everyone—no coding skills or prior AI knowledge required .\nWhether you're a business leader, professional, student, or simply curious, this course is for you.\nCourse Format\nThis course is based on the popular \"Generative AI for Everyone\" course by Andrew Ng, which\nbecame the fastest-growing course on Coursera with 43,000 enrollments in its first 7 days ."
+          }
+        ]
+      },
+      {
+        "title": "Day 1 — Introduction to Generative AI",
+        "description": "Complete the Day 1 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 1 learning objectives",
+            "durationMinutes": 20,
+            "content": "Learning Objectives\nBy the end of Day 1, you will be able to:\nDefine generative AI and its significance\nUnderstand how generative AI differs from traditional AI\nIdentify the main types of generative AI applications\nRecognize real-world examples of generative AI in use"
+          },
+          {
+            "title": "What is Generative AI?",
+            "durationMinutes": 55,
+            "content": "The Definition\nGenerative AI is a field of machine learning that develops and uses models for generating new\ncontent . These models are often called large language models (LLMs) because of their large size\nand ability to understand and generate natural language.\nTraditional AI vs Generative AI\nAspect Traditional AI Generative AI\nPrimary Function Analyze, classify, predict Generate new content\nOutput Labels, numbers, predictions Text, images, audio, code\nTraining Custom models for specific tasks Pretrained on internet-scale data\nInteraction Structured input Natural language prompts\nKey Difference: Traditional AI builds custom models for specific predictions. Generative AI uses\npretrained models to generate content in response to user prompts ."
+          },
+          {
+            "title": "The Main Types of Generative AI",
+            "durationMinutes": 55,
+            "content": "Text Generation\nSome generative AI applications produce natural language outputs :\nProfessionally worded summaries\nRich descriptions of items\nIdeas and brainstorming\nEmail drafts and reports\nExample: Given the input \"Give me three ideas for a healthy breakfast including peppers,\" a\ngenerative AI application might produce detailed recipe suggestions .\nImage Generation\nSome generative AI applications produce image outputs from natural language inputs :\nVirtual avatars for online accounts\nLogos for businesses\nArtistic inspiration for creators\nProduct designs\nExample: \"Create an image of an elephant eating a burger\" produces a custom image .\nAudio Generation\nSome generative AI applications produce audio outputs :\nNatural-sounding voices from text\nMusic in specific styles\nModified audio files\nCode Generation\nSome generative AI applications produce code from natural language inputs :\nQuick implementations of common operations\nCode translation between languages\nAnswers about technologies\nExample: \"Show me how to code a game of tic-tac-toe with C#\" produces working code ."
+          },
+          {
+            "title": "How We Got Here",
+            "durationMinutes": 55,
+            "content": "The Evolution of AI\nGenerative AI didn't appear overnight. It's the result of decades of research :\nEra Development\nEarly AI Rules-based logic systems\nMachine Learning Statistical learning from data\nDeep Learning Neural networks with multiple layers\nTransformers Architecture enabling today's LLMs\nGenerative AI Pretrained models generating content\nThe Transformer Breakthrough\nA major innovation behind generative AI is the transformer architecture . Transformer-based\nmodels offer:\nContextual understanding: Process entire documents, maintaining context\nScalability: Handle data in parallel, making them fast\nVersatility: Work across text, images, and code"
+          },
+          {
+            "title": "Real-World Applications",
+            "durationMinutes": 55,
+            "content": "Business Applications\nGenerative AI is already reshaping industries :\nIndustry Application\nMarketing Generate personalized email campaigns\nCustomer Service Automate responses to common inquiries\nFinance Summarize financial reports\nHealthcare Draft clinical documentation\nManufacturing Simulate product designs\nEveryday Applications\nWriting assistance: Drafting emails, reports, articles\nBrainstorming: Generating ideas for projects\nLearning: Explaining complex topics\nCoding: Writing and debugging code\nCreativity: Generating images, music, stories"
+          },
+          {
+            "title": "Day 1 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 1.1: Traditional AI vs Generative AI\nInstructions: Classify each task as primarily Traditional AI or Generative AI.\nTask Type\nPredicting customer churn\nWriting a product description\nClassifying emails as spam\nGenerating a logo design\nForecasting sales\nSummarizing a document\nExercise 1.2: Identify the Use Case\nInstructions: For each scenario, identify what type of generative AI is being used (Text, Image,\nAudio, or Code).\nScenario Type\nA marketer uses AI to write ad copy\nA designer creates virtual avatars\nA developer translates code between languages\nA podcaster generates background music"
+          },
+          {
+            "title": "Day 1 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. Generative AI creates new content—text, images, audio, code\n2. It differs from traditional AI by generating rather than just analyzing\n3. Main types: Text, Image, Audio, Code generation\n4. The transformer architecture enabled today's powerful models\n5. Applications span every industry and daily life\nQuiz Yourself\n1. What is generative AI?\n2. How does it differ from traditional AI?\n3. Name three types of generative AI applications.\n4. What architecture enabled modern generative AI?\n5. Give an example of a business application."
+          }
+        ]
+      },
+      {
+        "title": "Day 2 — How Generative AI Works",
+        "description": "Complete the Day 2 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 2 learning objectives",
+            "durationMinutes": 20,
+            "content": "Learning Objectives\nBy the end of Day 2, you will be able to:\nExplain how generative AI models learn\nUnderstand the role of training data\nDescribe how prompts produce outputs\nUnderstand capabilities and limitations"
+          },
+          {
+            "title": "How Models Learn",
+            "durationMinutes": 55,
+            "content": "The Training Process\nGenerative AI models learn by analyzing huge volumes of data—a process called machine learning\n:\n1. Training: The model processes large datasets of content\n2. Pattern Discovery: It identifies patterns and relationships\n3. Generation: It uses learned patterns to produce new content\nWhat Models Learn\nAt the core of generative AI, large language models (LLMs) encapsulate the linguistic and\nsemantic relationships between words and phrases . The model uses these relationships to:\nReason over natural language input\nGenerate meaningful and relevant responses"
+          },
+          {
+            "title": "How Prompts Work",
+            "durationMinutes": 55,
+            "content": "The Prompt-Response Cycle\nGenerative AI applications rely on natural language inputs and produce variable outputs\ndepending on the prompt and context .\nThe process:\n1. Prompt: You provide a natural language request\n2. Parsing: The model parses the input into a form it can understand\n3. Pattern Matching: It identifies matching patterns from training\n4. Generation: It combines patterns to build the final output\nPrompt Design\nCreating a prompt to get the desired response is called prompt design . While it's a process of trial\nand error, there are principles and strategies to guide the model."
+          },
+          {
+            "title": "What LLMs Can and Can't Do",
+            "durationMinutes": 55,
+            "content": "Capabilities\nCapability Description\nWriting Drafts, summaries, reports\nReading Comprehension, analysis\nChatting Conversational interaction\nCoding Code generation and explanation\nReasoning Logical analysis of information\nLimitations\nLimitation Description\nHallucination May generate plausible but incorrect information\nContext Window Limited amount of text it can process at once\nTraining Cutoff Doesn't know events after training date\nBias Reflects biases in training data\nThe Mental Model\nAndrew Ng emphasizes understanding the limitations of LLMs as valuable for effective use . Think\nof an LLM as a \"thought partner\"—helpful but requiring verification ."
+          },
+          {
+            "title": "Prompt Engineering Tips",
+            "durationMinutes": 55,
+            "content": "Effective Prompting\nBased on the course content :\nTechnique Description\nBe Specific Clear instructions produce better results\nProvide Context Background information helps the model\nUse Examples Show the model what you want\nIterate Refine prompts based on outputs\nCommon Use Cases for Prompting\nWriting: Drafting, editing, summarizing\nReading: Analyzing, extracting, explaining\nChatting: Brainstorming, Q&A, research\nCoding: Writing, debugging, explaining code"
+          },
+          {
+            "title": "Day 2 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 2.1: How Models Learn\nInstructions: Complete the sentences.\n1. Generative AI models learn by analyzing ________________.\n2. During training, the model discovers ________________.\n3. The model uses learned patterns to ________________.\nExercise 2.2: Prompt Design\nInstructions: Improve this prompt.\nOriginal: \"Write an email.\"\nImproved: ________________________________________________________________\nImproved: ________________________________________________________________\nExercise 2.3: Identify Limitations\nInstructions: What limitation is being described?\nScenario Limitation\nAn LLM confidently states incorrect facts\nAn LLM doesn't know about last week's news\nAn LLM can't process a 500-page document\nAn LLM produces stereotypical content"
+          },
+          {
+            "title": "Day 2 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. Models learn by analyzing large datasets and discovering patterns\n2. Prompts are natural language requests that produce responses\n3. LLMs can write, read, chat, code, and reason\n4. Limitations include hallucination, context limits, and bias\n5. Prompt engineering improves results\nQuiz Yourself\n1. How do generative AI models learn?\n2. What is a prompt?\n3. Name three capabilities of LLMs.\n4. What is hallucination?\n5. What are prompt engineering tips?"
+          }
+        ]
+      },
+      {
+        "title": "Day 3 — Generative AI Projects & Lifecycle",
+        "description": "Complete the Day 3 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 3 learning objectives",
+            "durationMinutes": 20,
+            "content": "Learning Objectives\nBy the end of Day 3, you will be able to:\nUnderstand the lifecycle of a generative AI project\nIdentify promising use cases\nUnderstand cost considerations\nKnow advanced techniques like RAG and fine-tuning"
+          },
+          {
+            "title": "The Project Lifecycle",
+            "durationMinutes": 55,
+            "content": "From Conception to Launch\nBased on the course outline , the generative AI project lifecycle includes:\nPhase Description\n1. Scoping Define the problem and opportunity\n2. Selection Choose the right model/approach\n3. Customization Adapt to your specific needs\n4. Evaluation Test and validate performance\n5. Deployment Launch and monitor"
+          },
+          {
+            "title": "Advanced Techniques",
+            "durationMinutes": 55,
+            "content": "Retrieval Augmented Generation (RAG)\nRAG connects models to external knowledge sources, such as documents and databases, to\ngenerate more accurate and informative responses .\nWhy RAG matters:\nReduces hallucination\nProvides access to proprietary data\nKeeps information current\nFine-Tuning\nFine-tuning customizes the default behavior of foundation models :\nTrain on your specific data\nReduce cost and latency\nSimplify prompts\nChoosing the Right Approach\nApproach Best For\nPrompting Simple tasks, quick results\nApproach Best For\nRAG Access to external knowledge\nFine-Tuning Specialized behavior, efficiency"
+          },
+          {
+            "title": "Cost Intuition",
+            "durationMinutes": 55,
+            "content": "Understanding Costs\nGenerative AI projects have costs associated with :\nModel inference: Cost per API call\nTraining/fine-tuning: One-time costs\nInfrastructure: Hosting and serving\nCost Optimization\nUse smaller models for simple tasks\nCache responses when possible\nOptimize prompts to reduce tokens"
+          },
+          {
+            "title": "Team and Workflow",
+            "durationMinutes": 55,
+            "content": "Building GenAI Software\nThe teams building generative AI software include :\nProduct Managers: Define use cases and requirements\nEngineers: Build and integrate\nData Specialists: Prepare and manage data\nDomain Experts: Provide subject matter expertise\nNew Workflows and Opportunities\nGenerative AI creates new workflows and new opportunities :\nAutomation of repetitive tasks\nAugmentation of human capabilities\nNew product possibilities"
+          },
+          {
+            "title": "Day 3 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 3.1: Project Lifecycle\nInstructions: Order the phases of a generative AI project.\nPhase Order\nEvaluation\nScoping\nDeployment\nCustomization\nSelection\nExercise 3.2: Choose the Technique\nInstructions: For each scenario, recommend the best technique (Prompting, RAG, or Fine-Tuning).\nScenario Technique\nAnswer questions about company policies\nWrite a quick email draft\nGenerate responses in a specific brand voice\nAccess real-time data"
+          },
+          {
+            "title": "Day 3 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. GenAI projects follow a lifecycle: Scoping → Selection → Customization → Evaluation →\nDeployment\n2. RAG connects models to external knowledge\n3. Fine-tuning customizes model behavior\n4. Costs include inference, training, and infrastructure\n5. Teams include product, engineering, data, and domain experts\nQuiz Yourself\n1. What are the phases of a GenAI project?\n2. What is RAG?\n3. When would you use fine-tuning?\n4. What costs are associated with GenAI?\n5. Who builds GenAI software?"
+          }
+        ]
+      },
+      {
+        "title": "Day 4 — Generative AI in Business & Society",
+        "description": "Complete the Day 4 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 4 learning objectives",
+            "durationMinutes": 20,
+            "content": "Learning Objectives\nBy the end of Day 4, you will be able to:\nIdentify automation potential across departments\nUnderstand the impact on jobs and work\nRecognize concerns about AI\nApply responsible AI principles"
+          },
+          {
+            "title": "Automation Potential",
+            "durationMinutes": 55,
+            "content": "Department Analysis\nGenerative AI has automation potential across departments :\nDepartment Potential Applications\nMarketing Content creation, personalization\nSales Lead qualification, outreach\nCustomer Service Response automation, summarization\nFinance Report generation, analysis\nHR Job descriptions, screening\nLegal Document review, drafting\nWork Task Analysis\nA framework for analyzing workflows helps identify promising generative AI automation and\naugmentation opportunities ."
+          },
+          {
+            "title": "Impact on Jobs",
+            "durationMinutes": 55,
+            "content": "The Transformation\nMcKinsey research shows that generative AI could enable automation of up to 70% of business\nactivities across almost all occupations by 2030 and could add up to $4.4 trillion a year to the\neconomy .\nNew Opportunities\nGenerative AI creates new workflows and new opportunities :\nNew roles and responsibilities\nEnhanced productivity\nCreative possibilities\nConcerns About AI\nCommon concerns include :\nJob displacement\nBias and fairness\nPrivacy and security\nMisinformation"
+          },
+          {
+            "title": "Responsible AI",
+            "durationMinutes": 55,
+            "content": "Key Principles\nResponsible AI involves :\nPrinciple Description\nFairness Avoid bias and discrimination\nTransparency Understand how decisions are made\nPrivacy Protect personal information\nPrinciple Description\nSafety Prevent harmful outputs\nAccountability Clear responsibility for outcomes\nBuilding a More Intelligent World\nThe course concludes with \"Building a More Intelligent World\" —a vision of AI that benefits\neveryone."
+          },
+          {
+            "title": "Day 4 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 4.1: Department Analysis\nInstructions: Identify one GenAI application for each department.\nDepartment Application\nMarketing\nCustomer Service\nFinance\nHR\nExercise 4.2: Responsible AI\nInstructions: For each scenario, identify which responsible AI principle is at stake.\nScenario Principle\nAn AI system produces biased hiring recommendations\nUsers don't know they're talking to an AI\nAn AI system generates harmful content\nPersonal data is used without consent"
+          },
+          {
+            "title": "Day 4 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. GenAI has automation potential across all departments\n2. It could add $4.4 trillion to the economy by 2030\n3. Creates new workflows and opportunities\n4. Responsible AI requires fairness, transparency, privacy, safety, and accountability\nQuiz Yourself\n1. What departments have automation potential?\n2. What is the economic impact of GenAI?\n3. What are common concerns about AI?\n4. What are responsible AI principles?"
+          }
+        ]
+      },
+      {
+        "title": "Day 5 — Responsible AI, Career Paths & Next",
+        "description": "Complete the Day 5 concepts, guided practice, exercises and knowledge check.",
+        "lessons": [
+          {
+            "title": "Day 5 learning objectives",
+            "durationMinutes": 20,
+            "content": "Steps\nLearning Objectives\nBy the end of Day 5, you will be able to:\nApply responsible AI principles\nIdentify opportunities for your own work\nUnderstand career paths in GenAI\nCreate a personal action plan"
+          },
+          {
+            "title": "Responsible AI in Practice",
+            "durationMinutes": 55,
+            "content": "Framework for Responsible Use\nWhen using generative AI, consider:\nQuestion Consideration\nIs it fair? Could this discriminate against any group?\nIs it transparent? Do users know AI is involved?\nIs it private? Am I protecting personal data?\nQuestion Consideration\nIs it safe? Could this cause harm?\nWho is accountable? Who takes responsibility?\nEthical Considerations\nThe course includes \"Responsible AI\" as a key topic . As generative AI becomes more powerful,\nethical use becomes more important."
+          },
+          {
+            "title": "Personal Application",
+            "durationMinutes": 55,
+            "content": "Analyzing Your Work\nA framework for systematically analyzing an individual or a business's workflow to identify\npromising generative AI automation and augmentation opportunities .\nQuestions to ask:\n1. What tasks are repetitive and time-consuming?\n2. What tasks require generating content?\n3. What tasks involve summarizing or analyzing information?\n4. What tasks could benefit from AI assistance?\nDaily Use\nGenerative AI can help in day-to-day work :\nDrafting emails and documents\nSummarizing meetings and reports\nBrainstorming ideas\nLearning new topics\nCoding assistance"
+          },
+          {
+            "title": "Career Paths",
+            "durationMinutes": 55,
+            "content": "Opportunities in GenAI\nRole Focus\nAI Product Manager Define AI-powered products\nPrompt Engineer Design effective prompts\nAI Specialist Implement GenAI solutions\nAI Ethicist Ensure responsible use\nDomain Expert Apply GenAI in specific field\nSkills to Develop\nPrompt Engineering: Crafting effective prompts\nWorkflow Analysis: Identifying automation opportunities\nResponsible AI: Understanding ethical implications\nDomain Expertise: Applying AI in your field"
+          },
+          {
+            "title": "Building a More Intelligent World",
+            "durationMinutes": 55,
+            "content": "The Vision\nThe course concludes with \"Building a More Intelligent World\" —a vision where:\nEveryone can participate in the AI-powered future\nAI augments human capabilities\nBenefits are broadly shared\nYour Role\nThis course was created \"to ensure everyone can be a participant in our AI-powered future\" .\nYou now have the foundation to:\nUse generative AI effectively\nIdentify opportunities in your work\nContribute to responsible AI development"
+          },
+          {
+            "title": "Day 5 practical workshop",
+            "durationMinutes": 90,
+            "content": "Exercise 5.1: Work Analysis\nInstructions: Analyze your own work for GenAI opportunities.\nTask Repetitive? Content Generation? AI Opportunity?\nExercise 5.2: Action Plan\nInstructions: Create your personal GenAI action plan.\nWhat I will do this week:\n1.\n2.\nWhat I will learn:\n1.\n2.\nHow I will apply it:"
+          },
+          {
+            "title": "Day 5 summary and knowledge check",
+            "durationMinutes": 30,
+            "content": "Key Takeaways\n1. Responsible AI requires fairness, transparency, privacy, safety, accountability\n2. Workflow analysis identifies automation opportunities\n3. Career paths exist in product, engineering, ethics, and domain expertise\n4. Everyone can be a participant in the AI-powered future\nQuiz Yourself\n1. What are responsible AI principles?\n2. How do you analyze work for GenAI opportunities?\n3. What career paths exist in GenAI?\n4. What is the vision for AI?"
+          }
+        ]
+      },
+      {
+        "title": "Final Assessment",
+        "description": "Demonstrate understanding across the complete 5-day programme.",
+        "lessons": [
+          {
+            "title": "Generative AI for Everyone final assessment",
+            "durationMinutes": 90,
+            "content": "Generative AI for Everyone Test\nSection 1: Concepts (25 points)\n1. Define generative AI.\n2. How does generative AI differ from traditional AI?\n3. Name three types of generative AI applications.\n4. What is a large language model (LLM)?\n5. What architecture enabled modern generative AI?\nSection 2: How It Works (25 points)\n1. How do generative AI models learn?\n2. What is a prompt?\n3. Name two capabilities and two limitations of LLMs.\n4. What is prompt engineering?\n5. What is hallucination?\nSection 3: Projects & Applications (25 points)\n1. What are the phases of a GenAI project lifecycle?\n2. What is RAG and why is it useful?\n3. When would you use fine-tuning?\n4. Name three departments with GenAI automation potential.\n5. What is the estimated economic impact of GenAI?\nSection 4: Responsible AI & Career (25 points)\n1. What are responsible AI principles?\n2. How do you analyze work for GenAI opportunities?\n3. Name three career paths in GenAI.\n4. What is your personal action plan?"
+          }
+        ]
+      }
+    ],
+    "audit": {
+      "moduleCount": 7,
+      "lessonCount": 36
+    }
+  }
+]
