@@ -12,7 +12,8 @@
  */
 export async function verifyRecaptcha(
   token: string | null | undefined,
-  threshold = 0.5
+  threshold = 0.5,
+  expectedAction?: string
 ): Promise<{ success: boolean; score?: number; error?: string }> {
   const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
@@ -47,6 +48,10 @@ export async function verifyRecaptcha(
 
     if (data.score < threshold) {
       return { success: false, score: data.score, error: "reCAPTCHA score too low — possible bot" };
+    }
+
+    if (expectedAction && data.action !== expectedAction) {
+      return { success: false, score: data.score, error: "reCAPTCHA action mismatch" };
     }
 
     return { success: true, score: data.score };

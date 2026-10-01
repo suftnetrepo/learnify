@@ -18,8 +18,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // reCAPTCHA
-    const captcha = await verifyRecaptcha(body.recaptchaToken);
+    const captcha = await verifyRecaptcha(body.recaptchaToken, 0.5, "register");
     if (!captcha.success) {
+      log.warn("Registration reCAPTCHA failed", { error: captcha.error, score: captcha.score });
       return errorResponse("Security check failed. Please try again.", "CAPTCHA_FAILED", 400);
     }
 

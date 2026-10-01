@@ -9,7 +9,7 @@ import { Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function FloatingInput({
-  id, label, type = "text", placeholder, value, onChange,
+  id, label, type = "text", value, onChange,
   autoComplete, required, disabled, rightElement, hint, error,
 }: {
   id: string; label: string; type?: string; placeholder: string;
@@ -148,6 +148,7 @@ function RegisterFormInner() {
           password:        fields.password,
           role:            prefillRole,
           invitationToken: token,
+          recaptchaToken,
         }),
       });
       const data = await res.json();

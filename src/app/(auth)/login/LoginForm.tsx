@@ -69,7 +69,10 @@ function AuthInput({
 function LoginFormInner() {
   const router       = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl  = searchParams.get("callbackUrl") ?? "/dashboard";
+  const requestedUrl = searchParams.get("callbackUrl");
+  const callbackUrl  = requestedUrl?.startsWith("/") && !requestedUrl.startsWith("//")
+    ? requestedUrl
+    : "/dashboard";
 
   const [loading,  setLoading]  = useState(false);
   const [showPass, setShowPass] = useState(false);
@@ -84,20 +87,25 @@ function LoginFormInner() {
     setError("");
     setLoading(true);
 
-    const result = await signIn("credentials", {
-      email:    fields.email,
-      password: fields.password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email:    fields.email,
+        password: fields.password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      setError("Incorrect email or password. Please try again.");
+      if (result?.error) {
+        setError("Incorrect email or password. Please try again.");
+        return;
+      }
+
+      router.push(callbackUrl);
+      router.refresh();
+    } catch {
+      setError("We couldn't sign you in right now. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push(callbackUrl);
-    router.refresh();
   }
 
   return (
