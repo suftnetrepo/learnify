@@ -602,6 +602,24 @@ export class CourseService {
   }
 
   /**
+   * Course length from its published lessons. "Video" only counts lessons that actually
+   * have a video attached — lesson durations alone (e.g. a live session's planned length)
+   * must not be advertised as video. Durations are seconds.
+   */
+  static async getDurationStats(courseId: string): Promise<{ lessons: number; lessonSeconds: number; videoSeconds: number }> {
+    const [row] = await db
+      .select({
+        lessons:       count(lectures.id),
+        lessonSeconds: sql<number>`COALESCE(SUM(${lectures.videoDuration}), 0)`.mapWith(Number),
+        videoSeconds:  sql<number>`COALESCE(SUM(${lectures.videoDuration}) FILTER (WHERE ${lectures.videoUrl} IS NOT NULL), 0)`.mapWith(Number),
+      })
+      .from(lectures)
+      .innerJoin(courseSections, eq(lectures.sectionId, courseSections.id))
+      .where(and(eq(courseSections.courseId, courseId), eq(lectures.isPublished, true)));
+    return row;
+  }
+
+  /**
    * Recalculate totalLectures and totalDuration from child tables.
    * Called after adding / removing lectures.
    */

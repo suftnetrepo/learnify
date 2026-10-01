@@ -12,7 +12,7 @@ import {
   CheckCircle2, PlayCircle, Award, MapPin,
   Video, Shield, Zap, ChevronRight,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDuration } from "@/lib/utils";
 import { CourseDetailTabs } from "./CourseDetailTabs";
 import { CourseService } from "@/services";
 import { SessionService } from "@/services/session.service";
@@ -46,7 +46,12 @@ export default async function CourseDetailPage({ params }: Props) {
   if (!result) notFound();
   const { course, sectionsWithLectures, tutors, reviews } = result;
   const upcomingSessions = await SessionService.getUpcomingForCourse(course.id);
-  const requiresSession = await SessionService.requiresSession(course.id, course.format);
+  const [requiresSession, duration] = await Promise.all([
+    SessionService.requiresSession(course.id, course.format),
+    CourseService.getDurationStats(course.id),
+  ]);
+  // A session course with nothing upcoming can't be booked — never show "Enrol now" for it
+  const noUpcomingSessions = requiresSession && upcomingSessions.length === 0;
   // Pre-purchase session picker: never send join links/passwords to the browser
   const sessionOptions = upcomingSessions.map(SessionService.withoutJoinDetails).map((item) => ({
     ...item,
@@ -72,7 +77,9 @@ export default async function CourseDetailPage({ params }: Props) {
   const whatYouLearn = safeParse(course.whatYouLearn);
   const requirements = safeParse(course.requirements);
   const rating       = Number(course.averageRating ?? 0);
-  const totalHours   = course.totalDuration ? Math.round(course.totalDuration / 3600) : null;
+  // Computed from the lessons themselves (seconds). Only lessons with a video count as video.
+  const lessonTime = duration.lessonSeconds ? formatDuration(Math.round(duration.lessonSeconds / 60)) : null;
+  const videoTime  = duration.videoSeconds  ? formatDuration(Math.round(duration.videoSeconds / 60))  : null;
 
   return (
     <div className="min-h-screen bg-white pb-24 lg:pb-0">
@@ -146,9 +153,9 @@ export default async function CourseDetailPage({ params }: Props) {
                     <Globe size={12} /> {course.language}
                   </span>
                 )}
-                {totalHours && (
+                {lessonTime && (
                   <span className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-gray-200">
-                    <Clock size={12} /> {totalHours}h total
+                    <Clock size={12} /> {lessonTime} total
                   </span>
                 )}
                 {course.format === "in_person" && (
@@ -173,8 +180,8 @@ export default async function CourseDetailPage({ params }: Props) {
         <div className="container">
           <div className="flex flex-wrap gap-8 py-5">
             {[
-              { icon: BookOpen, label: `${course.totalLectures ?? "—"} lectures` },
-              { icon: Clock,    label: totalHours ? `${totalHours} hours of video` : "Self-paced" },
+              { icon: BookOpen, label: `${duration.lessons} lessons` },
+              { icon: Clock,    label: videoTime ? `${videoTime} of video` : lessonTime ? `${lessonTime} of lessons` : "Self-paced" },
               { icon: Award,    label: "Certificate of completion" },
               { icon: Shield,   label: "30-day money-back guarantee" },
               { icon: Globe,    label: "Access on any device" },
@@ -254,6 +261,13 @@ export default async function CourseDetailPage({ params }: Props) {
                       className="flex h-11 w-full items-center justify-center rounded-xl border border-surface-200 bg-white text-sm font-semibold text-gray-700 hover:bg-surface-50 transition-colors">
                       Continue learning →
                     </Link>
+                  </div>
+                ) : noUpcomingSessions && session?.user.role !== "student" ? (
+                  <div className="space-y-2">
+                    <div className="flex h-12 w-full cursor-not-allowed items-center justify-center rounded-xl bg-surface-100 text-sm font-bold text-gray-400">
+                      No upcoming sessions
+                    </div>
+                    <p className="text-center text-xs text-gray-400">New dates haven&apos;t been scheduled yet — check back soon.</p>
                   </div>
                 ) : !session ? (
                   <div className="space-y-2">
@@ -341,6 +355,10 @@ export default async function CourseDetailPage({ params }: Props) {
               className="flex h-11 items-center rounded-xl bg-brand-500 px-6 text-sm font-bold text-white">
               Continue →
             </Link>
+          ) : noUpcomingSessions ? (
+            <span className="flex h-11 cursor-not-allowed items-center rounded-xl bg-surface-100 px-5 text-sm font-bold text-gray-400">
+              No upcoming sessions
+            </span>
           ) : !session ? (
             <Link href={`/login?callbackUrl=/courses/${slug}`}
               className="flex h-11 items-center rounded-xl bg-brand-500 px-6 text-sm font-bold text-white">

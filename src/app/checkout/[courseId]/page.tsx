@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDuration } from "@/lib/utils";
 import { CheckoutButton } from "./CheckoutButton";
 import { Badge } from "@/components/ui/Badge";
 import { BookOpen, Clock, BarChart, Globe, Users, CheckCircle2, ArrowLeft } from "lucide-react";
@@ -30,12 +30,13 @@ export default async function CheckoutPage({ params }: Props) {
   const course = await CourseService.findById(courseId);
   if (!course || course.status !== "published") notFound();
 
-  const [upcomingSessions, isEnrolled, tutors] = await Promise.all([
+  const [upcomingSessions, isEnrolled, tutors, duration] = await Promise.all([
     SessionService.getUpcomingForCourse(courseId),
     session?.user?.role === "student"
       ? EnrollmentService.isEnrolled(session.user.id, courseId)
       : Promise.resolve(false),
     TutorService.getCourseTutors(courseId),
+    CourseService.getDurationStats(courseId),
   ]);
 
   const isSessionCourse = await SessionService.requiresSession(courseId, course.format);
@@ -92,8 +93,8 @@ export default async function CheckoutPage({ params }: Props) {
               {course.level && (
                 <span className="flex items-center gap-1.5"><BarChart size={15} /> {course.level}</span>
               )}
-              {course.totalDuration && (
-                <span className="flex items-center gap-1.5"><Clock size={15} /> {Math.round(course.totalDuration / 60)}h</span>
+              {duration.lessonSeconds > 0 && (
+                <span className="flex items-center gap-1.5"><Clock size={15} /> {formatDuration(Math.round((duration.videoSeconds || duration.lessonSeconds) / 60))}{duration.videoSeconds ? " of video" : " of lessons"}</span>
               )}
               {course.totalLectures && (
                 <span className="flex items-center gap-1.5"><BookOpen size={15} /> {course.totalLectures} lectures</span>
