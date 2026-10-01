@@ -50,15 +50,9 @@ export default async function HomePage() {
           <div className="grid grid-cols-1 items-end gap-8 lg:grid-cols-2">
             {/* Left copy */}
             <div className="pb-16 pt-8 lg:pb-24">
-              {/* Badge */}
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-brand-500/10 border border-brand-200 px-4 py-1.5">
-                <TrendingUp size={13} className="text-brand-600" />
-                <span className="text-xs font-semibold text-brand-700">#1 Rated Learning Platform</span>
-              </div>
-
               <h1 className="font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-gray-900 sm:text-5xl lg:text-6xl xl:text-7xl">
                 Expert learning<br />
-                now in your{" "}
+                now at your{" "}
                 <span className="text-brand-500 ">Fingertips</span>
               </h1>
 
