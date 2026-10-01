@@ -7,6 +7,7 @@ import {
   timestamp,
   index,
   uniqueIndex,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { sessionStatusEnum, conferencePlatformEnum } from "./enums";
@@ -53,6 +54,9 @@ export const courseSessions = pgTable(
 
     // Status
     status: sessionStatusEnum("session_status").notNull().default("scheduled"),
+    // Unpublished sessions are hidden from students and can't be booked, whatever their
+    // dates — admins/tutors still see them. Students already booked keep their booking.
+    isPublished: boolean("is_published").notNull().default(true),
 
     // Timestamps
     createdAt: timestamp("created_at").defaultNow().notNull(),

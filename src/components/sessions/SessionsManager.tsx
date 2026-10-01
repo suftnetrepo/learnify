@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/Toast";
 import {
   Plus, Calendar, Clock, MapPin, Video,
   ChevronDown, ChevronUp, Trash2, X, Check,
-  Ban, Mail, Pencil,
+  Ban, Mail, Pencil, EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CandidateEmailPanel } from "@/components/sessions/CandidateEmailPanel";
@@ -23,6 +23,7 @@ interface Session {
   seatsRemaining:     number;
   isFull:             boolean;
   status:             "scheduled" | "cancelled" | "completed";
+  isPublished:        boolean;
   venueAddress:       string | null;
   venueCity:          string | null;
   venuePostcode:      string | null;
@@ -128,6 +129,14 @@ function SessionCard({ s, onRefresh, onEdit }: {
             )}>
               {s.status}
             </span>
+            {!s.isPublished && (
+              <span
+                className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700"
+                title="Hidden from students and not bookable"
+              >
+                <EyeOff size={11} /> Unpublished
+              </span>
+            )}
           </div>
           <div className="mt-1 flex items-center gap-3 text-xs text-gray-400 flex-wrap">
             <span className="flex items-center gap-1">
@@ -241,6 +250,7 @@ function SessionFormModal({
   const { success, error } = useToast();
   const [saving,   setSaving]   = useState(false);
   const [platform, setPlatform] = useState(session?.conferencePlatform ?? "zoom");
+  const [published, setPublished] = useState(session?.isPublished ?? true);
   const isEdit  = !!session;
   const isVenue = format === "in_person" || format === "hybrid";
   const isLive  = format === "online"    || format === "hybrid";
@@ -258,6 +268,7 @@ function SessionFormModal({
       startDatetime: new Date(fd.get("startDatetime") as string).toISOString(),
       endDatetime:   new Date(fd.get("endDatetime")   as string).toISOString(),
       capacity:      Number(fd.get("capacity")),
+      isPublished:   published,
     };
 
     if (isVenue) {
@@ -341,6 +352,30 @@ function SessionFormModal({
                 <p className="mt-1 text-xs text-gray-400">{session.enrolledCount} already booked — can&apos;t go below that.</p>
               )}
             </div>
+
+            {/* Published */}
+            <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-surface-200 p-4">
+              <span>
+                <span className="block text-sm font-semibold text-gray-900">Published</span>
+                <span className="mt-0.5 block text-xs text-gray-500">
+                  {published
+                    ? "Visible to students and open for booking (within its dates)."
+                    : "Hidden from students and can't be booked. Anyone already booked keeps their place."}
+                </span>
+              </span>
+              <span className="relative mt-0.5 inline-flex flex-shrink-0">
+                <input
+                  type="checkbox"
+                  role="switch"
+                  name="isPublished"
+                  checked={published}
+                  onChange={(e) => setPublished(e.target.checked)}
+                  className="peer sr-only"
+                />
+                <span className="h-6 w-11 rounded-full bg-gray-300 transition-colors peer-checked:bg-brand-500 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-300" />
+                <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5" />
+              </span>
+            </label>
 
             {/* Venue details */}
             {isVenue && (

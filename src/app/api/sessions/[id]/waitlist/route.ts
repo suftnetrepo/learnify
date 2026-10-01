@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { SessionService } from "@/services";
 import {
   successResponse, createdResponse, unauthorized,
-  forbidden, serverError, conflict,
+  forbidden, serverError, conflict, notFound,
 } from "@/lib/api-response";
 
 export async function GET(
@@ -30,6 +30,8 @@ export async function POST(
     if (session.user.role !== "student") return forbidden("Only students can join a waitlist");
 
     const { id } = await params;
+    const target  = await SessionService.findById(id);
+    if (!target || !target.isPublished || target.status !== "scheduled") return notFound("Session");
     const entry   = await SessionService.joinWaitlist(id, session.user.id);
     return createdResponse(entry, `You're on the waitlist at position ${entry.position}`);
   } catch (error) {

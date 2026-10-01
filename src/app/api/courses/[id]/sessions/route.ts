@@ -17,6 +17,7 @@ const createSchema = z.object({
   venuePostcode:      z.string().max(20).optional(),
   venueMapUrl:        z.string().url().optional().or(z.literal("")),
   conferencePassword: z.string().max(100).optional(),
+  isPublished:        z.boolean().optional(),
   conferencePlatform: z.enum(["zoom","teams","google_meet","webex","other"]).optional(),
   conferenceUrl:      z.string().url().optional(),
 });
@@ -30,10 +31,13 @@ export async function GET(
     if (!session?.user) return unauthorized();
 
     const { id: courseId } = await params;
-    const [sessions, canSeeJoin] = await Promise.all([
+    const [all, canSeeJoin, canManage] = await Promise.all([
       SessionService.getForCourse(courseId),
       SessionService.canSeeJoinDetails(session.user.id, session.user.role, courseId),
+      SessionService.canManageCourseSessions(session.user.id, session.user.role, courseId),
     ]);
+    // Unpublished sessions are only listed for admins and the course's tutors
+    const sessions = canManage ? all : all.filter((s) => s.isPublished);
     return successResponse(canSeeJoin ? sessions : sessions.map(SessionService.withoutJoinDetails));
   } catch (error) {
     return serverError();

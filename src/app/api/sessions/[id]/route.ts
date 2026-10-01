@@ -22,6 +22,7 @@ const updateSchema = z.object({
   conferenceUrl:      z.string().url().nullish(),
   conferencePassword: z.string().max(100).nullish(),
   status:             z.enum(["scheduled","cancelled","completed"]).optional(),
+  isPublished:        z.boolean().optional(),
 });
 
 export async function GET(
@@ -34,6 +35,9 @@ export async function GET(
     const { id } = await params;
     const s = await SessionService.findById(id);
     if (!s) return notFound("Session");
+    if (!s.isPublished && !(await SessionService.canManageCourseSessions(session.user.id, session.user.role, s.courseId))) {
+      return notFound("Session");
+    }
     const canSeeJoin = await SessionService.canSeeJoinDetails(session.user.id, session.user.role, s.courseId);
     return successResponse(canSeeJoin ? s : SessionService.withoutJoinDetails(s));
   } catch { return serverError(); }

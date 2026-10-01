@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       if (!sess) return notFound("Session");
       if (sess.courseId !== courseId) return validationError({ sessionId: ["Session does not belong to this course"] });
       if (sess.isFull)  return conflict("This session is full. Please choose another.");
-      if (sess.status !== "scheduled") return conflict("This session is no longer available.");
+      if (sess.status !== "scheduled" || !sess.isPublished) return conflict("This session is no longer available.");
       if (sess.startDatetime <= new Date()) return conflict("This session has already started. Please choose another.");
     }
 

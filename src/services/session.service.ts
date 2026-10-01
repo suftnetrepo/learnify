@@ -21,6 +21,8 @@ export interface CreateSessionPayload {
   conferencePlatform?: "zoom" | "teams" | "google_meet" | "webex" | "other";
   conferenceUrl?:     string;
   conferencePassword?: string;
+  // Hidden from students and not bookable when false (default true)
+  isPublished?:       boolean;
 }
 
 /** Optional text fields that an edit may clear by sending null. */
@@ -91,6 +93,15 @@ export class SessionService {
     return !!row;
   }
 
+  /** Admins and tutors with access to the course see unpublished sessions; nobody else does. */
+  static async canManageCourseSessions(userId: string | undefined, role: string | undefined, courseId: string): Promise<boolean> {
+    if (!userId || !role) return false;
+    if (role === "admin") return true;
+    if (role !== "tutor") return false;
+    const { requireCourseAccess } = await import("@/lib/access/course");
+    return requireCourseAccess(userId, courseId, role, "viewer");
+  }
+
   /** The session with its join link and password removed (platform name kept). */
   static withoutJoinDetails<T extends { conferenceUrl: string | null; conferencePassword: string | null }>(session: T): T {
     return { ...session, conferenceUrl: null, conferencePassword: null };
@@ -105,6 +116,7 @@ export class SessionService {
         and(
           eq(courseSessions.courseId,  courseId),
           eq(courseSessions.status,    "scheduled"),
+          eq(courseSessions.isPublished, true),   // unpublished sessions aren't offered for booking
           gt(courseSessions.startDatetime, now)
         )
       )
@@ -157,6 +169,7 @@ export class SessionService {
         conferenceUrl:      payload.conferenceUrl      ?? null,
         conferencePassword: payload.conferencePassword ?? null,
         status:             "scheduled",
+        isPublished:        payload.isPublished ?? true,
       })
       .returning();
 
@@ -185,6 +198,7 @@ export class SessionService {
     if (payload.conferenceUrl      !== undefined) updateData.conferenceUrl      = payload.conferenceUrl;
     if (payload.conferencePassword !== undefined) updateData.conferencePassword = payload.conferencePassword;
     if (payload.status             !== undefined) updateData.status             = payload.status;
+    if (payload.isPublished        !== undefined) updateData.isPublished        = payload.isPublished;
 
     const [updated] = await db
       .update(courseSessions)
@@ -518,7 +532,7 @@ export class SessionService {
    */
   static async getStudentSessions(studentId: string) {
     const { enrollments, courseSessions, courses } = await import("@/db/schema");
-    const { eq, asc } = await import("drizzle-orm");
+    const { eq, asc, and, or } = await import("drizzle-orm");
 
     return db
       .select({
@@ -542,7 +556,11 @@ export class SessionService {
       .from(courseSessions)
       .innerJoin(courses,     eq(courseSessions.courseId, courses.id))
       .innerJoin(enrollments, eq(enrollments.courseId,    courses.id))
-      .where(eq(enrollments.studentId, studentId))
+      .where(and(
+        eq(enrollments.studentId, studentId),
+        // Unpublished sessions stay hidden — unless it's the one this student is booked on
+        or(eq(courseSessions.isPublished, true), eq(enrollments.sessionId, courseSessions.id)),
+      ))
       .orderBy(asc(courseSessions.startDatetime));
   }
 
