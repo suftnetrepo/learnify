@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Menu, X, LayoutDashboard, BookOpen, GraduationCap, ChevronDown } from "lucide-react";
+import { Menu, X, LayoutDashboard, BookOpen, GraduationCap, ChevronDown, Search } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
@@ -20,20 +20,20 @@ export function Navbar({ session }: NavbarProps) {
   const initial  = session?.user?.name?.[0]?.toUpperCase() ?? session?.user?.email?.[0]?.toUpperCase() ?? "U";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-surface-100 bg-white/95 backdrop-blur-sm">
-      <div className="container flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-40 border-b border-white/70 bg-white/90 shadow-[0_8px_30px_rgba(37,39,86,0.05)] backdrop-blur-xl">
+      <div className="container flex h-[74px] items-center justify-between">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5">
-          <Image src="/logo.png" alt="Edquis" width={48} height={48} className="flex-shrink-0" priority />
-          <span className="font-display text-lg font-bold text-gray-900">Edquis</span>
+        <Link href="/" className="flex items-center gap-2.5" aria-label="Edquis home">
+          <Image src="/logo.png" alt="" width={46} height={46} className="flex-shrink-0" preload />
+          <span className="font-display text-xl font-extrabold tracking-tight text-gray-950">Edquis</span>
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-0.5 md:flex">
+        <nav className="hidden h-full items-center gap-1 md:flex">
           {!session ? (
             <>
-              <Link href="/" className="rounded-lg px-3.5 py-2 text-sm font-medium text-gray-800 hover:text-gray-900 transition-colors">Home</Link>
+              <Link href="/" className="relative flex h-full items-center px-3.5 text-sm font-bold text-brand-600 after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-0.5 after:rounded-full after:bg-brand-500">Home</Link>
               <Link href="/courses" className="rounded-lg px-3.5 py-2 text-sm text-gray-500 hover:text-gray-800 transition-colors">Courses</Link>
               <Link href="/about" className="rounded-lg px-3.5 py-2 text-sm text-gray-500 hover:text-gray-800 transition-colors">About Us</Link>
               <Link href="/blog" className="rounded-lg px-3.5 py-2 text-sm text-gray-500 hover:text-gray-800 transition-colors">Blog</Link>
@@ -109,15 +109,18 @@ export function Navbar({ session }: NavbarProps) {
             </div>
           ) : (
             <>
+              <Link href="/courses" aria-label="Search courses" className="mr-1 flex h-10 w-10 items-center justify-center rounded-full text-gray-500 transition hover:bg-brand-50 hover:text-brand-600">
+                <Search size={20} />
+              </Link>
               <Link
                 href="/login"
-                className="inline-flex h-9 items-center rounded-full border border-surface-200 bg-white px-5 text-sm font-semibold text-gray-700 hover:bg-surface-50 hover:border-surface-300 transition-colors"
+                className="inline-flex h-11 items-center rounded-2xl border border-brand-100 bg-white px-6 text-sm font-bold text-gray-700 shadow-sm transition hover:border-brand-200 hover:bg-brand-50"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
-                className="inline-flex h-9 items-center rounded-full bg-brand-500 px-5 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+                className="inline-flex h-11 items-center rounded-2xl bg-gradient-to-r from-brand-600 to-violet-600 px-6 text-sm font-bold text-white shadow-[0_10px_24px_rgba(99,102,241,0.24)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(99,102,241,0.32)]"
               >
                 Sign Up
               </Link>
