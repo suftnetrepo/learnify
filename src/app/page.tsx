@@ -39,11 +39,11 @@ export default async function HomePage() {
       <Navbar session={session} />
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-[#fdf8f0] pt-16 pb-0">
+      <section className="relative overflow-hidden bg-white pt-16 pb-0">
         {/* Decorative blobs */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -right-32 -top-32 h-[500px] w-[500px] rounded-full bg-brand-100/60 blur-3xl" />
-          <div className="absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full bg-amber-100/50 blur-3xl" />
+          <div className="absolute -right-32 -top-32 h-[500px] w-[500px] rounded-full bg-[#f0ebff]/80 blur-3xl" />
+          <div className="absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full bg-[#f7e7d5]/70 blur-3xl" />
         </div>
 
         <div className="container relative">
@@ -53,7 +53,7 @@ export default async function HomePage() {
               <h1 className="font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-gray-900 sm:text-5xl lg:text-6xl xl:text-7xl">
                 Expert learning<br />
                 now at your{" "}
-                <span className="text-brand-500 ">Fingertips</span>
+                <span className="bg-gradient-to-r from-[#3b2e83] via-[#4f46e5] to-[#6d5ef6] bg-clip-text text-transparent">Fingertips</span>
               </h1>
 
               <p className="mt-5 max-w-lg text-base text-gray-500 leading-relaxed">
@@ -73,7 +73,7 @@ export default async function HomePage() {
                 </Link>
                 <Link
                   href="/courses"
-                  className="flex-shrink-0 inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-3.5 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+                  className="flex-shrink-0 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-violet-600 px-5 py-3.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(99,102,241,0.24)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(99,102,241,0.32)]"
                 >
                   Get Started
                 </Link>
@@ -97,14 +97,13 @@ export default async function HomePage() {
 
             {/* Right illustration */}
             <div className="relative hidden lg:flex items-end justify-center pb-16 pt-8 lg:pb-24">
-              {/* Photo backdrop */}
-              <div className="relative h-[620px] w-[590px] overflow-hidden rounded--[5px]">
+              <div className="relative h-[620px] w-[590px] overflow-hidden rounded-[20px] bg-transparent">
                 <Image
-                  src="/student-learning-hero.png"
+                  src="/edquis--home-hero.png"
                   alt="Student taking notes while following an online course on her laptop"
                   fill
                   sizes="560px"
-                  className="object-cover"
+                  className="object-contain object-center"
                   priority
                 />
               </div>
@@ -191,7 +190,7 @@ export default async function HomePage() {
               <div className="relative h-[480px] overflow-hidden rounded-3xl">
                 {/* Illustration */}
                 <Image
-                  src="/student-study.png"
+                  src="/student-study__.png"
                   alt="Instructor explaining a concept at a whiteboard"
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
