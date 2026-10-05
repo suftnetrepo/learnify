@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "@/db";
 import { users } from "@/db/schema";
@@ -8,6 +8,12 @@ import { loginSchema } from "@/lib/validations/auth";
 import { log } from "@/lib/logger";
 import * as Sentry from "@sentry/nextjs";
 import { rateLimit } from "@/lib/rate-limit";
+import { getAuthState, invalidateAuthState } from "./status-cache";
+
+/** Surfaced to the login form as `result.code === "suspended"`. */
+class AccountSuspendedError extends CredentialsSignin {
+  code = "suspended";
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // Render (and most non-Vercel hosts) don't set any of the env vars
@@ -36,6 +42,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id as string;
         token.role = user.role as string;
         token.status = user.status as string;
+        return token;
+      }
+
+      // Every later request: re-read status/role so suspensions, deletions and
+      // role changes take effect immediately instead of when the JWT expires.
+      // Returning null clears the session cookie, signing the user out everywhere
+      // (pages, proxy and API routes) regardless of role.
+      if (!token.id) return null;
+      try {
+        const current = await getAuthState(token.id as string);
+        if (current.revoked) {
+          log.info("Revoking session", { userId: token.id });
+          return null;
+        }
+
+        token.role = current.role;
+        token.status = current.status;
+      } catch (error) {
+        // Fail open on transient DB errors — throwing here would sign every user out.
+        log.error("Session status refresh failed", { error, userId: token.id });
       }
       return token;
     },
@@ -73,19 +99,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null; // NextAuth will surface an error to the user
         }
 
+        let user;
         try {
-          const [user] = await db
+          [user] = await db
             .select()
             .from(users)
             .where(and(eq(users.email, email), isNull(users.deletedAt)))
             .limit(1);
 
           if (!user || !user.passwordHash) return null;
-          if (user.status === "suspended") return null;
 
           const isValid = await bcrypt.compare(password, user.passwordHash);
           if (!isValid) return null;
+        } catch (error) {
+          log.error("Auth error", { error });
+          return null;
+        }
 
+        // Checked only after the password matches so the suspended state
+        // isn't disclosed to someone guessing credentials.
+        if (user.status === "suspended") {
+          log.warn("Suspended user attempted sign-in", { userId: user.id });
+          throw new AccountSuspendedError();
+        }
+
+        // We just read fresh state — drop any stale cached "revoked" entry so a
+        // reactivated user isn't bounced by the cache right after signing in.
+        invalidateAuthState(user.id);
+
+        try {
           // Update last login
           await db
             .update(users)

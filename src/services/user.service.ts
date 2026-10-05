@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { users, tutorInvitations } from "@/db/schema";
 import { eq, and, or, ilike, desc, count, isNull, sql } from "drizzle-orm";
 import { log } from "@/lib/logger";
+import { invalidateAuthState } from "@/lib/auth/status-cache";
 import type {
   UserListItem, UserListResult, UserFilters, UpdateUserPayload, User,
 } from "@/types";
@@ -136,6 +137,7 @@ export class UserService {
         stripeAccountId:        users.stripeAccountId,
       });
 
+    if (payload.status !== undefined || payload.role !== undefined) invalidateAuthState(id);
     log.info("User updated", { userId: id, changes: Object.keys(payload) });
     return updated as User;
   }
@@ -149,6 +151,7 @@ export class UserService {
       .set({ deletedAt: new Date(), updatedAt: new Date() })
       .where(eq(users.id, id));
 
+    invalidateAuthState(id);
     log.info("User soft-deleted", { userId: id });
   }
 

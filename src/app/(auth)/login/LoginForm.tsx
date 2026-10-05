@@ -94,6 +94,11 @@ function LoginFormInner() {
         redirect: false,
       });
 
+      if (result?.code === "suspended") {
+        router.push("/suspended");
+        return;
+      }
+
       if (result?.error) {
         setError("Incorrect email or password. Please try again.");
         return;
