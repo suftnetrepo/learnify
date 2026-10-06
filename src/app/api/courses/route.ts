@@ -38,7 +38,15 @@ export async function POST(req: NextRequest) {
     const parsed = createCourseSchema.safeParse(body);
     if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors as Record<string, string[]>);
 
-    const course = await CourseService.create(parsed.data, session.user.id);
+    const payload = session.user.role === "admin"
+      ? parsed.data
+      : {
+          ...parsed.data,
+          facilitatorHandbookUrl: undefined,
+          facilitatorHandbookName: undefined,
+        };
+
+    const course = await CourseService.create(payload, session.user.id);
 
     // Manager-tutor courses need an assignment row so requireCourseAccess
     // recognises them as the (manager-level) owner on subsequent requests.
