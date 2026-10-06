@@ -20,8 +20,11 @@ if (!process.env.DATABASE_URL) {
  *   - Dev:        postgresql://localhost/learnify
  *   - Prod pool:  postgresql://user:pass@host.neon.tech:6543/learnify?pgbouncer=true&connect_timeout=10
  */
-const isServerless = process.env.VERCEL || process.env.RAILWAY_ENVIRONMENT;
-const maxConnections = isServerless ? 1 : 10;
+const isServerless = !!(process.env.VERCEL || process.env.RAILWAY_ENVIRONMENT);
+const isMemoryConstrainedHost = process.env.RENDER === "true";
+// A Render web service is long-running, but ten postgres connections add avoidable
+// baseline memory on a small instance. Two still allow concurrent page/API work.
+const maxConnections = isServerless ? 1 : isMemoryConstrainedHost ? 2 : 10;
 
 const client = postgres(process.env.DATABASE_URL, {
   max:             maxConnections,
