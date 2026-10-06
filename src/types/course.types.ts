@@ -17,6 +17,8 @@ export interface Course {
   language:         string | null;
   handoutUrl:       string | null;
   handoutName:      string | null;
+  facilitatorHandbookUrl:  string | null;
+  facilitatorHandbookName: string | null;
   location:         string | null;
   thumbnailUrl:     string | null;
   totalDuration:    number | null;
@@ -116,6 +118,8 @@ export interface CreateCoursePayload {
   language?:        string;
   handoutUrl?:      string;
   handoutName?:     string;
+  facilitatorHandbookUrl?:  string;
+  facilitatorHandbookName?: string;
 }
 
 export type UpdateCoursePayload = Partial<CreateCoursePayload>;

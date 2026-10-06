@@ -517,6 +517,8 @@ export class CourseService {
         language:         payload.language ?? "English",
         handoutUrl:       payload.handoutUrl || null,
         handoutName:      payload.handoutName || null,
+        facilitatorHandbookUrl:  payload.facilitatorHandbookUrl || null,
+        facilitatorHandbookName: payload.facilitatorHandbookName || null,
         createdBy,
       })
       .returning();
@@ -546,6 +548,8 @@ export class CourseService {
     if (payload.language         !== undefined) updateData.language         = payload.language;
     if (payload.handoutUrl       !== undefined) updateData.handoutUrl       = payload.handoutUrl || null;
     if (payload.handoutName      !== undefined) updateData.handoutName      = payload.handoutName || null;
+    if (payload.facilitatorHandbookUrl  !== undefined) updateData.facilitatorHandbookUrl  = payload.facilitatorHandbookUrl || null;
+    if (payload.facilitatorHandbookName !== undefined) updateData.facilitatorHandbookName = payload.facilitatorHandbookName || null;
 
     const [updated] = await db
       .update(courses)

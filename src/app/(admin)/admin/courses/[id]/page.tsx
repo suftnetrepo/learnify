@@ -77,7 +77,10 @@ export default async function EditCoursePage({ params }: Props) {
               language:         course.language ?? undefined,
               handoutUrl:       course.handoutUrl ?? undefined,
               handoutName:      course.handoutName ?? undefined,
+              facilitatorHandbookUrl:  course.facilitatorHandbookUrl ?? undefined,
+              facilitatorHandbookName: course.facilitatorHandbookName ?? undefined,
             }}
+            canManageFacilitatorHandbook
           />
         }
         curriculum={

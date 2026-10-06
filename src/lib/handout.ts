@@ -8,6 +8,8 @@
  */
 
 export const handoutDownloadPath = (courseId: string) => `/api/courses/${courseId}/handout`;
+export const facilitatorHandbookDownloadPath = (courseId: string) =>
+  `/api/courses/${courseId}/facilitator-handbook`;
 
 /** File extension from a URL path, e.g. ".../abc.pdf" → "pdf". */
 function extensionFromUrl(url: string | null | undefined): string {

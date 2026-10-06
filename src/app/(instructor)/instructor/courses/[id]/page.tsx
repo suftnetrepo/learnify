@@ -9,12 +9,14 @@ import { SectionsManager } from "@/app/(admin)/admin/courses/[id]/sections/Secti
 import { SubmitForApprovalButton } from "./SubmitForApprovalButton";
 import { CourseForm } from "@/components/shared/CourseForm";
 import { cn } from "@/lib/utils";
+import { facilitatorHandbookDownloadPath, handoutDisplayName } from "@/lib/handout";
 import { loadStudyMindCourseData } from "@/lib/studymind";
 import { StudyMindDrawer } from "@/components/studymind/StudyMindDrawer";
 import { UnifiedMessagingDrawer } from "@/components/messaging/UnifiedMessagingDrawer";
 import { CourseMessagingService, EnrollmentService } from "@/services";
 import { CourseProgressPanel } from "@/components/progress/CourseProgressPanel";
 import Link from "next/link";
+import { BookOpen, Download } from "lucide-react";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -134,6 +136,28 @@ export default async function InstructorCourseEditPage({ params }: Props) {
       {/* Submit for approval button */}
       {canSubmitForReview && (
         <SubmitForApprovalButton courseId={courseId} />
+      )}
+
+      {course.facilitatorHandbookUrl && (
+        <div className="mx-6 mt-4 flex flex-col gap-3 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand-600 shadow-sm">
+              <BookOpen size={18} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-gray-900">Facilitator course handbook</p>
+              <p className="mt-0.5 truncate text-xs text-brand-700">
+                {handoutDisplayName(course.facilitatorHandbookName, course.facilitatorHandbookUrl)} · Staff only
+              </p>
+            </div>
+          </div>
+          <a
+            href={facilitatorHandbookDownloadPath(course.id)}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-brand-600"
+          >
+            <Download size={14} /> Download handbook
+          </a>
+        </div>
       )}
 
       {/* Reuse admin tabs — but only show Overview + Curriculum tabs for tutors */}

@@ -40,7 +40,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const payload = session.user.role === "admin"
       ? parsed.data
-      : { ...parsed.data, status: undefined };
+      : {
+          ...parsed.data,
+          status: undefined,
+          facilitatorHandbookUrl: undefined,
+          facilitatorHandbookName: undefined,
+        };
 
     const course = await CourseService.update(id, payload, session.user.id);
     return successResponse(course, "Course updated");

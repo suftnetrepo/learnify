@@ -56,6 +56,8 @@ export const courses = pgTable(
     previewVideoUrl: text("preview_video_url"),
     handoutUrl: text("handout_url"),
     handoutName: varchar("handout_name", { length: 255 }),
+    facilitatorHandbookUrl: text("facilitator_handbook_url"),
+    facilitatorHandbookName: varchar("facilitator_handbook_name", { length: 255 }),
     // Metadata
     totalDuration: integer("total_duration"),         // minutes
     totalLectures: integer("total_lectures").default(0),

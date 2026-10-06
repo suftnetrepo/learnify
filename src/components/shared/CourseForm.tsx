@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { handoutDisplayName, handoutDownloadPath, handoutNameForUpload } from "@/lib/handout";
+import {
+  facilitatorHandbookDownloadPath,
+  handoutDisplayName,
+  handoutDownloadPath,
+  handoutNameForUpload,
+} from "@/lib/handout";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -34,12 +39,16 @@ interface CourseFormProps {
     language?:         string;
     handoutUrl?:       string;
     handoutName?:      string;
+    facilitatorHandbookUrl?:  string;
+    facilitatorHandbookName?: string;
   };
   mode: "create" | "edit";
   /** Hide the publication-status picker — for manager-tutors, who can edit
    *  content and pricing but publish only via the admin approval flow. */
   hidePublish?: boolean;
   hideStatus?:  boolean;
+  /** Facilitator material is managed by admins and never exposed to students. */
+  canManageFacilitatorHandbook?: boolean;
 }
 
 type StatusKey = "draft" | "published" | "archived";
@@ -88,7 +97,14 @@ function SectionCard({ icon, title, sub, children }: {
   );
 }
 
-export function CourseForm({ categories, initialData, mode, hidePublish, hideStatus }: CourseFormProps) {
+export function CourseForm({
+  categories,
+  initialData,
+  mode,
+  hidePublish,
+  hideStatus,
+  canManageFacilitatorHandbook = false,
+}: CourseFormProps) {
   const showPublishSection = !(hidePublish || hideStatus);
   const router = useRouter();
   const { success, error: showError } = useToast();
@@ -101,8 +117,12 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
   const [fieldErrors,      setFieldErrors]      = useState<Record<string, string>>({});
   const [handoutUrl,       setHandoutUrl]       = useState(initialData?.handoutUrl ?? "");
   const [handoutName,      setHandoutName]      = useState(initialData?.handoutName ?? "");
+  const [facilitatorHandbookUrl, setFacilitatorHandbookUrl] = useState(initialData?.facilitatorHandbookUrl ?? "");
+  const [facilitatorHandbookName, setFacilitatorHandbookName] = useState(initialData?.facilitatorHandbookName ?? "");
   // The download route serves what's saved, so only offer it for the saved file
   const handoutSaved = !!handoutUrl && handoutUrl === (initialData?.handoutUrl ?? "");
+  const facilitatorHandbookSaved =
+    !!facilitatorHandbookUrl && facilitatorHandbookUrl === (initialData?.facilitatorHandbookUrl ?? "");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -126,6 +146,10 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
       language:    fd.get("language") as string,
       handoutUrl,
       handoutName,
+      ...(canManageFacilitatorHandbook && {
+        facilitatorHandbookUrl,
+        facilitatorHandbookName,
+      }),
     });
 
     if (res && mode === "edit") {
@@ -343,6 +367,91 @@ export function CourseForm({ categories, initialData, mode, hidePublish, hideSta
             </div>
           )}
         </SectionCard>
+
+      {canManageFacilitatorHandbook && (
+        <SectionCard
+          icon={<BookOpen size={16} />}
+          title="Facilitator Course Handbook"
+          sub="Optional staff-only material. Active tutors assigned to this course can download it; students cannot access it."
+        >
+          {facilitatorHandbookUrl ? (
+            <div className="overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white">
+              <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-100 text-brand-700">
+                  <BookOpen size={22} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-bold text-gray-900">
+                      {handoutDisplayName(facilitatorHandbookName, facilitatorHandbookUrl)}
+                    </p>
+                    <span className="shrink-0 rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-700">
+                      Tutors only
+                    </span>
+                  </div>
+                  <p className="mt-1 truncate text-xs text-gray-400">
+                    {facilitatorHandbookSaved
+                      ? "Available to active tutors assigned to this course."
+                      : mode === "create"
+                        ? "It will be attached when the course is created."
+                        : "Not saved yet — save changes to attach it."}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  {facilitatorHandbookSaved && initialData?.id && (
+                    <a
+                      href={facilitatorHandbookDownloadPath(initialData.id)}
+                      className="flex h-9 items-center gap-1.5 rounded-xl border border-surface-200 bg-white px-3 text-xs font-semibold text-gray-600 transition hover:border-brand-200 hover:text-brand-600"
+                    >
+                      <ExternalLink size={13} /> Download
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFacilitatorHandbookUrl("");
+                      setFacilitatorHandbookName("");
+                    }}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-white text-red-400 transition hover:bg-red-50 hover:text-red-600"
+                    title="Remove facilitator handbook"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+              <div className="border-t border-brand-100 px-5 py-3 text-xs text-brand-700">
+                {mode === "create" ? "Create the course to attach it." : "Save changes after replacing or removing the handbook."}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <CloudinaryUploader
+                type="document"
+                folder="resources"
+                label="Facilitator handbook"
+                accept="application/pdf,.doc,.docx,.ppt,.pptx"
+                maxSizeMb={100}
+                onSuccess={(result) => {
+                  setFacilitatorHandbookUrl(result.secureUrl);
+                  setFacilitatorHandbookName(
+                    handoutNameForUpload(result.originalFilename, result.format, result.secureUrl)
+                  );
+                  success(
+                    "Facilitator handbook uploaded",
+                    mode === "create"
+                      ? "It will be attached when you create the course."
+                      : "Save changes to attach it to this course."
+                  );
+                }}
+                onError={(message) => showError("Upload failed", message)}
+              />
+              <p className="mt-3 text-xs leading-5 text-gray-400">
+                Optional. PDF, DOC, DOCX, PPT and PPTX up to 100 MB. Only admins and active assigned tutors can download it.
+              </p>
+            </div>
+          )}
+        </SectionCard>
+      )}
 
       {/* Actions */}
       <div className="flex items-center justify-between rounded-2xl border border-surface-200 bg-white px-6 py-4 shadow-card">

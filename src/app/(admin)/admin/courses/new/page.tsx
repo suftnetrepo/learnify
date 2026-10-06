@@ -24,7 +24,7 @@ export default async function NewCoursePage() {
             Fill in the details below. You can add sections and lectures after saving.
           </p>
         </div>
-        <CourseForm categories={cats} mode="create" />
+        <CourseForm categories={cats} mode="create" canManageFacilitatorHandbook />
       </div>
     </div>
   );
