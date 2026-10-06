@@ -5,6 +5,7 @@ import { formatDate } from "@/lib/utils";
 import { InviteTutorButton } from "./InviteTutorButton";
 import { TutorApproveButton } from "./TutorApproveButton";
 import { RevokeInviteButton } from "./RevokeInviteButton";
+import { ResendInviteButton } from "./ResendInviteButton";
 import { GraduationCap, Clock, Send, CheckCircle2, CreditCard, AlertCircle, UserCheck } from "lucide-react";
 import Link from "next/link";
 
@@ -82,16 +83,18 @@ export default async function AdminTutorsPage() {
             <div className="flex items-center gap-2 mb-4"><Send size={15} className="text-brand-500" /><h2 className="heading-3 text-gray-900">Pending Invitations</h2></div>
             <div className="table-container">
               <table className="w-full min-w-[560px]">
-                <thead><tr><th className="table-header">Email</th><th className="table-header">Sent</th><th className="table-header">Expires</th><th className="table-header w-24"></th></tr></thead>
+                <thead><tr><th className="table-header">Email</th><th className="table-header">Sent</th><th className="table-header">Expires</th><th className="table-header w-32"></th></tr></thead>
                 <tbody>
                   {pendingInvites.map((inv) => {
-                    const expiring = inv.expiresAt < new Date(Date.now() + 86400000);
+                    const now      = Date.now();
+                    const expired  = inv.expiresAt.getTime() < now;
+                    const expiring = !expired && inv.expiresAt.getTime() < now + 86400000;
                     return (
                       <tr key={inv.id} className="table-row">
                         <td className="table-cell"><div className="flex items-center gap-2"><div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">{inv.email[0].toUpperCase()}</div><span className="text-sm text-gray-800">{inv.email}</span></div></td>
                         <td className="table-cell text-gray-400 text-xs">{formatDate(inv.createdAt)}</td>
-                        <td className="table-cell"><span className={`text-xs font-medium ${expiring ? "text-red-500" : "text-gray-400"}`}>{expiring ? "Expiring soon — " : ""}{formatDate(inv.expiresAt)}</span></td>
-                        <td className="table-cell"><RevokeInviteButton inviteId={inv.id} email={inv.email} /></td>
+                        <td className="table-cell"><span className={`text-xs font-medium ${expired || expiring ? "text-red-500" : "text-gray-400"}`}>{expired ? "Expired " : expiring ? "Expiring soon — " : ""}{formatDate(inv.expiresAt)}</span></td>
+                        <td className="table-cell"><div className="flex items-center justify-end gap-2"><ResendInviteButton email={inv.email} /><RevokeInviteButton inviteId={inv.id} email={inv.email} /></div></td>
                       </tr>
                     );
                   })}

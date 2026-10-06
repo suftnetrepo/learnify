@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { tutorAssignments, tutorInvitations, users, courses } from "@/db/schema";
-import { eq, and, isNull, desc, asc } from "drizzle-orm";
+import { eq, and, isNull, desc, asc, sql } from "drizzle-orm";
 import { log } from "@/lib/logger";
 import type {
   TutorAssignmentWithDetails, TutorInvitation, AssignTutorPayload,
@@ -134,14 +134,17 @@ export class TutorService {
   /**
    * Create a new invitation (idempotent — revokes existing pending invite first).
    */
-  static async createInvitation(email: string, invitedBy: string): Promise<TutorInvitation> {
-    // Revoke any existing pending invite for this email
+  static async createInvitation(rawEmail: string, invitedBy: string): Promise<TutorInvitation> {
+    // Stored lowercase to match registration, which lowercases the email it checks
+    const email = rawEmail.trim().toLowerCase();
+
+    // Revoke any existing pending invite for this email (older rows may be mixed-case)
     await db
       .update(tutorInvitations)
       .set({ status: "revoked" })
       .where(
         and(
-          eq(tutorInvitations.email,  email),
+          eq(sql`lower(${tutorInvitations.email})`, email),
           eq(tutorInvitations.status, "pending")
         )
       );

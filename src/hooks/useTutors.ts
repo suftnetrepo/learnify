@@ -19,6 +19,19 @@ export function useTutorInvite() {
   return { invite: mutate, loading, error: mutError };
 }
 
+/** Re-inviting replaces the pending invite with a fresh 7-day link and emails it. */
+export function useTutorInviteResend() {
+  const router = useRouter();
+  const { success, error } = useToast();
+
+  const { mutate, loading } = useMutation(tutorsApi.invite, {
+    onSuccess: () => { success("Invitation resent", "A new sign-up link was emailed; the previous link no longer works."); router.refresh(); },
+    onError:   (msg) => error("Failed to resend invitation", msg),
+  });
+
+  return { resend: mutate, resending: loading };
+}
+
 export function useTutorApproval() {
   const router = useRouter();
   const { success, error } = useToast();

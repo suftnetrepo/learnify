@@ -243,7 +243,8 @@ export class UserService {
         .where(
           and(
             eq(tutorInvitations.token, invitationToken),
-            eq(tutorInvitations.email, email),
+            // Case-insensitive: invites created before emails were normalised may be mixed-case
+            eq(sql`lower(${tutorInvitations.email})`, email.toLowerCase()),
             eq(tutorInvitations.status, "pending")
           )
         )

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createdResponse, unauthorized, forbidden, serverError, validationError } from "@/lib/api-response";
 import { log } from "@/lib/logger";
 
-const schema = z.object({ email: z.string().email() });
+const schema = z.object({ email: z.string().trim().toLowerCase().email() });
 
 export async function POST(req: NextRequest) {
   try {
