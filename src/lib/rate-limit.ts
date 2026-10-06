@@ -17,12 +17,14 @@ interface Window {
 const store = new Map<string, Window>();
 
 // Clean up expired entries every 5 minutes to prevent memory bloat
-setInterval(() => {
+const cleanupTimer = setInterval(() => {
   const now = Date.now();
   for (const [key, window] of store.entries()) {
     if (window.resetAt < now) store.delete(key);
   }
 }, 5 * 60 * 1000);
+// Do not keep a Node.js process alive solely for cache maintenance.
+cleanupTimer.unref?.();
 
 interface Options {
   limit:    number;  // max requests

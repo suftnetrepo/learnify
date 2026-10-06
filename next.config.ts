@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
+// Render's smaller instances are memory-constrained. Skipping the Sentry build
+// wrapper avoids generating/processing source maps there; runtime Sentry remains
+// enabled through src/instrumentation.ts and src/instrumentation-client.ts.
+const isLowMemoryRender = process.env.RENDER === "true" || process.env.SENTRY_SKIP_UPLOAD === "1";
+
 const nextConfig: NextConfig = {
   // pdfkit reads its bundled .afm font-metric files from disk at runtime via
   // fs.readFileSync — Turbopack/webpack bundling a route handler rewrites
@@ -10,10 +15,19 @@ const nextConfig: NextConfig = {
   // path for real. Affects both certificate and booking-confirmation PDFs.
   serverExternalPackages: ["pdfkit"],
 
-  // Render's build machines report ~47 CPUs but have far less memory. Next starts one
-  // "Collecting page data" worker per CPU, and 47 copies of the app run out of memory and the
-  // build is killed. Cap the workers there (Render sets RENDER=true during builds).
-  experimental: process.env.RENDER ? { cpus: 2 } : {},
+  // Render's build machines report many CPUs but have far less memory. Limit build
+  // concurrency and source-map work, and avoid eagerly loading every route when the
+  // production web service boots. Routes still load normally on first request.
+  experimental: isLowMemoryRender
+    ? {
+        cpus: 2,
+        webpackMemoryOptimizations: true,
+        serverSourceMaps: false,
+        preloadEntriesOnStart: false,
+      }
+    : {},
+  productionBrowserSourceMaps: false,
+  enablePrerenderSourceMaps: !isLowMemoryRender,
 
   // ── Images ──────────────────────────────────────────────────────────────────
   images: {
@@ -101,4 +115,6 @@ const sentryConfig = {
   automaticVercelMonitors: true,
 };
 
-export default withSentryConfig(nextConfig, sentryConfig);
+export default isLowMemoryRender
+  ? nextConfig
+  : withSentryConfig(nextConfig, sentryConfig);
