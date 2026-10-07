@@ -9,6 +9,7 @@ import {
   Ban, Mail, Pencil, EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { ConfirmModal } from "@/components/ui/Modal";
 import { CandidateEmailPanel } from "@/components/sessions/CandidateEmailPanel";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +58,7 @@ function SessionCard({ s, onRefresh, onEdit }: {
   const [expanded,  setExpanded]  = useState(false);
   const [deleting,  setDeleting]  = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"delete" | "cancel" | null>(null);
   const [showCandidates, setShowCandidates] = useState(false);
 
   const start = new Date(s.startDatetime);
@@ -64,7 +66,6 @@ function SessionCard({ s, onRefresh, onEdit }: {
   const pct   = s.capacity > 0 ? Math.round((s.enrolledCount / s.capacity) * 100) : 0;
 
   async function handleDelete() {
-    if (!confirm("Delete this session? This cannot be undone.")) return;
     setDeleting(true);
     try {
       const res  = await fetch(`/api/sessions/${s.id}`, { method: "DELETE" });
@@ -76,11 +77,11 @@ function SessionCard({ s, onRefresh, onEdit }: {
       error("Delete failed", err instanceof Error ? err.message : "Please try again");
     } finally {
       setDeleting(false);
+      setConfirmAction(null);
     }
   }
 
   async function handleCancel() {
-    if (!confirm("Cancel this session? Enrolled students will keep access.")) return;
     setCancelling(true);
     try {
       const res  = await fetch(`/api/sessions/${s.id}`, {
@@ -96,6 +97,7 @@ function SessionCard({ s, onRefresh, onEdit }: {
       error("Cancel failed", err instanceof Error ? err.message : "Please try again");
     } finally {
       setCancelling(false);
+      setConfirmAction(null);
     }
   }
 
@@ -188,14 +190,14 @@ function SessionCard({ s, onRefresh, onEdit }: {
             </button>
           )}
           {s.status === "scheduled" && (
-            <button onClick={handleCancel} disabled={cancelling}
+            <button onClick={() => setConfirmAction("cancel")} disabled={cancelling}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
               title="Cancel session">
               <Ban size={14} />
             </button>
           )}
           {s.enrolledCount === 0 && s.status !== "completed" && (
-            <button onClick={handleDelete} disabled={deleting}
+            <button onClick={() => setConfirmAction("delete")} disabled={deleting}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
               title="Delete session">
               <Trash2 size={14} />
@@ -237,6 +239,30 @@ function SessionCard({ s, onRefresh, onEdit }: {
         </div>
       )}
       {showCandidates && <CandidateEmailPanel sessionId={s.id} onClose={() => setShowCandidates(false)} />}
+
+      <ConfirmModal
+        open={confirmAction === "delete"}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={handleDelete}
+        icon={<Trash2 size={24} />}
+        variant="danger"
+        title="Delete this session?"
+        description={<><span className="font-semibold text-gray-800">{s.title}</span> will be permanently deleted. This cannot be undone.</>}
+        confirmLabel="Yes, delete"
+        loading={deleting}
+      />
+      <ConfirmModal
+        open={confirmAction === "cancel"}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={handleCancel}
+        icon={<Ban size={24} />}
+        variant="danger"
+        title="Cancel this session?"
+        description={<><span className="font-semibold text-gray-800">{s.title}</span> will be marked as cancelled. Enrolled students will keep access.</>}
+        confirmLabel="Yes, cancel session"
+        cancelLabel="Keep session"
+        loading={cancelling}
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./Button";
@@ -39,9 +40,10 @@ export function Modal({ open, onClose, title, children, size = "md", className }
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  // Portalled to <body> so ancestor opacity/transform/stacking never affects the dialog
+  return createPortal(
     <div
       ref={overlayRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -51,7 +53,7 @@ export function Modal({ open, onClose, title, children, size = "md", className }
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in" />
 
       {/* Panel */}
-      <div className={cn(
+      <div role="dialog" aria-modal="true" className={cn(
         "relative w-full rounded-2xl bg-white shadow-2xl animate-fade-up",
         sizeClasses[size],
         className
@@ -79,7 +81,8 @@ export function Modal({ open, onClose, title, children, size = "md", className }
         {/* Content */}
         <div className="px-6 py-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -89,20 +92,43 @@ interface ConfirmModalProps {
   onClose:     () => void;
   onConfirm:   () => void;
   title:       string;
-  description: string;
+  description: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?:  string;
   variant?:    "danger" | "primary";
   loading?:    boolean;
+  /** When set, renders a centred alert layout with this icon in a tinted badge. */
+  icon?:       React.ReactNode;
 }
 
 export function ConfirmModal({
   open, onClose, onConfirm, title, description,
-  confirmLabel = "Confirm", cancelLabel = "Cancel", variant = "primary", loading,
+  confirmLabel = "Confirm", cancelLabel = "Cancel", variant = "primary", loading, icon,
 }: ConfirmModalProps) {
+  if (icon) {
+    return (
+      <Modal open={open} onClose={loading ? () => {} : onClose} size="sm">
+        <div className="flex flex-col items-center pt-3 text-center">
+          <div className={cn(
+            "mb-4 flex h-14 w-14 items-center justify-center rounded-full ring-8",
+            variant === "danger" ? "bg-red-100 text-red-600 ring-red-50" : "bg-brand-100 text-brand-600 ring-brand-50"
+          )}>
+            {icon}
+          </div>
+          <h2 className="heading-3 text-gray-900">{title}</h2>
+          <div className="mt-2 text-sm text-gray-500">{description}</div>
+        </div>
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <Button variant="ghost" onClick={onClose} disabled={loading} className="w-full border border-surface-200">{cancelLabel}</Button>
+          <Button variant={variant} onClick={onConfirm} loading={loading} className="w-full">{confirmLabel}</Button>
+        </div>
+      </Modal>
+    );
+  }
+
   return (
     <Modal open={open} onClose={onClose} title={title} size="sm">
-      <p className="text-sm text-gray-500">{description}</p>
+      <div className="text-sm text-gray-500">{description}</div>
       <div className="mt-6 flex justify-end gap-3">
         <Button variant="ghost" onClick={onClose} disabled={loading}>{cancelLabel}</Button>
         <Button variant={variant} onClick={onConfirm} loading={loading}>{confirmLabel}</Button>

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUsers } from "@/hooks/useUsers";
+import { ConfirmModal } from "@/components/ui/Modal";
 
 type Tab = "details" | "edit" | "activity";
 
@@ -63,6 +64,7 @@ export function UserDrawer({ user, mode, onClose, onSave }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>(mode === "create" ? "edit" : "details");
   const [error,     setError]     = useState<string | null>(null);
   const [success,   setSuccess]   = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<"suspend" | "delete" | null>(null);
 
   const { createUser, updateUser, deleteUser, suspendUser, activateUser, creating, updating, deleting, error: hookError } = useUsers();
   const loading = creating || updating || deleting;
@@ -93,19 +95,18 @@ export function UserDrawer({ user, mode, onClose, onSave }: Props) {
   async function handleSuspend() {
     if (!user) return;
     const willSuspend = user.status !== "suspended";
-    const label       = willSuspend ? "suspend" : "unsuspend";
-    if (!confirm(`Are you sure you want to ${label} this account?`)) return;
     setError(null);
     const res = willSuspend ? await suspendUser(user.id) : await activateUser(user.id);
+    setConfirmAction(null);
     if (res) onSave();
     else setError(hookError ?? "Failed to update status");
   }
 
   async function handleDelete() {
     if (!user) return;
-    if (!confirm(`Permanently delete ${user.name ?? user.email}? This cannot be undone.`)) return;
     setError(null);
     const res = await deleteUser(user.id);
+    setConfirmAction(null);
     if (res !== null) { onSave(); onClose(); }
     else setError(hookError ?? "Failed to delete user");
   }
@@ -319,7 +320,7 @@ export function UserDrawer({ user, mode, onClose, onSave }: Props) {
                 <Pencil size={14} /> Edit user
               </button>
               <button
-                onClick={handleSuspend}
+                onClick={() => setConfirmAction("suspend")}
                 disabled={loading}
                 className={cn(
                   "flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-colors disabled:opacity-50",
@@ -332,7 +333,7 @@ export function UserDrawer({ user, mode, onClose, onSave }: Props) {
                 {user.status === "suspended" ? "Unsuspend account" : "Suspend account"}
               </button>
               <button
-                onClick={handleDelete}
+                onClick={() => setConfirmAction("delete")}
                 disabled={loading}
                 className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
               >
@@ -342,6 +343,35 @@ export function UserDrawer({ user, mode, onClose, onSave }: Props) {
           )}
         </div>
       </div>
+
+      {user && (
+        <>
+          <ConfirmModal
+            open={confirmAction === "delete"}
+            onClose={() => setConfirmAction(null)}
+            onConfirm={handleDelete}
+            icon={<Trash2 size={24} />}
+            variant="danger"
+            title="Delete this user?"
+            description={<><span className="font-semibold text-gray-800">{user.name ?? user.email}</span> will be permanently removed and signed out everywhere. This cannot be undone.</>}
+            confirmLabel="Yes, delete"
+            loading={deleting}
+          />
+          <ConfirmModal
+            open={confirmAction === "suspend"}
+            onClose={() => setConfirmAction(null)}
+            onConfirm={handleSuspend}
+            icon={user.status === "suspended" ? <CheckCircle2 size={24} /> : <Ban size={24} />}
+            variant={user.status === "suspended" ? "primary" : "danger"}
+            title={user.status === "suspended" ? "Unsuspend this account?" : "Suspend this account?"}
+            description={user.status === "suspended"
+              ? <><span className="font-semibold text-gray-800">{user.name ?? user.email}</span> will be able to sign in again.</>
+              : <><span className="font-semibold text-gray-800">{user.name ?? user.email}</span> will be signed out immediately and blocked from signing in until unsuspended.</>}
+            confirmLabel={user.status === "suspended" ? "Yes, unsuspend" : "Yes, suspend"}
+            loading={updating}
+          />
+        </>
+      )}
     </>
   );
 }

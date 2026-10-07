@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { ConfirmModal } from "@/components/ui/Modal";
 
 interface Props {
   courseId:    string;
@@ -15,11 +16,12 @@ export function ReviewActions({ courseId, courseTitle }: Props) {
   const [showReject,   setShowReject]   = useState(false);
   const [rejectionNote, setRejectionNote] = useState("");
   const [error,        setError]        = useState<string | null>(null);
+  const [confirmApprove, setConfirmApprove] = useState(false);
 
   async function handleApprove() {
-    if (!confirm(`Approve and publish "${courseTitle}"?`)) return;
     setLoading(true);
     const res = await fetch(`/api/courses/${courseId}/approve`, { method: "POST" });
+    setConfirmApprove(false);
     if (res.ok) {
       router.refresh();
     } else {
@@ -89,12 +91,22 @@ export function ReviewActions({ courseId, courseTitle }: Props) {
         <XCircle size={13} /> Reject
       </button>
       <button
-        onClick={handleApprove}
+        onClick={() => setConfirmApprove(true)}
         disabled={loading}
         className="flex items-center gap-1.5 rounded-xl bg-emerald-500 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-600 disabled:opacity-50 transition-colors"
       >
         <CheckCircle2 size={13} /> {loading ? "Approving..." : "Approve"}
       </button>
+      <ConfirmModal
+        open={confirmApprove}
+        onClose={() => setConfirmApprove(false)}
+        onConfirm={handleApprove}
+        icon={<CheckCircle2 size={24} />}
+        title="Approve this course?"
+        description={<><span className="font-semibold text-gray-800">{courseTitle}</span> will be published and visible to students.</>}
+        confirmLabel="Yes, approve"
+        loading={loading}
+      />
     </div>
   );
 }

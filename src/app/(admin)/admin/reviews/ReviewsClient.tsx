@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ChevronDown, Eye, EyeOff, MessageSquareText, Search, Star, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import { ConfirmModal } from "@/components/ui/Modal";
 import { cn } from "@/lib/utils";
 
 interface Review {
@@ -49,6 +50,7 @@ export function ReviewsClient({ reviews, total, currentPage, pageSize, counts }:
   const { success, error } = useToast();
   const [isPending, startTransition] = useTransition();
   const [busy, setBusy] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Review | null>(null);
   const [searchInput, setSearchInput] = useState(searchParams.get("q") ?? "");
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -67,9 +69,6 @@ export function ReviewsClient({ reviews, total, currentPage, pageSize, counts }:
   }
 
   async function moderate(review: Review, action: "hide" | "show" | "delete") {
-    if (action === "delete" && !confirm(
-      `Delete this ${review.rating}★ review by ${review.studentName ?? review.studentEmail}? This can't be undone — the student could then write a new one.`
-    )) return;
     setBusy(review.id);
     try {
       const res = await fetch(`/api/reviews/${review.id}`, action === "delete"
@@ -86,6 +85,7 @@ export function ReviewsClient({ reviews, total, currentPage, pageSize, counts }:
       error("Couldn't update review", err instanceof Error ? err.message : "Please try again");
     } finally {
       setBusy(null);
+      setPendingDelete(null);
     }
   }
 
@@ -209,7 +209,7 @@ export function ReviewsClient({ reviews, total, currentPage, pageSize, counts }:
                   </button>
                 )}
                 <button
-                  onClick={() => moderate(r, "delete")} disabled={busy === r.id}
+                  onClick={() => setPendingDelete(r)} disabled={busy === r.id}
                   aria-label="Delete review" title="Delete review"
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
                 >
@@ -248,6 +248,18 @@ export function ReviewsClient({ reviews, total, currentPage, pageSize, counts }:
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => { if (pendingDelete) moderate(pendingDelete, "delete"); }}
+        icon={<Trash2 size={24} />}
+        variant="danger"
+        title="Delete this review?"
+        description={pendingDelete && <>The {pendingDelete.rating}★ review by <span className="font-semibold text-gray-800">{pendingDelete.studentName ?? pendingDelete.studentEmail}</span> will be removed. This can&apos;t be undone — the student could then write a new one.</>}
+        confirmLabel="Yes, delete"
+        loading={pendingDelete !== null && busy === pendingDelete.id}
+      />
     </>
   );
 }
