@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import crypto from "crypto";
 import { successResponse, serverError, validationError, tooManyRequests, errorResponse } from "@/lib/api-response";
@@ -9,7 +9,7 @@ import { limiters, getClientIp } from "@/lib/rate-limit";
 import { verifyRecaptcha } from "@/lib/recaptcha/verify";
 import { log } from "@/lib/logger";
 
-const schema = z.object({ email: z.string().email() });
+const schema = z.object({ email: z.string().email().trim().toLowerCase() });
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const [user] = await db
       .select({ id: users.id, name: users.name })
       .from(users)
-      .where(eq(users.email, email))
+      .where(and(eq(users.email, email), isNull(users.deletedAt)))
       .limit(1);
 
     if (user) {

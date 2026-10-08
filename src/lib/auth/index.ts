@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 import { loginSchema } from "@/lib/validations/auth";
 import { log } from "@/lib/logger";
 import * as Sentry from "@sentry/nextjs";
-import { rateLimit } from "@/lib/rate-limit";
+import { clearRateLimit, rateLimit } from "@/lib/rate-limit";
 import { getAuthState, invalidateAuthState } from "./status-cache";
 
 /** Surfaced to the login form as `result.code === "suspended"`. */
@@ -122,6 +122,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           log.warn("Suspended user attempted sign-in", { userId: user.id });
           throw new AccountSuspendedError();
         }
+
+        // A valid login starts a fresh limiter window. Without this, even
+        // successful sign-ins count toward the ten-attempt lockout.
+        clearRateLimit("login:email", email.toLowerCase());
 
         // We just read fresh state — drop any stale cached "revoked" entry so a
         // reactivated user isn't bounced by the cache right after signing in.

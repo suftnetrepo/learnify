@@ -5,6 +5,7 @@ import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Video, ExternalLi
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import type { StudentSession } from "./my-courses/MyCoursesList";
+import { formatSessionDateRange, formatSessionTimeRange, sessionCoversDay } from "@/lib/session-dates";
 
 function formatCountdown(target: Date, from: Date) {
   const totalMinutes = Math.max(0, Math.round((target.getTime() - from.getTime()) / 60000));
@@ -37,16 +38,11 @@ export function CalendarWidget({ allSessions, now }: Props) {
     [anchorDate]
   );
 
-  const sessionDays = useMemo(
-    () => new Set(allSessions.map((s) => new Date(s.startDatetime).toDateString())),
-    [allSessions]
-  );
-
   const selectedStr = selectedDate.toDateString();
   const isSelectedToday = selectedStr === todayStr;
 
-  const daySessions = allSessions.filter(
-    (s) => new Date(s.startDatetime).toDateString() === selectedStr
+  const daySessions = allSessions.filter((s) =>
+    sessionCoversDay(s.startDatetime, s.endDatetime, selectedDate)
   );
 
   function shiftWindow(days: number) {
@@ -84,7 +80,9 @@ export function CalendarWidget({ allSessions, now }: Props) {
             const dayStr      = day.toDateString();
             const isToday     = dayStr === todayStr;
             const isSelected  = dayStr === selectedStr;
-            const hasSession  = sessionDays.has(dayStr);
+            const hasSession  = allSessions.some((s) =>
+              sessionCoversDay(s.startDatetime, s.endDatetime, day)
+            );
             return (
               <button
                 key={dayStr}
@@ -141,8 +139,6 @@ export function CalendarWidget({ allSessions, now }: Props) {
         <div className="space-y-3">
           {daySessions.map((s) => {
             const isLiveNow = now >= new Date(s.startDatetime) && now <= new Date(s.endDatetime);
-            const startTime = new Date(s.startDatetime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-            const endTime   = new Date(s.endDatetime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
             const platform  = s.conferencePlatform ?? "Online";
             return (
               <div key={s.sessionId} className={cn("rounded-2xl p-4", isLiveNow ? "bg-brand-50" : "bg-surface-50")}>
@@ -150,8 +146,13 @@ export function CalendarWidget({ allSessions, now }: Props) {
                   {s.courseTitle}
                 </p>
                 <p className="text-sm font-semibold text-gray-900 mb-2">{s.title ?? "Live Session"}</p>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs text-gray-600">{startTime} – {endTime}</span>
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium text-gray-600">
+                    {formatSessionDateRange(s.startDatetime, s.endDatetime)}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {formatSessionTimeRange(s.startDatetime, s.endDatetime)}
+                  </span>
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-700">
                     <Video size={11} /> {platform}
                   </span>

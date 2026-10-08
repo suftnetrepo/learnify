@@ -13,8 +13,13 @@ interface Window {
   resetAt:   number;
 }
 
-// In-memory store — wiped on cold start (acceptable for serverless)
-const store = new Map<string, Window>();
+// Keep one store per Node.js process even when Next bundles auth and route
+// handlers separately. This also lets a successful password reset clear the
+// same login lockout that the credentials provider created.
+const globalStore = globalThis as typeof globalThis & {
+  __rateLimitStore?: Map<string, Window>;
+};
+const store = (globalStore.__rateLimitStore ??= new Map<string, Window>());
 
 // Clean up expired entries every 5 minutes to prevent memory bloat
 const cleanupTimer = setInterval(() => {
@@ -64,6 +69,11 @@ export function rateLimit(
     remaining: options.limit - existing.count,
     resetAt:   existing.resetAt,
   };
+}
+
+/** Clear one limiter window after a successful trusted action. */
+export function clearRateLimit(namespace: string, identifier: string): void {
+  store.delete(`${namespace}:${identifier}`);
 }
 
 /** Extract the real client IP from Next.js request headers */

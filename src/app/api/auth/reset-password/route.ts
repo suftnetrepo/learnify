@@ -1,18 +1,20 @@
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, isNull } from "drizzle-orm";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { successResponse, serverError, validationError, errorResponse } from "@/lib/api-response";
 import { log } from "@/lib/logger";
+import { clearRateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   token:    z.string().min(1),
-  email:    z.string().email(),
+  email:    z.string().email().trim().toLowerCase(),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
+    .max(72, "Password must be 72 characters or fewer")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/\d/, "Password must contain at least one number"),
 });
@@ -33,7 +35,8 @@ export async function POST(req: NextRequest) {
         and(
           eq(users.email,              email),
           eq(users.passwordResetToken, token),
-          gt(users.passwordResetExpires, new Date())
+          gt(users.passwordResetExpires, new Date()),
+          isNull(users.deletedAt)
         )
       )
       .limit(1);
@@ -57,6 +60,10 @@ export async function POST(req: NextRequest) {
         updatedAt:            new Date(),
       })
       .where(eq(users.id, user.id));
+
+    // A user commonly requests a reset after several failed logins. Do not
+    // leave the newly-set password blocked by that previous attempt window.
+    clearRateLimit("login:email", email);
 
     log.info("Password reset completed", { userId: user.id });
     return successResponse(null, "Password updated successfully. You can now sign in.");
