@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Calendar, Clock, MapPin, Video, Users, AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatSessionDateRange, formatSessionTimeRange } from "@/lib/session-dates";
 
 interface Session {
   id:                 string;
@@ -85,12 +85,16 @@ export function SessionPicker({ sessions, selectedSessionId, onSelect }: Props) 
                   )}
                 </div>
 
+                <div className="mt-1 flex items-center gap-1 text-xs font-medium text-gray-600">
+                  <Calendar size={10} />
+                  {formatSessionDateRange(start, end)}
+                </div>
+
                 {/* Time + location row */}
                 <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-400">
                   <span className="flex items-center gap-1">
                     <Clock size={10} />
-                    {start.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })} –{" "}
-                    {end.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+                    {formatSessionTimeRange(start, end)}
                   </span>
                   {s.venueCity && (
                     <span className="flex items-center gap-1">

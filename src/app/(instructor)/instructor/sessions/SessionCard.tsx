@@ -6,19 +6,8 @@ import { cn } from "@/lib/utils";
 import type { InstructorSession } from "@/services/session.service";
 import { CandidateEmailPanel } from "@/components/sessions/CandidateEmailPanel";
 import { useToast } from "@/components/ui/Toast";
+import { formatSessionDateRange, formatSessionTimeRange } from "@/lib/session-dates";
 
-function formatSessionDate(d: Date | string) {
-  const now = new Date();
-  if (new Date(d).toDateString() === now.toDateString()) return "Today";
-  return new Date(d).toLocaleDateString("en-GB", {
-    weekday: "short", day: "numeric", month: "short", year: "numeric",
-  });
-}
-
-function formatTime(start: Date | string, end: Date | string) {
-  const fmt = (d: Date | string) => new Date(d).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-  return `${fmt(start)} – ${fmt(end)}`;
-}
 
 export function SessionCard({ s, variant }: { s: InstructorSession; variant: "live" | "upcoming" | "past" }) {
   const { success, error } = useToast();
@@ -106,11 +95,11 @@ export function SessionCard({ s, variant }: { s: InstructorSession; variant: "li
       <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-4">
         <span className="flex items-center gap-1.5">
           <Calendar size={12} className="text-gray-400" />
-          {formatSessionDate(s.startDatetime)}
+          {formatSessionDateRange(s.startDatetime, s.endDatetime)}
         </span>
         <span className="flex items-center gap-1.5">
           <Clock size={12} className="text-gray-400" />
-          {formatTime(s.startDatetime, s.endDatetime)}
+          {formatSessionTimeRange(s.startDatetime, s.endDatetime)}
         </span>
         {isInPerson && s.venueCity && (
           <span className="flex items-center gap-1.5">

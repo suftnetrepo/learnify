@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { CourseDetailsDrawer } from "./CourseDetailsDrawer";
 import type { SessionService } from "@/services/session.service";
+import { formatSessionDateRange, formatSessionTimeRange } from "@/lib/session-dates";
 
 export type StudentSession = Awaited<ReturnType<typeof SessionService.getStudentSessions>>[number];
 
@@ -197,15 +198,14 @@ export function MyCoursesList({ enrolled, allSessions, now }: Props) {
                           <p className="text-xs font-semibold text-gray-900 truncate">
                             {sessionStatus.session.title ?? "Live Session"}
                           </p>
-                          <p className="flex items-center gap-1 text-[10px] text-gray-500 mt-0.5">
-                            {new Date(sessionStatus.session.startDatetime).toLocaleTimeString("en-GB", {
-                              hour: "2-digit", minute: "2-digit",
-                            })}
-                            {" – "}
-                            {new Date(sessionStatus.session.endDatetime).toLocaleTimeString("en-GB", {
-                              hour: "2-digit", minute: "2-digit",
-                            })}
-                            {" · "}
+                          <p className="mt-1 flex items-center gap-1 text-[10px] font-medium text-gray-600">
+                            <Calendar size={10} />
+                            {formatSessionDateRange(sessionStatus.session.startDatetime, sessionStatus.session.endDatetime)}
+                          </p>
+                          <p className="mt-0.5 flex items-center gap-1 text-[10px] text-gray-500">
+                            <Clock size={10} />
+                            {formatSessionTimeRange(sessionStatus.session.startDatetime, sessionStatus.session.endDatetime)}
+                            <span aria-hidden="true">·</span>
                             {sessionStatus.session.venueCity ? (
                               <span className="inline-flex items-center gap-0.5">
                                 <MapPin size={10} /> {sessionStatus.session.venueCity}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, MapPin, Clock, Calendar, Users, Download, Share2, ExternalLink, Award, FileText } from "lucide-react";
 import { handoutDisplayName, handoutDownloadPath } from "@/lib/handout";
 import { cn } from "@/lib/utils";
+import { formatSessionDateRange, formatSessionTimeRange } from "@/lib/session-dates";
 
 interface Session {
   sessionId:          string;
@@ -45,19 +46,12 @@ interface Props {
 export function CourseDetailsDrawer({ enrollment, session, onClose }: Props) {
   const [copying, setCopying] = useState(false);
 
-  const formatDate = (d: Date) => new Date(d).toLocaleDateString("en-GB", {
-    weekday: "long", day: "numeric", month: "long", year: "numeric",
-  });
-
-  const formatTime = (start: Date, end: Date) =>
-    `${new Date(start).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })} – ${new Date(end).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
-
   const isInPerson = enrollment.courseFormat === "in_person" || enrollment.courseFormat === "hybrid";
   const isOnline   = enrollment.courseFormat === "online"    || enrollment.courseFormat === "hybrid";
 
   async function handleShare() {
     const text = `I'm enrolled in "${enrollment.courseTitle}" on Edquis!${
-      session ? `\n📅 ${formatDate(session.startDatetime)}\n🕐 ${formatTime(session.startDatetime, session.endDatetime)}${
+      session ? `\n📅 ${formatSessionDateRange(session.startDatetime, session.endDatetime, "long")}\n🕐 ${formatSessionTimeRange(session.startDatetime, session.endDatetime)}${
         session.venueCity ? `\n📍 ${session.venueCity}` : ""
       }` : ""
     }`;
@@ -163,11 +157,11 @@ export function CourseDetailsDrawer({ enrollment, session, onClose }: Props) {
                 <div className="space-y-2">
                   <div className="flex items-start gap-2.5 text-sm text-gray-600">
                     <Calendar size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                    <span>{formatDate(session.startDatetime)}</span>
+                    <span>{formatSessionDateRange(session.startDatetime, session.endDatetime, "long")}</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-sm text-gray-600">
                     <Clock size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                    <span>{formatTime(session.startDatetime, session.endDatetime)}</span>
+                    <span>{formatSessionTimeRange(session.startDatetime, session.endDatetime)}</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-sm text-gray-600">
                     <Users size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
