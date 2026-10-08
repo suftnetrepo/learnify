@@ -7,10 +7,11 @@ import { SessionService } from "@/services/session.service";
 import { formatDate } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
-import { BookOpen, Users, Calendar, Star, BarChart3, LayoutDashboard, Pencil, TrendingUp, Plus } from "lucide-react";
+import { BookOpen, Users, Calendar, Star, BarChart3, LayoutDashboard, Pencil, TrendingUp, Plus, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { gradientFor } from "../_lib/thumbGradient";
 import { requireCourseCreate } from "@/lib/access/course";
+import { facilitatorHandbookDownloadPath, handoutDisplayName } from "@/lib/handout";
 
 export const metadata: Metadata = { title: "My Courses | Instructor" };
 
@@ -137,6 +138,29 @@ export default async function InstructorCoursesPage() {
                       <Calendar size={11} className="inline mr-1.5 -mt-0.5" />
                       Assignment: {formatDate(a.startDate)} → {formatDate(a.endDate)}
                     </div>
+
+                    {/* Available to every active assigned tutor, including viewers. */}
+                    {a.facilitatorHandbookUrl && (
+                      <a
+                        href={facilitatorHandbookDownloadPath(a.courseId)}
+                        className="group flex items-center gap-3 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2.5 text-left transition-colors hover:border-brand-300 hover:bg-brand-100"
+                        title={`Download ${handoutDisplayName(a.facilitatorHandbookName, a.facilitatorHandbookUrl)}`}
+                        aria-label={`Download facilitator handbook: ${handoutDisplayName(a.facilitatorHandbookName, a.facilitatorHandbookUrl)}`}
+                      >
+                        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white text-brand-600 shadow-sm">
+                          <Download size={14} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-[10px] font-bold uppercase tracking-wider text-brand-600">
+                            Facilitator handbook
+                          </span>
+                          <span className="block truncate text-xs font-medium text-gray-700">
+                            {handoutDisplayName(a.facilitatorHandbookName, a.facilitatorHandbookUrl)}
+                          </span>
+                        </span>
+                        <Download size={14} className="flex-shrink-0 text-brand-400 transition-transform group-hover:translate-y-0.5" />
+                      </a>
+                    )}
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-2">
