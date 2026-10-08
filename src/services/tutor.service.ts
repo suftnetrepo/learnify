@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { tutorAssignments, tutorInvitations, users, courses } from "@/db/schema";
+import { tutorAssignments, tutorInvitations, users, courses, categories } from "@/db/schema";
 import { eq, and, isNull, desc, asc, sql } from "drizzle-orm";
 import { log } from "@/lib/logger";
 import type {
@@ -189,10 +189,6 @@ export class TutorService {
    * Instructor courses page — all assignments with course/student/earnings data.
    */
   static async getInstructorCoursesData(tutorId: string) {
-    const { db } = await import("@/db");
-    const { tutorAssignments, courses, categories, enrollments, purchases } = await import("@/db/schema");
-    const { eq, and, count, sum } = await import("drizzle-orm");
-
     const assignments = await db
       .select({
         assignmentId:    tutorAssignments.id,
@@ -204,20 +200,25 @@ export class TutorService {
         courseLevel:     courses.level,
         enrollmentCount: courses.enrollmentCount,
         averageRating:   courses.averageRating,
+        facilitatorHandbookUrl:  courses.facilitatorHandbookUrl,
+        facilitatorHandbookName: courses.facilitatorHandbookName,
         categoryName:    categories.name,
         startDate:       tutorAssignments.startDate,
         endDate:         tutorAssignments.endDate,
         status:          tutorAssignments.status,
         accessLevel:     tutorAssignments.accessLevel,
-        stripePayoutsEnabled:   (await import("@/db/schema")).users.stripePayoutsEnabled,
-        stripeOnboardingStatus: (await import("@/db/schema")).users.stripeOnboardingStatus,
+        stripePayoutsEnabled:   users.stripePayoutsEnabled,
+        stripeOnboardingStatus: users.stripeOnboardingStatus,
       })
       .from(tutorAssignments)
-      .innerJoin(courses,    (await import("drizzle-orm")).eq(tutorAssignments.courseId, courses.id))
-      .leftJoin(categories,  (await import("drizzle-orm")).eq(courses.categoryId, categories.id))
-      .innerJoin((await import("@/db/schema")).users, (await import("drizzle-orm")).eq(tutorAssignments.tutorId, (await import("@/db/schema")).users.id))
-      .where((await import("drizzle-orm")).eq(tutorAssignments.tutorId, tutorId))
-      .orderBy((await import("drizzle-orm")).desc(tutorAssignments.createdAt));
+      .innerJoin(courses, eq(tutorAssignments.courseId, courses.id))
+      .leftJoin(categories, eq(courses.categoryId, categories.id))
+      .innerJoin(users, eq(tutorAssignments.tutorId, users.id))
+      .where(and(
+        eq(tutorAssignments.tutorId, tutorId),
+        eq(tutorAssignments.status, "active")
+      ))
+      .orderBy(desc(tutorAssignments.createdAt));
 
     return assignments;
   }
