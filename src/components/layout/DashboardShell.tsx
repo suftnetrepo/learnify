@@ -3,7 +3,7 @@
 import { createContext, useContext, useState } from "react";
 import { Sidebar } from "./Sidebar";
 
-const MobileMenuContext = createContext<{ open: () => void }>({ open: () => {} });
+const MobileMenuContext = createContext<{ open: () => void; role?: string }>({ open: () => {} });
 export const useMobileMenu = () => useContext(MobileMenuContext);
 
 interface DashboardShellProps {
@@ -18,7 +18,7 @@ export function DashboardShell({ role, name, email, avatar, children }: Dashboar
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <MobileMenuContext.Provider value={{ open: () => setMobileOpen(true) }}>
+    <MobileMenuContext.Provider value={{ open: () => setMobileOpen(true), role }}>
       <div className="flex h-screen overflow-hidden bg-surface-50">
         {/* Desktop sidebar */}
         <Sidebar role={role} name={name} email={email} avatar={avatar} />
