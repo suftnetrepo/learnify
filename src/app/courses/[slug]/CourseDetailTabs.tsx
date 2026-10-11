@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Lock, PlayCircle, ChevronDown, Star } from "lucide-react";
+import { Lock, PlayCircle, ChevronDown, Star } from "lucide-react";
 import { PreviewModal } from "./PreviewModal";
 import { formatDuration } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -49,7 +49,11 @@ export function CourseDetailTabs({
   function toggleSection(id: string) {
     setOpenSects((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   }
@@ -128,21 +132,32 @@ export function CourseDetailTabs({
           {/* Instructor bio */}
           {tutors.length > 0 && (
             <div>
-              <h3 className="font-display text-lg font-bold text-gray-900 mb-3">
+              <h3 className="mb-4 font-display text-lg font-bold text-gray-900">
                 {tutors.length === 1 ? "Your instructor" : "Your instructors"}
               </h3>
-              <div className="space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2">
                 {tutors.map((t) => (
-                  <div key={t.id} className="flex items-start gap-4">
-                    <TutorAvatar name={t.name} avatarUrl={t.avatarUrl} size={64} />
-                    <div>
-                      <Link href={`/tutors/${t.id}`} className="font-semibold text-gray-900 hover:text-brand-600">
+                  <div
+                    key={t.id}
+                    className="flex min-w-0 items-start gap-4 rounded-2xl border border-surface-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+                  >
+                    <div className="shrink-0">
+                      <TutorAvatar name={t.name} avatarUrl={t.avatarUrl} size={64} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/tutors/${t.id}`}
+                        className="block break-words font-semibold leading-snug text-gray-900 transition-colors hover:text-brand-600"
+                      >
                         {t.name ?? "Instructor"}
                       </Link>
-                      {t.headline && <p className="text-sm text-gray-600">{t.headline}</p>}
-                      {t.bio && <p className="mt-2 text-sm text-gray-500 leading-relaxed">{t.bio}</p>}
-                      <Link href={`/tutors/${t.id}`} className="mt-2 inline-block text-xs font-semibold text-brand-600 hover:underline">
-                        View full profile →
+                      {t.headline && <p className="mt-1 text-sm leading-relaxed text-gray-600">{t.headline}</p>}
+                      {t.bio && <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-gray-500">{t.bio}</p>}
+                      <Link
+                        href={`/tutors/${t.id}`}
+                        className="mt-3 inline-flex items-center text-xs font-semibold text-brand-600 hover:underline"
+                      >
+                        View full profile <span aria-hidden="true" className="ml-1">→</span>
                       </Link>
                     </div>
                   </div>
