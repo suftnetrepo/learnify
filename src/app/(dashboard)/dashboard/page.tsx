@@ -104,6 +104,14 @@ export default async function DashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            href="/courses"
+            aria-label="Browse courses"
+            className="flex h-9 items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-2.5 text-sm font-semibold text-brand-700 transition-colors hover:border-brand-200 hover:bg-brand-100 sm:px-3.5"
+          >
+            <BookOpen size={15} />
+            <span className="hidden sm:inline">Browse courses</span>
+          </Link>
           <button className="relative flex h-9 w-9 items-center justify-center rounded-full border border-surface-200 text-gray-400 hover:bg-surface-50">
             <Bell size={16} />
             <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-brand-500" />

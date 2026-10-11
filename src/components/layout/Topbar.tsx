@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, Menu } from "lucide-react";
+import { Bell, Search, Menu, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { useMobileMenu } from "./DashboardShell";
 
@@ -13,7 +13,7 @@ interface TopbarProps {
 }
 
 export function Topbar({ title, breadcrumbs, actions }: TopbarProps) {
-  const { open: openMenu } = useMobileMenu();
+  const { open: openMenu, role } = useMobileMenu();
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-surface-100 bg-white px-4 sm:px-6 flex-shrink-0">
@@ -50,6 +50,17 @@ export function Topbar({ title, breadcrumbs, actions }: TopbarProps) {
       {/* Right */}
       <div className="flex items-center gap-1.5 flex-shrink-0">
         {actions}
+
+        {role === "student" && (
+          <Link
+            href="/courses"
+            aria-label="Browse courses"
+            className="flex h-9 items-center gap-2 rounded-xl border border-brand-100 bg-brand-50 px-2.5 text-sm font-semibold text-brand-700 transition-colors hover:border-brand-200 hover:bg-brand-100 sm:px-3"
+          >
+            <BookOpen size={16} />
+            <span className="hidden sm:inline">Browse courses</span>
+          </Link>
+        )}
 
         <button
           className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 hover:bg-surface-100 hover:text-gray-700 transition-colors"
