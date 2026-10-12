@@ -31,7 +31,8 @@ interface RosterItem { userId: string; name: string; role: ParticipantRole; canE
 interface RemoteCursor { x: number; y: number; name: string; color: string }
 interface Viewport { scrollX: number; scrollY: number; zoom: number }
 
-const REALTIME_URL     = process.env.NEXT_PUBLIC_REALTIME_URL || "http://localhost:4000";
+// Unset → the page's own origin, where server.ts serves Socket.IO alongside Next.js
+const REALTIME_URL     = process.env.NEXT_PUBLIC_REALTIME_URL || undefined;
 const SEND_BATCH_MS    = 50;      // coalesce element updates while dragging
 const CURSOR_MS        = 50;
 const OFFLINE_AFTER_MS = 30_000;  // reconnecting → red "Reload" banner
@@ -180,7 +181,7 @@ export function LiveClassroom({ whiteboardId, basePath }: Props) {
           userId: p.userId, name: p.name ?? "Participant", role: p.role, canEdit: p.canEdit, online: false,
         }])));
 
-        const socket: ClassroomSocket = io(REALTIME_URL, {
+        const socket: ClassroomSocket = io(REALTIME_URL ?? window.location.origin, {
           // Fresh token on every (re)connect — it carries no permissions the server trusts, just identity
           auth: (cb) => {
             liveSessionsApi.token(sessionId).then(({ token }) => cb({ token })).catch(() => cb({}));

@@ -8,8 +8,8 @@ Edquis whiteboards are Excalidraw canvases in two forms:
   course and lecture.
 - **Live classrooms.** A tutor turns a board into a real-time session that enrolled students join.
   The host controls who may draw, everyone sees each other's cursors, and the board is saved back
-  when the session ends. Live sync runs on a separate Socket.IO service; see
-  [`realtime/README.md`](../realtime/README.md).
+  when the session ends. Live sync is a Socket.IO server (`realtime/src`) that runs inside the
+  Next.js process through the custom server `server.ts`; see [`realtime/README.md`](../realtime/README.md).
 
 | Piece | Where |
 |-------|-------|
@@ -17,7 +17,7 @@ Edquis whiteboards are Excalidraw canvases in two forms:
 | Services | `src/services/whiteboard.service.ts`, `src/services/whiteboard-session.service.ts` |
 | HTTP API | `src/app/api/whiteboards/**` |
 | UI | `src/components/whiteboard/*`, pages under `(dashboard)/dashboard/whiteboards` and `(instructor)/instructor/whiteboards` |
-| Realtime server | `realtime/` |
+| Realtime server | `realtime/src`, attached to Next.js by `server.ts` (compiled with `tsconfig.server.json`) |
 | Tests | `src/__tests__/whiteboards/`, `realtime/src/__tests__/` |
 
 ## Database
@@ -97,7 +97,7 @@ Tutor: Start Live Session ──► POST /api/whiteboards/sessions            (c
 Everyone: classroom page ───► POST /api/whiteboards/sessions            (resume → sessionId)
                               GET  /api/whiteboards/sessions/[id]        (title, roster)
                               POST /api/whiteboards/sessions/[id]/token  (role derived + participant row written)
-                              Socket.IO connect { auth: { token } } ──► realtime server
+                              Socket.IO connect { auth: { token } } ──► /socket.io/ (same server)
                               emit join ──► room:state (elements, roster, your role)
 Drawing:                      elements:update ⇄ elements:patch, cursor:move ⇄ cursor:moved
 Host:                         permission:set ──► permission:changed
@@ -120,6 +120,22 @@ Host:                         permission:set ──► permission:changed
 - **Ending.** In the room, the host's **End Session** goes through the socket (saves the final
   scene). `DELETE /api/whiteboards/sessions/[id]` (host or admin) also works; open rooms notice
   within 30 s.
+
+## Deployment
+
+The whole feature ships as **one web service**: `server.ts` serves Next.js and Socket.IO on the same
+port.
+
+| | |
+|---|---|
+| Build | `yarn build` (`tsc -p tsconfig.server.json && next build`) |
+| Start | `yarn start` (`NODE_ENV=production node dist/server.js`) |
+| Required env | `WHITEBOARD_JWT_SECRET`; `NEXT_PUBLIC_REALTIME_URL` = the app's own URL, set **before** building (it's inlined into the client and the CSP) |
+| Host | Any long-running Node host (e.g. one Render web service). Not Vercel or other serverless platforms: they can't hold WebSockets or in-memory rooms. |
+
+Without `WHITEBOARD_JWT_SECRET` the site runs normally with live classrooms disabled. Plain
+`next start` also serves the site without them. The realtime server can still be deployed on its
+own if ever needed; see the realtime README.
 
 ## Security model
 
@@ -158,11 +174,13 @@ to the tutor's own courses would be a small change in `WhiteboardService.canRead
 - **Images don't sync live.** Pasted images are stored inside the scene (`files`) and aren't sent
   through the realtime server, so other participants don't see them, and they inflate every
   autosave. Fix: upload images to Cloudinary (already used elsewhere) and store URLs.
-- **One realtime instance.** Room state is in a single process's memory. Scaling out needs sticky
-  sessions, the Socket.IO Redis adapter and session-to-instance routing; see the realtime README.
-- **Vercel's 4.5 MB request-body limit.** On Vercel, saves larger than 4.5 MB fail at the platform
-  before reaching the 10 MB app limit. Moving images out of the scene (above) removes most of the
-  risk.
+- **One app instance.** Room state is in the web process's memory, so the app must run as a
+  single instance. Scaling out needs sticky sessions, the Socket.IO Redis adapter and
+  session-to-instance routing; see the realtime README. A redeploy restarts live rooms: they're
+  saved on shutdown and clients reconnect, but expect a brief "Reconnecting…".
+- **Not deployable to Vercel as-is.** The custom server needs a long-running host. (If the site
+  ever moves to Vercel, run the realtime server standalone elsewhere. Vercel also caps request
+  bodies at 4.5 MB, below the 10 MB scene limit.)
 - **Excalidraw fonts load from esm.sh.** If that CDN is unreachable, text falls back to system fonts
   and SVG export may lack embedded fonts. Self-hosting means adding about 16 MB of font files.
 - **No snapshot restore UI.**

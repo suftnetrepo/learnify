@@ -44,3 +44,6 @@ next-env.d.ts
 learnify-testing-guide.html
 
 .partykit/
+
+# compiled custom server (tsconfig.server.json)
+/dist/

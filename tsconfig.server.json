@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "noEmit": false,
+    "incremental": false,
+    "allowJs": false,
+    "plugins": []
+  },
+  "include": ["server.ts", "realtime/src/**/*"],
+  "exclude": ["node_modules", "realtime/src/__tests__"]
+}

@@ -4,13 +4,39 @@ Socket.IO server for **live whiteboard classrooms**. It holds the authoritative 
 board in memory, relays drawing, cursors and permission changes between participants, and writes the
 board back to Postgres.
 
-It is a separate Node.js service from the Next.js app: it shares the same database and a JWT secret,
-but is built, run and deployed on its own. The Next.js app issues join tokens; this server verifies
-them and enforces who may draw.
+It can run **inside the Next.js process** (the default: one server, one port; see below) or as a
+**standalone service**. Either way it shares the app's database and a JWT secret: the Next.js app
+issues join tokens, and this code verifies them and enforces who may draw.
 
 See [`docs/whiteboard.md`](../docs/whiteboard.md) for the whole feature, including the HTTP API.
 
-## Local development
+## Running inside Next.js (recommended for single-server deployments)
+
+`server.ts` at the repo root is a [custom Next.js server](https://nextjs.org/docs/app/guides/custom-server).
+It creates one HTTP server, lets Next.js handle pages and API routes, and attaches this Socket.IO
+server to the same server via `attachSocketIO()` from `src/index.ts`. Socket.IO answers on
+`/socket.io/`; everything else goes to Next.js, including Next's own WebSocket upgrades (dev hot reload).
+
+From the repo root:
+
+```bash
+yarn dev                 # tsx server.ts: Next.js dev server + Socket.IO on :3000
+yarn build && yarn start # tsc -p tsconfig.server.json && next build; then node dist/server.js
+```
+
+- Expected output: `[realtime] Socket.IO attached (…)` then `> Ready on http://localhost:3000`.
+- The realtime code is compiled with the root `tsconfig.server.json` into `dist/realtime/src/`, and
+  its runtime dependencies (`socket.io`, `pg`, `jsonwebtoken`, `zod`) are root dependencies too, so a
+  root `yarn install` is all a host needs.
+- Configuration comes from the app's environment (`.env.local` locally). `NEXT_PUBLIC_REALTIME_URL`
+  can be left unset; the client then connects to the page's own origin.
+- If `WHITEBOARD_JWT_SECRET` is missing, a warning is logged and live classrooms are disabled; the
+  rest of the site still runs.
+- `next dev` / `next start` still work for the site alone, without live classrooms.
+
+The standalone mode below remains for realtime-only testing, or for deploying it separately later.
+
+## Standalone mode: local development
 
 **Prerequisites:** Node.js 20+ (22.12+ to run the tests), Yarn 1, and the Postgres database the
 Next.js app uses, with migrations through `0009` applied.
@@ -47,8 +73,8 @@ In the Next.js app's `.env.local`, set the same `WHITEBOARD_JWT_SECRET` and
 |-------------------------|----------|-------------------------|---------|
 | `DATABASE_URL`          | yes      | —                       | Same Postgres database as the Next.js app. |
 | `WHITEBOARD_JWT_SECRET` | yes      | —                       | Verifies join tokens. **Must match the Next.js app.** The server refuses to start without it. |
-| `REALTIME_CORS_ORIGIN`  | yes in prod | `NEXT_PUBLIC_APP_URL`, else `http://localhost:3000` | Browser origins allowed to connect, comma-separated (e.g. `https://edquis.com,https://www.edquis.com`). |
-| `REALTIME_PORT`         | no       | `PORT`, else `4000`     | Listen port. Most hosts set `PORT`, which is used automatically. |
+| `REALTIME_CORS_ORIGIN`  | standalone prod | `NEXT_PUBLIC_APP_URL`, else `http://localhost:3000` | Browser origins allowed to connect, comma-separated (e.g. `https://edquis.com,https://www.edquis.com`). Not needed inside Next.js, where connections are same-origin. |
+| `REALTIME_PORT`         | no       | `PORT`, else `4000`     | Standalone only: listen port. Inside Next.js everything uses the app's `PORT`. |
 
 Tuning (optional): `REALTIME_FLUSH_MS` (default 30000), `REALTIME_EMPTY_ROOM_GRACE_MS` (60000),
 `REALTIME_DB_POOL_MAX` (5).
@@ -75,6 +101,7 @@ Tuning (optional): `REALTIME_FLUSH_MS` (default 30000), `REALTIME_EMPTY_ROOM_GRA
   saved and closed.
 - **Reconnecting** clients get the current server state (`room:state`); events aren't replayed.
 - **Shutdown** (`SIGTERM`/`SIGINT`) saves every open room before exiting, so deploys don't lose work.
+  Inside Next.js this also stops the web server, since both share the process.
 
 ### Events
 
@@ -93,11 +120,28 @@ The TypeScript contract is in `src/types.ts`, mirrored by hand in
 
 ## Deployment
 
-The server keeps rooms in memory and holds WebSocket connections open, so it needs a
-**long-running Node host**: Render (web service), Fly.io, Railway, a VM or a container.
-Serverless platforms (Vercel functions, AWS Lambda) **won't work**.
+Rooms live in memory and hold WebSocket connections open, so this needs a **long-running Node
+host**: Render (web service), Fly.io, Railway, a VM or a container. Serverless platforms (Vercel
+functions, AWS Lambda) **won't work**, and neither will deploying the Next.js app to Vercel while
+expecting live classrooms.
+
+### Single server (recommended)
+
+One web service runs the whole app. On Render:
+
+| Setting | Value |
+|---------|-------|
+| Build command | `yarn install --frozen-lockfile && yarn build` |
+| Start command | `yarn start` (sets `NODE_ENV=production`) |
+| Health check path | `/` (or any public page) |
+| Environment | The app's usual variables, plus `WHITEBOARD_JWT_SECRET` and `NEXT_PUBLIC_REALTIME_URL=https://<your-app>.onrender.com` |
+
+`NEXT_PUBLIC_REALTIME_URL` is read at build time, so set it before the first build.
+
+### Standalone service
 
 ```bash
+cd realtime
 yarn install --frozen-lockfile && yarn build   # build command
 yarn start                                     # start command
 ```
@@ -125,12 +169,14 @@ Until then, run exactly one instance.
 
 ## Connecting the Next.js app
 
-Set these in the Next.js app's environment **before running `next build`**:
+Inside Next.js, `NEXT_PUBLIC_REALTIME_URL` is the app's own URL (or unset, meaning same-origin).
+For a standalone deployment, set these in the Next.js app's environment **before running
+`next build`**:
 
 | Variable                   | Value |
 |----------------------------|-------|
-| `NEXT_PUBLIC_REALTIME_URL` | Public URL of this server, e.g. `https://realtime.edquis.com` |
-| `WHITEBOARD_JWT_SECRET`    | Same value as here |
+| `NEXT_PUBLIC_REALTIME_URL` | Public URL of the realtime service, e.g. `https://realtime.edquis.com` |
+| `WHITEBOARD_JWT_SECRET`    | Same value as the realtime service |
 
 `NEXT_PUBLIC_REALTIME_URL` is inlined into the client bundle **and** added to the site's
 Content-Security-Policy `connect-src` (http and ws forms) at build time. Changing it means
