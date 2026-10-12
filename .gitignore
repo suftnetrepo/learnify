@@ -42,3 +42,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 learnify-testing-guide.html
+
+# Parked whiteboard work (branch feat/excalidraw-whiteboards): its realtime server, compiled
+# custom server and tldraw cache can be left behind after switching branches. Keep them out of
+# commits, the typecheck and lint until that work is ready — remove these lines when merging it.
+/realtime/
+/dist/
+/.partykit/
