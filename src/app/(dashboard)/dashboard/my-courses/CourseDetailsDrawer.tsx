@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, MapPin, Clock, Calendar, Users, Download, Share2, ExternalLink, Award, FileText } from "lucide-react";
+import { X, MapPin, Clock, Calendar, Users, Download, Share2, ExternalLink, Award, FileText, PenLine } from "lucide-react";
 import { handoutDisplayName, handoutDownloadPath } from "@/lib/handout";
 import { cn } from "@/lib/utils";
 import { formatSessionDateRange, formatSessionTimeRange } from "@/lib/session-dates";
@@ -14,6 +14,7 @@ interface Session {
   conferencePlatform: string | null;
   conferenceUrl:      string | null;
   conferencePassword: string | null;
+  whiteboardUrl:      string | null;
   venueAddress:       string | null;
   venueCity:          string | null;
   venuePostcode:      string | null;
@@ -218,6 +219,24 @@ export function CourseDetailsDrawer({ enrollment, session, onClose }: Props) {
                       className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:underline mt-1"
                     >
                       <ExternalLink size={11} /> Join session →
+                    </a>
+                  </div>
+                )}
+
+                {/* Whiteboard — any format */}
+                {session.whiteboardUrl && (
+                  <div className="rounded-lg bg-brand-50 border border-brand-100 p-3 space-y-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-brand-600">
+                      Whiteboard
+                    </p>
+                    <p className="text-xs text-gray-500">Your tutor&apos;s shared board for this session.</p>
+                    <a
+                      href={session.whiteboardUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:underline mt-1"
+                    >
+                      <PenLine size={11} /> Open Whiteboard →
                     </a>
                   </div>
                 )}

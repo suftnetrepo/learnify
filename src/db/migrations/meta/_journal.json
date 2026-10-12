@@ -57,6 +57,13 @@
       "when": 1790843508217,
       "tag": "0007_daffy_paper_doll",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791795819063,
+      "tag": "0008_session_whiteboard_url",
+      "breakpoints": true
     }
   ]
 }

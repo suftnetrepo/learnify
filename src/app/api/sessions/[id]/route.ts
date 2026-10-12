@@ -7,6 +7,9 @@ import {
   notFound, serverError, validationError, conflict,
 } from "@/lib/api-response";
 
+/** http(s) links only — rendered as an href for students, so no javascript:/data: URLs. */
+const httpUrl = z.string().max(2000).url().refine((v) => /^https?:\/\//i.test(v), "Must be an http(s) link");
+
 // Optional text fields accept null so an edit can clear them (e.g. remove a meeting password)
 const updateSchema = z.object({
   title:              z.string().min(2).max(200).optional(),
@@ -17,10 +20,11 @@ const updateSchema = z.object({
   venueAddress:       z.string().max(500).nullish(),
   venueCity:          z.string().max(100).nullish(),
   venuePostcode:      z.string().max(20).nullish(),
-  venueMapUrl:        z.string().url().nullish(),
+  venueMapUrl:        httpUrl.nullish(),
   conferencePlatform: z.enum(["zoom","teams","google_meet","webex","other"]).nullish(),
-  conferenceUrl:      z.string().url().nullish(),
+  conferenceUrl:      httpUrl.nullish(),
   conferencePassword: z.string().max(100).nullish(),
+  whiteboardUrl:      httpUrl.nullish(),
   status:             z.enum(["scheduled","cancelled","completed"]).optional(),
   isPublished:        z.boolean().optional(),
 });
