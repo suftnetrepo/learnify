@@ -296,7 +296,9 @@ export class EnrollmentService {
             description:   lecturesTable.description,
             videoUrl:      lecturesTable.videoUrl,
             videoDuration: lecturesTable.videoDuration,
+            recordingUrl:  lecturesTable.recordingUrl,
             isFree:        lecturesTable.isFree,
+            isPublished:   lecturesTable.isPublished,
             sortOrder:     lecturesTable.sortOrder,
             sectionId:     lecturesTable.sectionId,
           })

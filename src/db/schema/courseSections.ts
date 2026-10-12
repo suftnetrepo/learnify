@@ -66,6 +66,8 @@ export const lectures = pgTable(
     videoPublicId: text("video_public_id"),    // Cloudinary public ID for management
     videoDuration: integer("video_duration"),  // seconds
     thumbnailUrl: text("thumbnail_url"),
+    // Recording — instructor pastes URL after a live session
+    recordingUrl: text("recording_url"),        // http(s) URL, nullable
     // Resources
     resourceUrl: text("resource_url"),         // downloadable attachment
     resourceName: varchar("resource_name", { length: 200 }),

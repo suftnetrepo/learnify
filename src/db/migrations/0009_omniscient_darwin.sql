@@ -1,0 +1,1 @@
+ALTER TABLE "lectures" ADD COLUMN IF NOT EXISTS "recording_url" text;

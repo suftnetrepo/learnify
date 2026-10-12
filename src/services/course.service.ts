@@ -201,6 +201,7 @@ export class CourseService {
           videoDuration: l.videoDuration,
           videoPublicId: l.videoPublicId,
           thumbnailUrl:  l.thumbnailUrl,
+          recordingUrl:  l.recordingUrl,
           isFree:        l.isFree,
           isPublished:   l.isPublished,
           sortOrder:     l.sortOrder,

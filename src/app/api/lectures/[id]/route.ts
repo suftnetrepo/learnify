@@ -19,6 +19,10 @@ const updateSchema = z.object({
   thumbnailUrl:  z.string().url().optional().or(z.literal("")),
   resourceUrl:   z.string().url().optional().or(z.literal("")),
   resourceName:  z.string().max(200).optional(),
+  recordingUrl:  z.string().url().optional().or(z.literal("")).refine(
+    (v) => !v || /^https?:\/\//i.test(v),
+    { message: "Must be a valid http(s) URL" }
+  ),
   isFree:        z.boolean().optional(),
   isPublished:   z.boolean().optional(),
   sortOrder:     z.number().int().min(0).optional(),
