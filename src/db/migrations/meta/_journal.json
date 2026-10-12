@@ -71,6 +71,13 @@
       "when": 1791793123031,
       "tag": "0009_whiteboard_unique_participant",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791795495234,
+      "tag": "0010_session_whiteboard_url",
+      "breakpoints": true
     }
   ]
 }

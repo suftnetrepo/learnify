@@ -21,6 +21,8 @@ export interface CreateSessionPayload {
   conferencePlatform?: "zoom" | "teams" | "google_meet" | "webex" | "other";
   conferenceUrl?:     string;
   conferencePassword?: string;
+  // Any format: external whiteboard link shown to booked students
+  whiteboardUrl?:     string;
   // Hidden from students and not bookable when false (default true)
   isPublished?:       boolean;
 }
@@ -28,7 +30,7 @@ export interface CreateSessionPayload {
 /** Optional text fields that an edit may clear by sending null. */
 type ClearableSessionField =
   | "description" | "venueAddress" | "venueCity" | "venuePostcode" | "venueMapUrl"
-  | "conferencePlatform" | "conferenceUrl" | "conferencePassword";
+  | "conferencePlatform" | "conferenceUrl" | "conferencePassword" | "whiteboardUrl";
 
 export type UpdateSessionPayload =
   Partial<Omit<CreateSessionPayload, "courseId" | ClearableSessionField>> &
@@ -102,9 +104,9 @@ export class SessionService {
     return requireCourseAccess(userId, courseId, role, "viewer");
   }
 
-  /** The session with its join link and password removed (platform name kept). */
-  static withoutJoinDetails<T extends { conferenceUrl: string | null; conferencePassword: string | null }>(session: T): T {
-    return { ...session, conferenceUrl: null, conferencePassword: null };
+  /** The session with its join link, password and whiteboard link removed (platform name kept). */
+  static withoutJoinDetails<T extends { conferenceUrl: string | null; conferencePassword: string | null; whiteboardUrl: string | null }>(session: T): T {
+    return { ...session, conferenceUrl: null, conferencePassword: null, whiteboardUrl: null };
   }
 
   static async getUpcomingForCourse(courseId: string): Promise<SessionWithStats[]> {
@@ -168,6 +170,7 @@ export class SessionService {
         conferencePlatform: payload.conferencePlatform ?? null,
         conferenceUrl:      payload.conferenceUrl      ?? null,
         conferencePassword: payload.conferencePassword ?? null,
+        whiteboardUrl:      payload.whiteboardUrl      ?? null,
         status:             "scheduled",
         isPublished:        payload.isPublished ?? true,
       })
@@ -197,6 +200,7 @@ export class SessionService {
     if (payload.conferencePlatform !== undefined) updateData.conferencePlatform = payload.conferencePlatform;
     if (payload.conferenceUrl      !== undefined) updateData.conferenceUrl      = payload.conferenceUrl;
     if (payload.conferencePassword !== undefined) updateData.conferencePassword = payload.conferencePassword;
+    if (payload.whiteboardUrl      !== undefined) updateData.whiteboardUrl      = payload.whiteboardUrl;
     if (payload.status             !== undefined) updateData.status             = payload.status;
     if (payload.isPublished        !== undefined) updateData.isPublished        = payload.isPublished;
 
@@ -375,6 +379,7 @@ export class SessionService {
       changed(["conferencePlatform"])                                             && "Platform",
       changed(["conferenceUrl"])                                                  && "Join link",
       changed(["conferencePassword"])                                             && "Meeting password",
+      changed(["whiteboardUrl"])                                                  && "Whiteboard link",
     ].filter((c): c is string => !!c);
   }
 
@@ -546,6 +551,7 @@ export class SessionService {
         conferencePlatform: courseSessions.conferencePlatform,
         conferenceUrl:      courseSessions.conferenceUrl,
         conferencePassword: courseSessions.conferencePassword,
+        whiteboardUrl:      courseSessions.whiteboardUrl,
         venueAddress:       courseSessions.venueAddress,
         venueCity:          courseSessions.venueCity,
         venuePostcode:      courseSessions.venuePostcode,
