@@ -49,7 +49,6 @@ export async function POST(req: NextRequest) {
 
     const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
       mode:     "subscription",
-      currency: "gbp",
       line_items: [
         {
           price:    priceId,
@@ -75,7 +74,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    log.error("Tranquis: POST /api/tranquis/subscribe error", { error });
-    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    log.error("Tranquis: POST /api/tranquis/subscribe error", { error: msg });
+    return NextResponse.json({ error: "Failed to create checkout session", detail: msg }, { status: 500 });
   }
 }
