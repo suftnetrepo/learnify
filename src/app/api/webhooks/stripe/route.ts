@@ -35,6 +35,35 @@ export async function POST(req: NextRequest) {
 
   log.info("Stripe webhook received", { type: event.type, id: event.id });
 
+  // ── Tranquis forwarding ───────────────────────────────────────────────────
+  // If the event belongs to the Tranquis app, forward it to the careermind-
+  // backend webhook handler and return early. Learnify does not own Tranquis
+  // subscriptions — careermind-backend holds the User model for that app.
+  const eventObj = event.data.object as { metadata?: Record<string, string> };
+  if (eventObj?.metadata?.app === "tranquis") {
+    try {
+      const careermindUrl = process.env.CAREERMIND_API_URL;
+      if (careermindUrl) {
+        await fetch(`${careermindUrl}/tranquis/webhooks/stripe`, {
+          method:  "POST",
+          headers: {
+            "Content-Type":    "application/json",
+            "stripe-signature": signature,
+          },
+          body,
+        });
+        log.info("Tranquis webhook forwarded to careermind-backend", { type: event.type, id: event.id });
+      } else {
+        log.warn("CAREERMIND_API_URL not set — Tranquis webhook not forwarded", { type: event.type });
+      }
+    } catch (fwdErr) {
+      log.error("Failed to forward Tranquis webhook to careermind-backend", { fwdErr });
+      // Return 500 so Stripe retries; careermind-backend must be available
+      return NextResponse.json({ error: "Forward failed" }, { status: 500 });
+    }
+    return NextResponse.json({ received: true });
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed":
