@@ -32,3 +32,6 @@ export * from "./directMessages";
 // ─── Tutors ───────────────────────────────────────────────────────────────────
 export * from "./tutorAssignments";
 export * from "./tutorInvitations";
+
+// ─── Whiteboards ──────────────────────────────────────────────────────────────
+export * from "./whiteboards";
