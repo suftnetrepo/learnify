@@ -5,21 +5,27 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { format } from "date-fns";
-import { MoreVertical, Pencil, Copy, Trash2, Plus, PenLine, BookOpen, Presentation } from "lucide-react";
+import { MoreVertical, Pencil, Copy, Trash2, Plus, PenLine, BookOpen, Presentation, Radio } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ConfirmModal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import { whiteboardsApi, type WhiteboardSummaryDTO } from "./whiteboard-api";
+import type { JoinableSession } from "@/services/whiteboard-session.service";
 
 interface Props {
   initialBoards: WhiteboardSummaryDTO[];
   courses:       { id: string; title: string }[];
   /** "/dashboard/whiteboards" or "/instructor/whiteboards" */
   basePath:      string;
+  /** The user's own boards that have an active live session */
+  liveBoardIds?: string[];
+  /** Live sessions on other people's boards this user can join (e.g. their tutor's) */
+  joinable?:     JoinableSession[];
 }
 
-export function WhiteboardList({ initialBoards, courses, basePath }: Props) {
+export function WhiteboardList({ initialBoards, courses, basePath, liveBoardIds = [], joinable = [] }: Props) {
+  const live = useMemo(() => new Set(liveBoardIds), [liveBoardIds]);
   const router = useRouter();
   const { error: toastError, success } = useToast();
 
@@ -102,6 +108,33 @@ export function WhiteboardList({ initialBoards, courses, basePath }: Props) {
         </Button>
       </div>
 
+      {/* Live sessions on other people's boards */}
+      {joinable.length > 0 && (
+        <div className="space-y-2">
+          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-red-500">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" /> Live now
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {joinable.map((s) => (
+              <Link
+                key={s.sessionId}
+                href={`${basePath}/${s.whiteboardId}/classroom`}
+                className="flex items-center gap-3 rounded-2xl border border-red-100 bg-red-50/60 px-4 py-3 transition-colors hover:border-red-200 hover:bg-red-50"
+              >
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white text-red-500 shadow-sm">
+                  <Radio size={16} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-gray-900">{s.title}</p>
+                  {s.courseTitle && <p className="truncate text-xs text-gray-500">{s.courseTitle}</p>}
+                </div>
+                <span className="flex-shrink-0 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white">Join</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Filter bar */}
       {boards.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5">
@@ -150,6 +183,14 @@ export function WhiteboardList({ initialBoards, courses, basePath }: Props) {
               >
                 <PenLine size={28} className="text-brand-300 transition-colors group-hover:text-brand-400" />
               </Link>
+              {live.has(board.id) && (
+                <Link
+                  href={`${basePath}/${board.id}/classroom`}
+                  className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow-sm hover:bg-red-600"
+                >
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> Join
+                </Link>
+              )}
 
               <div className="flex flex-1 flex-col p-4">
                 <div className="flex items-start gap-2">

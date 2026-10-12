@@ -14,6 +14,9 @@ export interface ExcalidrawCanvasProps {
   readOnly?:    boolean;
   /** Imperative API — used for export and for replacing the scene after a conflict reload */
   onApi?:       (api: ExcalidrawImperativeAPI) => void;
+  /** Live classroom: pointer position in scene coordinates, for remote cursors */
+  onPointerUpdate?: (pointer: { x: number; y: number }) => void;
+  isCollaborating?: boolean;
 }
 
 /** Stored scene shape — what serializeAsJSON(..., "database") produces. */

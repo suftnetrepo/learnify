@@ -2,8 +2,10 @@ import { redirect, notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Topbar } from "@/components/layout/Topbar";
 import { WhiteboardService } from "@/services/whiteboard.service";
+import { WhiteboardSessionService } from "@/services/whiteboard-session.service";
 import { WhiteboardList } from "./WhiteboardList";
 import { WhiteboardEditor } from "./WhiteboardEditor";
+import { LiveClassroom } from "./LiveClassroom";
 
 /**
  * Server halves of the whiteboard routes, shared by /dashboard/whiteboards (students)
@@ -19,10 +21,12 @@ export async function WhiteboardListRoute({ basePath, homeCrumb }: {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const [boards, courses] = await Promise.all([
+  const [boards, courses, joinable] = await Promise.all([
     WhiteboardService.list(session.user.id),
     WhiteboardService.courseOptions(session.user.id, session.user.role),
+    WhiteboardSessionService.listJoinable(session.user.id, session.user.role),
   ]);
+  const liveOnOwn = await WhiteboardSessionService.activeSessionIds(boards.map((b) => b.id));
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -36,6 +40,8 @@ export async function WhiteboardListRoute({ basePath, homeCrumb }: {
             createdAt: b.createdAt.toISOString(),
             updatedAt: b.updatedAt.toISOString(),
           }))}
+          liveBoardIds={[...liveOnOwn.keys()]}
+          joinable={joinable}
         />
       </div>
     </div>
@@ -51,7 +57,34 @@ export async function WhiteboardEditorRoute({ id, basePath }: { id: string; base
   const board = await WhiteboardService.findById(id);
   if (!board || !WhiteboardService.canRead(board, session.user.id, session.user.role)) notFound();
 
-  return <WhiteboardEditor id={id} basePath={basePath} />;
+  const { id: userId, role } = session.user;
+  const [active, canCreate] = await Promise.all([
+    WhiteboardSessionService.findActiveForWhiteboard(id),
+    WhiteboardSessionService.canCreate(board, userId, role),
+  ]);
+  // Launching is a teaching action: tutors and admins only (students join from their list)
+  const canStart = (role === "tutor" || role === "admin") && canCreate;
+  const canJoin  = !!active && !!(await WhiteboardSessionService.joinRole(active, userId, role));
+
+  return (
+    <WhiteboardEditor
+      id={id}
+      basePath={basePath}
+      live={{ canStart, activeSessionId: active && (canStart || canJoin) ? active.id : null, sessionActive: !!active }}
+    />
+  );
+}
+
+/** Live classroom. The board must exist; joining rights are enforced by the session API. */
+export async function WhiteboardClassroomRoute({ id, basePath }: { id: string; basePath: string }) {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+  if (!UUID.test(id)) notFound();
+
+  const board = await WhiteboardService.findById(id);
+  if (!board) notFound();
+
+  return <LiveClassroom whiteboardId={id} basePath={basePath} />;
 }
 
 /** Tab title — only revealed to someone who can read the board. */

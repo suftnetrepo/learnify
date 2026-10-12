@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { ArrowLeft, BookOpen, Check, ChevronDown, Download, Loader2, Save, AlertTriangle, Eye } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, ChevronDown, Download, Loader2, Save, AlertTriangle, Eye, Radio } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
@@ -11,12 +12,20 @@ import {
   ExcalidrawCanvas, serializeScene, exportScenePng, exportSceneSvg, downloadBlob,
   type AppState, type BinaryFiles, type ExcalidrawImperativeAPI, type OrderedExcalidrawElement, type StoredScene,
 } from "./ExcalidrawCanvas";
-import { whiteboardsApi, conflictVersion, type WhiteboardDTO } from "./whiteboard-api";
+import { whiteboardsApi, liveSessionsApi, conflictVersion, type WhiteboardDTO } from "./whiteboard-api";
 
 interface Props {
   id:       string;
   /** "/dashboard/whiteboards" or "/instructor/whiteboards" */
   basePath: string;
+  live?: {
+    /** Tutor/admin allowed to launch a live session on this board */
+    canStart:        boolean;
+    /** Active session this user may join (null if none, or not theirs to join) */
+    activeSessionId: string | null;
+    /** Any active session — the solo editor goes read-only so it can't fight the room's saves */
+    sessionActive:   boolean;
+  };
 }
 
 type SaveStatus = "saved" | "saving" | "unsaved";
@@ -40,8 +49,11 @@ function safeFilename(title: string, ext: string) {
   return `${title.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-") || "whiteboard"}.${ext}`;
 }
 
-export function WhiteboardEditor({ id, basePath }: Props) {
+export function WhiteboardEditor({ id, basePath, live }: Props) {
+  const router = useRouter();
   const { error: toastError, warning, success } = useToast();
+  const [startingLive, setStartingLive] = useState(false);
+  const sessionActive = live?.sessionActive ?? false;
 
   const [board,     setBoard]     = useState<WhiteboardDTO | null>(null);
   const [canEdit,   setCanEdit]   = useState(false);
@@ -69,11 +81,11 @@ export function WhiteboardEditor({ id, basePath }: Props) {
         if (cancelled) return;
         versionRef.current = whiteboard.version;
         setBoard(whiteboard);
-        setCanEdit(canEdit);
+        setCanEdit(canEdit && !sessionActive);
       })
       .catch((err) => { if (!cancelled) setLoadError(err instanceof Error ? err.message : "Couldn't load whiteboard"); });
     return () => { cancelled = true; };
-  }, [id]);
+  }, [id, sessionActive]);
 
   // ─── Save ──────────────────────────────────────────────────────────────────
   const enqueue = useCallback((task: () => Promise<void>) => {
@@ -238,6 +250,17 @@ export function WhiteboardEditor({ id, basePath }: Props) {
     }
   }
 
+  async function startLiveSession() {
+    setStartingLive(true);
+    try {
+      await liveSessionsApi.start(id);
+      router.push(`${basePath}/${id}/classroom`);
+    } catch (err) {
+      toastError("Couldn't start the live session", err instanceof Error ? err.message : undefined);
+      setStartingLive(false);
+    }
+  }
+
   // ─── Render ────────────────────────────────────────────────────────────────
   if (loadError) {
     return (
@@ -304,6 +327,18 @@ export function WhiteboardEditor({ id, basePath }: Props) {
             </span>
           )}
           {board && canEdit && <SaveIndicator status={status} />}
+          {live?.activeSessionId ? (
+            <Link
+              href={`${basePath}/${id}/classroom`}
+              className="inline-flex h-8 items-center gap-1.5 rounded-xl bg-red-500 px-3 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-red-600"
+            >
+              <Radio size={14} /> Rejoin Session
+            </Link>
+          ) : live?.canStart && !live.sessionActive ? (
+            <Button size="sm" variant="secondary" leftIcon={<Radio size={14} />} onClick={startLiveSession} loading={startingLive} disabled={!board}>
+              Start Live Session
+            </Button>
+          ) : null}
           {canEdit && (
             <Button size="sm" variant="outline" leftIcon={<Save size={14} />} onClick={handleSaveNow}
               disabled={!board || status === "saving" || conflict !== null}>
@@ -332,6 +367,18 @@ export function WhiteboardEditor({ id, basePath }: Props) {
           </DropdownMenu.Root>
         </div>
       </header>
+
+      {live?.sessionActive && (
+        <div className="flex flex-shrink-0 flex-wrap items-center justify-between gap-3 border-b border-red-100 bg-red-50 px-4 py-2.5 sm:px-6">
+          <p className="flex items-center gap-2 text-sm text-red-700">
+            <span className="h-2 w-2 flex-shrink-0 animate-pulse rounded-full bg-red-500" />
+            A live session is running on this whiteboard — editing happens in the classroom.
+          </p>
+          {live.activeSessionId && (
+            <Link href={`${basePath}/${id}/classroom`} className="text-sm font-semibold text-red-700 hover:underline">Join session</Link>
+          )}
+        </div>
+      )}
 
       {/* Conflict banner */}
       {conflict !== null && (

@@ -53,6 +53,36 @@ export const whiteboardsApi = {
     send<{ id: string }>("POST", `/api/whiteboards/${id}/snapshot`, { sceneData, trigger }),
 };
 
+// ─── Live sessions ────────────────────────────────────────────────────────────
+
+export interface LiveSessionDTO {
+  id:                 string;
+  whiteboardId:       string;
+  hostId:             string;
+  status:             "active" | "ended";
+  whiteboardTitle:    string;
+  courseTitle:        string | null;
+  courseSessionTitle: string | null;
+}
+
+export interface LiveParticipantDTO {
+  userId:  string;
+  name:    string | null;
+  role:    "host" | "editor" | "viewer";
+  canEdit: boolean;
+}
+
+export const liveSessionsApi = {
+  /** Creates the board's live session, or returns the active one */
+  start: (whiteboardId: string) =>
+    send<{ sessionId: string; resumed: boolean }>("POST", "/api/whiteboards/sessions", { whiteboardId }),
+  get:   (sessionId: string) =>
+    call<{ session: LiveSessionDTO; participants: LiveParticipantDTO[] }>(`/api/whiteboards/sessions/${sessionId}`),
+  token: (sessionId: string) =>
+    send<{ token: string }>("POST", `/api/whiteboards/sessions/${sessionId}/token`),
+  end:   (sessionId: string) => send<null>("DELETE", `/api/whiteboards/sessions/${sessionId}`),
+};
+
 /** The server's current version from a 409 response (sent in errors.version). */
 export function conflictVersion(err: unknown): number | null {
   if (!(err instanceof ApiError) || err.status !== 409) return null;

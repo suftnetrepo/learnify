@@ -6,6 +6,20 @@ import { withSentryConfig } from "@sentry/nextjs";
 // enabled through src/instrumentation.ts and src/instrumentation-client.ts.
 const isLowMemoryRender = process.env.RENDER === "true" || process.env.SENTRY_SKIP_UPLOAD === "1";
 
+// Live whiteboard classrooms open a Socket.IO connection to the separately deployed realtime
+// server — allow its origin (and the ws/wss form) in connect-src.
+function realtimeOrigins(): string {
+  const raw = process.env.NEXT_PUBLIC_REALTIME_URL;
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    const ws  = `${url.protocol === "https:" ? "wss:" : "ws:"}//${url.host}`;
+    return ` ${url.origin} ${ws}`;
+  } catch {
+    return "";
+  }
+}
+
 const nextConfig: NextConfig = {
   // pdfkit reads its bundled .afm font-metric files from disk at runtime via
   // fs.readFileSync — Turbopack/webpack bundling a route handler rewrites
@@ -60,7 +74,7 @@ const nextConfig: NextConfig = {
               "font-src 'self' https://fonts.gstatic.com https://esm.sh",
               "img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://images.unsplash.com",
               "media-src 'self' https://res.cloudinary.com https://*.cloudinary.com blob:",
-              "connect-src 'self' https://esm.sh https://api.cloudinary.com https://api.stripe.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://api.aismartlearner.com",
+              `connect-src 'self' https://esm.sh https://api.cloudinary.com https://api.stripe.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://api.aismartlearner.com${realtimeOrigins()}`,
               "frame-src https://js.stripe.com https://hooks.stripe.com https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
             ].join("; "),
           },
