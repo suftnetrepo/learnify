@@ -25,7 +25,7 @@ import { resourcesApi } from "@/lib/api-client";
 interface Lecture {
   id: string; title: string; description: string | null; videoUrl: string | null; videoDuration: number | null;
   isFree: boolean; isPublished: boolean; sortOrder: number;
-  thumbnailUrl: string | null; videoPublicId: string | null;
+  thumbnailUrl: string | null; videoPublicId: string | null; recordingUrl: string | null;
 }
 interface Section {
   id: string; title: string; description: string | null; sortOrder: number; lectures: Lecture[];
@@ -352,6 +352,8 @@ function LectureModal({ open, onClose, onSave, lecture }: LectureModalProps) {
   const [videoPublicId, setVideoPublicId] = useState(lecture?.videoPublicId ?? "");
   const [videoDuration, setVideoDuration] = useState(lecture?.videoDuration ?? 0);
   const [thumbnailUrl,  setThumbnailUrl]  = useState(lecture?.thumbnailUrl ?? "");
+  const [recordingUrl,  setRecordingUrl]  = useState(lecture?.recordingUrl ?? "");
+  const [recordingUrlError, setRecordingUrlError] = useState("");
   const [isFree,        setIsFree]        = useState(lecture?.isFree ?? false);
   const [isPublished,   setIsPublished]   = useState(lecture?.isPublished ?? true);
   const [saving,        setSaving]        = useState(false);
@@ -410,6 +412,11 @@ function LectureModal({ open, onClose, onSave, lecture }: LectureModalProps) {
       setActiveTab("content");
       return;
     }
+    if (recordingUrl && !/^https?:\/\//i.test(recordingUrl)) {
+      setRecordingUrlError("Must be a valid http(s) URL");
+      setActiveTab("content");
+      return;
+    }
     setSaving(true);
     await onSave({
       id: lecture?.id,
@@ -419,6 +426,7 @@ function LectureModal({ open, onClose, onSave, lecture }: LectureModalProps) {
       videoPublicId: videoPublicId || undefined,
       videoDuration: videoDuration || undefined,
       thumbnailUrl:  thumbnailUrl  || undefined,
+      recordingUrl:  recordingUrl  || undefined,
       isFree,
       isPublished,
     });
@@ -493,6 +501,17 @@ function LectureModal({ open, onClose, onSave, lecture }: LectureModalProps) {
                   />
                   <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">minutes</span>
                 </div>
+              </div>
+
+              <div>
+                <Input
+                  label="Recording URL"
+                  value={recordingUrl}
+                  onChange={(e) => { setRecordingUrl(e.target.value); setRecordingUrlError(""); }}
+                  placeholder="https://…"
+                  error={recordingUrlError}
+                />
+                <p className="form-hint">Paste the URL of a recorded session (e.g. Zoom, Teams). Students see a &ldquo;Watch Recording&rdquo; button when this is set and the lecture is published.</p>
               </div>
             </div>
           )}

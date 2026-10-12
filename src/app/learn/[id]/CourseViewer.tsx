@@ -26,7 +26,9 @@ interface Lecture {
   description:   string | null;
   videoUrl:      string | null;
   videoDuration: number | null;
+  recordingUrl:  string | null;
   isFree:        boolean;
+  isPublished:   boolean;
   sortOrder:     number;
   sectionId:     string;
 }
@@ -231,12 +233,19 @@ export function CourseViewer({
   const nextLecture      = activeIndex >= 0 ? allLectures[activeIndex + 1] ?? null : null;
   const whatYouLearn     = parseWhatYouLearn(course.whatYouLearn);
 
-  // A "link" or "video" resource on a lecture with no video of its own is
-  // treated as a recording (e.g. the Zoom/Teams recording URL for a live
-  // session) and gets a prominent quick-view instead of the plain placeholder.
-  const recordingResource = resources.find((r) => r.type === "link" || r.type === "video");
-  const isZoom             = recordingResource?.url.includes("zoom.us");
-  const isTeams            = recordingResource?.url.includes("teams.microsoft.com");
+  // `recordingUrl` on the lecture itself takes priority — instructors paste it
+  // after a live session. Fall back to a "link" or "video" resource if none is
+  // set on the lecture directly.
+  const directRecordingUrl =
+    activeLecture?.recordingUrl && activeLecture.isPublished
+      ? activeLecture.recordingUrl
+      : null;
+  const recordingResource  = directRecordingUrl
+    ? null
+    : resources.find((r) => r.type === "link" || r.type === "video");
+  const effectiveRecordingUrl = directRecordingUrl ?? recordingResource?.url ?? null;
+  const isZoom             = effectiveRecordingUrl?.includes("zoom.us");
+  const isTeams            = effectiveRecordingUrl?.includes("teams.microsoft.com");
   const platformLabel      = isZoom ? "Zoom" : isTeams ? "Microsoft Teams" : "Recording";
 
   const toggleFullscreen = () => {
@@ -366,7 +375,7 @@ export function CourseViewer({
                       className="h-full w-full"
                     />
                   </div>
-                ) : recordingResource ? (
+                ) : effectiveRecordingUrl ? (
                   <div className="flex w-full flex-shrink-0 flex-col items-center justify-center gap-5 bg-gradient-to-br from-surface-50 to-white px-4 py-8 sm:px-8 lg:h-[42%] lg:py-0">
                     <div className="w-full max-w-md rounded-2xl border border-surface-200 bg-white p-6 text-center shadow-sm">
                       <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-brand-100 bg-brand-50">
@@ -382,7 +391,7 @@ export function CourseViewer({
                         This session was recorded. Watch it at your own pace.
                       </p>
                       <a
-                        href={recordingResource.url}
+                        href={effectiveRecordingUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"

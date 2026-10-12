@@ -81,6 +81,7 @@ export interface CourseLecture {
   videoDuration: number | null;
   videoPublicId: string | null;
   thumbnailUrl:  string | null;
+  recordingUrl:  string | null;
   isFree:        boolean;
   isPublished:   boolean;
   sortOrder:     number;
@@ -139,6 +140,7 @@ export interface CreateLecturePayload {
   videoPublicId?: string;
   videoDuration?: number;
   thumbnailUrl?:  string;
+  recordingUrl?:  string;
   isFree?:       boolean;
   isPublished?:  boolean;
   sortOrder?:    number;

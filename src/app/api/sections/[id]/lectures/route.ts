@@ -20,6 +20,10 @@ const createLectureSchema = z.object({
   thumbnailUrl: z.string().url().optional(),
   resourceUrl:  z.string().url().optional(),
   resourceName: z.string().max(200).optional(),
+  recordingUrl: z.string().url().optional().refine(
+    (v) => !v || /^https?:\/\//i.test(v),
+    { message: "Must be a valid http(s) URL" }
+  ),
   isFree:       z.boolean().default(false),
   isPublished:  z.boolean().default(false),
   sortOrder:    z.number().int().min(0).optional(),
@@ -75,6 +79,7 @@ export async function POST(
         thumbnailUrl:  parsed.data.thumbnailUrl,
         resourceUrl:   parsed.data.resourceUrl,
         resourceName:  parsed.data.resourceName,
+        recordingUrl:  parsed.data.recordingUrl,
         isFree:        parsed.data.isFree,
         isPublished:   parsed.data.isPublished,
         sortOrder,
