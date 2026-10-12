@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, BookOpen, Users, GraduationCap, Calendar,
   BarChart3, CreditCard, LogOut, X,
-  Award, Settings, CalendarDays, MessageCircle, ChevronRight,
+  Award, Settings, CalendarDays, MessageCircle, ChevronRight, PenLine,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
   // Student
   { label: "Dashboard",    href: "/dashboard",                icon: <LayoutDashboard size={18} />, roles: ["student"] },
   { label: "My Courses",   href: "/dashboard/my-courses",     icon: <BookOpen        size={18} />, roles: ["student"] },
+  { label: "My Whiteboards", href: "/dashboard/whiteboards",  icon: <PenLine         size={18} />, roles: ["student"] },
   { label: "Certificates", href: "/dashboard/certificates",   icon: <Award           size={18} />, roles: ["student"] },
   { label: "Calendar",     href: "/dashboard/calendar",       icon: <Calendar        size={18} />, roles: ["student"] },
   { label: "Settings",     href: "/dashboard/settings",       icon: <Settings        size={18} />, roles: ["student"] },
@@ -36,9 +37,11 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Payments",   href: "/admin/payments",        icon: <CreditCard      size={18} />, roles: ["admin"] },
   { label: "Users",      href: "/admin/users",           icon: <Users           size={18} />, roles: ["admin"] },
   { label: "Messages",   href: "/admin/messages",        icon: <MessageCircle   size={18} />, roles: ["admin"], badge: "messages" },
+  { label: "Whiteboards", href: "/instructor/whiteboards", icon: <PenLine        size={18} />, roles: ["admin"] },
   // Instructor
   { label: "Dashboard",  href: "/instructor",            icon: <LayoutDashboard size={18} />, roles: ["tutor"] },
   { label: "My Courses", href: "/instructor/courses",    icon: <BookOpen        size={18} />, roles: ["tutor"] },
+  { label: "My Whiteboards", href: "/instructor/whiteboards", icon: <PenLine     size={18} />, roles: ["tutor"] },
   { label: "Earnings",   href: "/instructor/earnings",   icon: <CreditCard      size={18} />, roles: ["tutor"] },
   { label: "Sessions",   href: "/instructor/sessions",   icon: <Calendar        size={18} />, roles: ["tutor"] },
   { label: "Calendar",   href: "/instructor/calendar",   icon: <CalendarDays    size={18} />, roles: ["tutor"] },
