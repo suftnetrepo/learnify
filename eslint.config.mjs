@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Parked whiteboard work left behind after switching branches (see .gitignore)
+    "realtime/**",
+    "dist/**",
   ]),
 ]);
 
