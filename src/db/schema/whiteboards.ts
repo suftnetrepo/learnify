@@ -3,12 +3,12 @@ import {
   pgEnum,
   uuid,
   varchar,
-  text,
   integer,
   boolean,
   timestamp,
   jsonb,
   index,
+  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { users } from "./users";
@@ -144,6 +144,8 @@ export const whiteboardParticipants = pgTable(
   (t) => [
     index("wb_participants_session_idx").on(t.sessionId),
     index("wb_participants_user_idx").on(t.userId),
+    // A constraint (not just an index) to match migration 0009's ADD CONSTRAINT ... UNIQUE
+    unique("uq_wb_participant_session_user").on(t.sessionId, t.userId),
   ]
 );
 
