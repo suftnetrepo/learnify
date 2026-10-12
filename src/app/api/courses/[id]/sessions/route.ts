@@ -6,6 +6,9 @@ import {
   successResponse, createdResponse, unauthorized, forbidden, serverError, validationError,
 } from "@/lib/api-response";
 
+/** http(s) links only — rendered as an href for students, so no javascript:/data: URLs. */
+const httpUrl = z.string().max(2000).url().refine((v) => /^https?:\/\//i.test(v), "Must be an http(s) link");
+
 const createSchema = z.object({
   title:              z.string().min(2).max(200),
   description:        z.string().max(1000).optional(),
@@ -20,6 +23,7 @@ const createSchema = z.object({
   isPublished:        z.boolean().optional(),
   conferencePlatform: z.enum(["zoom","teams","google_meet","webex","other"]).optional(),
   conferenceUrl:      z.string().url().optional(),
+  whiteboardUrl:      httpUrl.optional(),
 });
 
 export async function GET(

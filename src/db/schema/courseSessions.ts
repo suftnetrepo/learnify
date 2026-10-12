@@ -52,6 +52,9 @@ export const courseSessions = pgTable(
     conferenceUrl:      text("conference_url"),      // join link — only shown to enrolled students
     conferencePassword: varchar("conference_password", { length: 100 }),
 
+    // Optional external whiteboard link (Excalidraw, tldraw, Miro, …) — shown to booked students
+    whiteboardUrl: text("whiteboard_url"),
+
     // Status
     status: sessionStatusEnum("session_status").notNull().default("scheduled"),
     // Unpublished sessions are hidden from students and can't be booked, whatever their

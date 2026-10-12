@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/Toast";
 import {
   Plus, Calendar, Clock, MapPin, Video,
   ChevronDown, ChevronUp, Trash2, X, Check,
-  Ban, Mail, Pencil, EyeOff,
+  Ban, Mail, Pencil, EyeOff, PenLine,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ConfirmModal } from "@/components/ui/Modal";
@@ -32,6 +32,7 @@ interface Session {
   conferencePlatform: string | null;
   conferenceUrl:      string | null;
   conferencePassword: string | null;
+  whiteboardUrl:      string | null;
 }
 
 interface Props {
@@ -236,6 +237,13 @@ function SessionCard({ s, onRefresh, onEdit }: {
               {s.conferencePassword && <p className="text-xs text-gray-500">Password: <span className="font-mono">{s.conferencePassword}</span></p>}
             </div>
           )}
+          {/* Whiteboard */}
+          {s.whiteboardUrl && (
+            <div className="rounded-xl bg-surface-50 p-3 space-y-1">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Whiteboard</p>
+              <a href={s.whiteboardUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-600 hover:underline break-all">{s.whiteboardUrl}</a>
+            </div>
+          )}
         </div>
       )}
       {showCandidates && <CandidateEmailPanel sessionId={s.id} onClose={() => setShowCandidates(false)} />}
@@ -308,6 +316,7 @@ function SessionFormModal({
       body.conferenceUrl      = fd.get("conferenceUrl")      || empty;
       body.conferencePassword = fd.get("conferencePassword") || empty;
     }
+    body.whiteboardUrl = fd.get("whiteboardUrl") || empty;   // any format
 
     try {
       const res  = await fetch(isEdit ? `/api/sessions/${session.id}` : `/api/courses/${courseId}/sessions`, {
@@ -434,6 +443,26 @@ function SessionFormModal({
                 <input name="conferencePassword" defaultValue={session?.conferencePassword ?? ""} className="form-input" placeholder="Meeting password (optional)" />
               </div>
             )}
+
+            {/* Whiteboard — any format (in-person classes can use one too) */}
+            <div className="rounded-xl border border-surface-200 p-4 space-y-2">
+              <label htmlFor="session-whiteboard-url" className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                <PenLine size={11} />Whiteboard URL <span className="font-normal normal-case tracking-normal text-gray-400">(optional)</span>
+              </label>
+              <input
+                id="session-whiteboard-url"
+                name="whiteboardUrl"
+                type="url"
+                pattern="https?://.+"
+                title="An http(s) link"
+                defaultValue={session?.whiteboardUrl ?? ""}
+                className="form-input"
+                placeholder="https://excalidraw.com/#room=..."
+              />
+              <p className="text-xs text-gray-400">
+                Paste any whiteboard link (Excalidraw, tldraw, Miro, etc.). Students will see an &lsquo;Open Whiteboard&rsquo; button during the session.
+              </p>
+            </div>
           </div>
 
           <div className="border-t border-surface-100 flex items-center justify-end gap-3 px-6 py-4">
