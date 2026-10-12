@@ -18,11 +18,11 @@ const createSchema = z.object({
   venueAddress:       z.string().max(500).optional(),
   venueCity:          z.string().max(100).optional(),
   venuePostcode:      z.string().max(20).optional(),
-  venueMapUrl:        z.string().url().optional().or(z.literal("")),
+  venueMapUrl:        httpUrl.optional().or(z.literal("")),
   conferencePassword: z.string().max(100).optional(),
   isPublished:        z.boolean().optional(),
   conferencePlatform: z.enum(["zoom","teams","google_meet","webex","other"]).optional(),
-  conferenceUrl:      z.string().url().optional(),
+  conferenceUrl:      httpUrl.optional(),
   whiteboardUrl:      httpUrl.optional(),
 });
 
