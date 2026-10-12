@@ -1,40 +1,83 @@
 name: Deploy to Production
 
+# Migrate the production database, THEN deploy to Render, so new code never goes live
+# before the schema it needs. Runs automatically after CI passes on main, or by hand.
+#
+# Requires (repo Settings → Secrets and variables → Actions):
+#   PRODUCTION_DATABASE_URL  — the production Postgres connection string
+#   RENDER_DEPLOY_HOOK_URL   — Render service → Settings → Deploy Hook
+# and Render's auto-deploy set to "Off", so Render only deploys when this workflow says so.
+
 on:
-  workflow_dispatch:          # manual trigger only
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
     inputs:
       confirm:
-        description: 'Type DEPLOY to confirm production deployment'
+        description: 'Type DEPLOY to migrate and deploy the current main to production'
         required: true
+
+# One production deploy at a time; a newer push waits rather than racing a migration
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Deploy to Edquis Production
+    name: Migrate and deploy edquis.com
     runs-on: ubuntu-latest
-    if: github.event.inputs.confirm == 'DEPLOY'
+    environment: production
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'DEPLOY' && github.ref == 'refs/heads/main')
 
     steps:
-      - name: Checkout
+      - name: Checkout the commit CI tested
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      - name: Confirm deployment
+      - name: Check secrets are configured
+        env:
+          DATABASE_URL:           ${{ secrets.PRODUCTION_DATABASE_URL }}
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          echo "Deploying to production: edquis.com"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Commit: ${{ github.sha }}"
+          missing=0
+          [ -n "$DATABASE_URL" ]           || { echo "::error::Secret PRODUCTION_DATABASE_URL is not set"; missing=1; }
+          [ -n "$RENDER_DEPLOY_HOOK_URL" ] || { echo "::error::Secret RENDER_DEPLOY_HOOK_URL is not set"; missing=1; }
+          exit $missing
+
+      # Public repo → public logs. drizzle.config.ts prints the database host; mask it.
+      - name: Mask database host
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          host=$(printf '%s' "$DATABASE_URL" | sed -E 's#^[^@]*@([^/?:]+).*#\1#')
+          echo "::add-mask::$host"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # Applies only migrations newer than those recorded in drizzle.__drizzle_migrations.
+      # Runs in one transaction: if it fails, nothing is applied and nothing is deployed.
+      - name: Migrate production database
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: yarn db:migrate
 
       - name: Trigger Render deploy
         env:
-          RENDER_API_KEY:         ${{ secrets.RENDER_API_KEY }}
-          RENDER_PROD_SERVICE_ID: ${{ secrets.RENDER_PROD_SERVICE_ID }}
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          curl --fail-with-body -X POST \
-            -H "Authorization: Bearer $RENDER_API_KEY" \
-            -H "Content-Type: application/json" \
-            "https://api.render.com/v1/services/$RENDER_PROD_SERVICE_ID/deploys" \
-            -d '{"clearCache": "do_not_clear"}'
-
-      - name: Wait and verify
-        run: |
-          echo "Deploy triggered — check Render dashboard"
-          echo "https://dashboard.render.com"
+          curl --fail-with-body --silent --show-error -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+          echo "Deploy triggered for ${{ github.event.workflow_run.head_sha || github.sha }} — follow it in the Render dashboard"
