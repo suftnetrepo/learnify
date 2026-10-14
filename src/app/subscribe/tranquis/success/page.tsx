@@ -11,8 +11,7 @@ export default async function TransquisSuccessPage({ searchParams }: Props) {
   const { session_id, plan: planId } = await searchParams;
 
   const plan = TRANQUIS_PLANS.find((p) => p.id === planId) ?? null;
-  const appScheme = process.env.TRANQUIS_APP_SCHEME ?? "tranquis";
-  const deepLink  = `${appScheme}://subscription/success${session_id ? `?session_id=${session_id}` : ""}`;
+  const deepLink = "tranquis://";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-6">
@@ -38,16 +37,21 @@ export default async function TransquisSuccessPage({ searchParams }: Props) {
           )}
         </div>
 
-        {/* Deep link button */}
+        {/* Auto deep-link + manual button */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `setTimeout(function(){ window.location.href = "tranquis://"; }, 800);`,
+          }}
+        />
         <a
           href={deepLink}
           className="block w-full rounded-xl bg-indigo-600 py-3 px-4 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
         >
-          Return to the Tranquis app
+          Return to Tranquis
         </a>
 
         <p className="text-xs text-gray-400">
-          If the app does not open automatically, switch back to it manually.
+          Returning you to the app automatically…
         </p>
 
         {/* Divider */}

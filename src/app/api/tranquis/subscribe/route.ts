@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     const plan = TRANQUIS_PLANS.find((p) => p.id === planId)!;
 
-    const appUrl = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+    const appUrl = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://edquis.com";
 
     const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
       mode:     "subscription",
