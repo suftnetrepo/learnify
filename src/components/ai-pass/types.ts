@@ -23,6 +23,8 @@ export interface AiPassStatus {
     budget_exhausted: boolean;
   } | null;
   usageAvailable?: boolean;
+  /** Recent payments that couldn't become a pass, and what happens to the money. */
+  rejectedPayments?: { at: string; reason: string | null; refundStatus: string }[];
 }
 
 export const FEATURE_LABELS = {

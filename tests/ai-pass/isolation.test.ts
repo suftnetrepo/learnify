@@ -36,9 +36,16 @@ describe("feature flag and webhook isolation", () => {
     expect(await AiTutorPassService.handleStripeEvent(event("account.updated", {}))).toBe(false);
   });
 
-  it("pass checkout expiry / failure is acknowledged without granting", async () => {
+  it("pass payment failure is acknowledged without granting", async () => {
+    // (pass checkout expiry frees its reservation in the database — covered in purchase-routes)
     const meta = { metadata: { app: "learnify", kind: "ai_tutor_pass" } };
-    expect(await AiTutorPassService.handleStripeEvent(event("checkout.session.expired", meta))).toBe(true);
     expect(await AiTutorPassService.handleStripeEvent(event("payment_intent.payment_failed", meta))).toBe(true);
+  });
+});
+
+describe("shipped defaults", () => {
+  it(".env.example ships the AI Tutor Pass disabled", async () => {
+    const { readFileSync } = await import("node:fs");
+    expect(readFileSync(".env.example", "utf8")).toMatch(/^ENABLE_AI_TUTOR_PASS="false"$/m);
   });
 });

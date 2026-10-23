@@ -45,20 +45,20 @@ export async function POST(req: NextRequest) {
     if (!(await AiTutorPassService.isEnrolledInFreeCourse(session.user.id, courseId))) {
       return forbidden("The AI Tutor Pass is for free courses you're enrolled in");
     }
-    const queued = await AiTutorPassService.queuedPasses(session.user.id);
-    if (queued.length >= AI_PASS.maxQueued) {
-      return conflict(`You already have ${AI_PASS.maxQueued} upcoming passes`);
-    }
-
-    const checkout = await createAiPassCheckoutSession({
+    // Reserves a slot (one active + two queued, counting checkouts that may still be paid) and
+    // expires this student's previous open checkout, so a second tab can't pay past the limit
+    const result = await AiTutorPassService.startCheckout(session.user.id, () => createAiPassCheckoutSession({
       priceId,
       studentId:      session.user.id,
       studentEmail:   session.user.email,
       returnCourseId: courseId,
       consentAt:      new Date().toISOString(),
-    });
-    log.info("AI Tutor Pass checkout created", { checkoutSessionId: checkout.id, studentId: session.user.id });
-    return successResponse({ url: checkout.url });
+    }));
+    if ("full" in result) {
+      return conflict(`You already have an active pass and ${AI_PASS.maxQueued} upcoming passes`);
+    }
+    log.info("AI Tutor Pass checkout created", { checkoutSessionId: result.session.id, studentId: session.user.id });
+    return successResponse({ url: result.session.url });
   } catch (error) {
     log.error("AI Tutor Pass checkout failed", { error });
     return serverError("Couldn't start checkout. Please try again.");

@@ -105,3 +105,20 @@ export const aiPassRevokeStatusEnum = pgEnum("ai_pass_revoke_status", [
   "pending",
   "done",
 ]);
+
+// A Checkout Session started for a pass: the reservation that enforces the pass limit, and the
+// durable record of a payment that could not be turned into a pass
+export const aiPassCheckoutStatusEnum = pgEnum("ai_pass_checkout_status", [
+  "open",
+  "expired",
+  "fulfilled",
+  "rejected",
+]);
+
+// Refund owed for a rejected (paid but unfulfillable) checkout
+export const aiPassRefundStatusEnum = pgEnum("ai_pass_refund_status", [
+  "not_required",
+  "required",
+  "refunded",
+  "manual_review",
+]);

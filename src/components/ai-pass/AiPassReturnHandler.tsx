@@ -41,6 +41,8 @@ export function AiPassReturnHandler() {
         const body = await res.json().catch(() => ({}));
         if (res.ok) {
           toast.success("AI Tutor Pass activated", "Open the AI Tutor to get started.");
+        } else if (typeof body?.code === "string" && body.code.startsWith("PASS_NOT_GRANTED")) {
+          toast.warning("Your pass wasn't added", body.message);
         } else if (res.status === 409) {
           toast.info("Payment processing", "Your pass will appear as soon as the payment completes.");
         } else {

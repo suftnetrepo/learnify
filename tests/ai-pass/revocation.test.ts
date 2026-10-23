@@ -1,19 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+vi.mock("@/services/email.service", () => ({ EmailService: { aiPassOpsAlert: vi.fn() } }));
+import { EmailService } from "@/services/email.service";
 import type Stripe from "stripe";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { aiTutorPasses } from "@/db/schema";
 import { AiTutorPassService } from "@/services/ai-tutor-pass.service";
 import { DAY_MS } from "@/lib/ai-pass/config";
-import { hasDb, json, makePass, makeUser, mockStudyMind, resetDb } from "../helpers";
+import { enrol, fakeStripe, hasDb, json, makeCourse, makePass, makeUser, mockStudyMind, resetDb } from "../helpers";
 
 const charge = (pi: string, refunded: number) => ({ id: "ch_1", payment_intent: pi, amount: 999, amount_refunded: refunded }) as Stripe.Charge;
 const dispute = (pi: string, status = "needs_response") => ({ id: "dp_1", payment_intent: pi, status, amount: 999 }) as Stripe.Dispute;
 const load = async (id: string) => (await db.select().from(aiTutorPasses).where(eq(aiTutorPasses.id, id)))[0];
 
 describe.skipIf(!hasDb)("AI Tutor Pass refunds, disputes and StudyMind revocation", () => {
-  beforeEach(resetDb);
-  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+  let stripe: ReturnType<typeof fakeStripe>;
+  beforeEach(async () => { await resetDb(); stripe = fakeStripe(); vi.mocked(EmailService.aiPassOpsAlert).mockClear(); });
+  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); delete process.env.ADMIN_EMAIL; });
 
   it("full refund revokes immediately and revokes the StudyMind policy", async () => {
     const sm = mockStudyMind(() => json(200, { status: "revoked" }));
@@ -58,8 +61,18 @@ describe.skipIf(!hasDb)("AI Tutor Pass refunds, disputes and StudyMind revocatio
     expect(row.paymentStatus).toBe("disputed");
   });
 
-  it("refunds for unrelated payment intents are not handled", async () => {
+  it("refunds for course purchases are not handled (and never call Stripe)", async () => {
+    const s = await makeUser(); const c = await makeCourse("20.00");
+    await enrol(s.id, c.id, { amount: "20.00" });
+    const { db: d } = await import("@/db"); const { purchases } = await import("@/db/schema");
+    await d.update(purchases).set({ stripePaymentIntentId: "pi_course_purchase" });
     expect(await AiTutorPassService.handleRefund(charge("pi_course_purchase", 999))).toBe(false);
+    expect(stripe.spies.piRetrieve).not.toHaveBeenCalled();
+  });
+
+  it("refunds for other (non-pass) payments are not handled", async () => {
+    stripe.intents.set("pi_other", { id: "pi_other", metadata: {}, latest_charge: {} } as never);
+    expect(await AiTutorPassService.handleRefund(charge("pi_other", 999))).toBe(false);
   });
 
   it("dispute revokes; a won dispute stays revoked", async () => {
@@ -131,14 +144,59 @@ describe.skipIf(!hasDb)("AI Tutor Pass refunds, disputes and StudyMind revocatio
     expect((await load(p.id)).studymindRevokeStatus).toBe("pending");
   });
 
-  it("concurrent retries complete once", async () => {
+  it("concurrent workers claim each job once (SKIP LOCKED + lease)", async () => {
     let n = 0;
-    mockStudyMind(() => { n++; return json(200, {}); });
+    mockStudyMind(async () => { n++; await new Promise((r) => setTimeout(r, 150)); return json(200, {}); });
+    const s = await makeUser();
+    const ids: string[] = [];
+    for (let i = 0; i < 4; i++) {
+      const p = await makePass(s.id, { policy: true });
+      await db.update(aiTutorPasses).set({ revokedAt: new Date(), studymindRevokeStatus: "pending", studymindRevokeNextAttemptAt: new Date(0) }).where(eq(aiTutorPasses.id, p.id));
+      ids.push(p.id);
+    }
+    const results = await Promise.all([1, 2, 3].map(() => AiTutorPassService.processPendingRevocations()));
+    expect(results.reduce((a, r) => a + r.due, 0)).toBe(4);
+    expect(n).toBe(4);
+    for (const id of ids) expect((await load(id)).studymindRevokeStatus).toBe("done");
+  });
+
+  it("concurrent failures count every attempt and never mark done", async () => {
+    mockStudyMind(() => json(503, {}));
     const s = await makeUser(); const p = await makePass(s.id, { policy: true });
     await db.update(aiTutorPasses).set({ revokedAt: new Date(), studymindRevokeStatus: "pending", studymindRevokeNextAttemptAt: new Date(0) }).where(eq(aiTutorPasses.id, p.id));
     await Promise.all([AiTutorPassService.processPendingRevocations(), AiTutorPassService.processPendingRevocations()]);
-    expect((await load(p.id)).studymindRevokeStatus).toBe("done");
-    expect(n).toBeLessThanOrEqual(2);   // StudyMind revoke is idempotent; at most one call per worker
+    const row = await load(p.id);
+    expect(row.studymindRevokeStatus).toBe("pending");
+    expect(row.studymindRevokeAttempts).toBe(1);   // claimed by one worker only
+  });
+
+  it("persistent failure alerts administrators once, at the 5th attempt, and keeps retrying", async () => {
+    process.env.ADMIN_EMAIL = "admin@test.local";
+    mockStudyMind(() => json(500, {}));
+    const s = await makeUser(); const p = await makePass(s.id, { policy: true });
+    await AiTutorPassService.revoke(p.id, "refunded");
+    for (let i = 0; i < 6; i++) {
+      await db.update(aiTutorPasses).set({ studymindRevokeNextAttemptAt: new Date(0) }).where(eq(aiTutorPasses.id, p.id));
+      await AiTutorPassService.processPendingRevocations();
+    }
+    const row = await load(p.id);
+    expect(row.studymindRevokeAttempts).toBe(7);
+    expect(row.studymindRevokeStatus).toBe("pending");
+    expect(row.revokedAt).not.toBeNull();
+    expect(row.studymindRevokeNextAttemptAt!.getTime() - Date.now()).toBeLessThanOrEqual(6 * 3600e3);
+    expect(EmailService.aiPassOpsAlert).toHaveBeenCalledOnce();
+    const issues = await AiTutorPassService.adminIssues();
+    expect(issues.failingRevocations.map((r) => r.passId)).toEqual([p.id]);
+  });
+
+  it("a revoke on an already-done pass does not re-queue StudyMind", async () => {
+    const sm = mockStudyMind(() => json(200, {}));
+    const s = await makeUser(); const p = await makePass(s.id, { policy: true });
+    await AiTutorPassService.revoke(p.id, "refunded");
+    await AiTutorPassService.revoke(p.id, "disputed");
+    const row = await load(p.id);
+    expect(row.revokeReason).toBe("refunded");
+    expect(sm.calls).toHaveLength(1);
   });
 
   it("revoking the current pass moves queued (unused) passes forward", async () => {

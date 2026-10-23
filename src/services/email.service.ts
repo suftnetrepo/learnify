@@ -534,4 +534,13 @@ export const EmailService = {
     );
     await send(to, data.subject, html);
   },
+
+  /** Sent to admin when an AI Tutor Pass payment, refund or revocation needs attention. */
+  async aiPassOpsAlert(to: string, data: { title: string; lines: string[] }) {
+    const html = baseTemplate(
+      h1(escapeHtml(data.title)) + data.lines.map((line) => p(escapeHtml(line))).join(""),
+      data.title
+    );
+    await send(to, `AI Tutor Pass: ${data.title}`, html);
+  },
 };

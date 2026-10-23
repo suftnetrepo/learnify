@@ -105,7 +105,12 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await res.json();
-    if (pass) await AiTutorPassService.markPolicyCreated(pass.id).catch(() => {});   // bookkeeping only
+    // The pass may have been refunded while this token was minted — then the token is withheld and
+    // the StudyMind policy just created is revoked
+    if (pass && !(await AiTutorPassService.confirmPolicyIssued(pass.id))) {
+      log.warn("AI Tutor Pass revoked during token request — token withheld", { passId: pass.id });
+      return NextResponse.json({ error: "Your AI Tutor Pass isn't active", code: "ai_pass_revoked" }, { status: 403 });
+    }
     return NextResponse.json({
       sessionToken: data.session_token,
       expiresAt:    data.expires_at,

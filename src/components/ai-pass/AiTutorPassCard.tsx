@@ -50,6 +50,7 @@ export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
   return (
     <div className="flex flex-col gap-5 p-5">
       {variant === "buy" && <PastPassNotice status={status} />}
+      <RejectedPaymentNotice status={status} />
 
       <div className="relative overflow-hidden rounded-2xl bg-gradient-hero p-6 text-white shadow-card">
         <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-500/30 blur-3xl" aria-hidden />
@@ -129,6 +130,21 @@ export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
       )}
     </div>
   );
+}
+
+function RejectedPaymentNotice({ status }: { status: AiPassStatus }) {
+  const latest = status.rejectedPayments?.[0];
+  if (!latest) return null;
+  const message =
+    latest.reason === "queue_full"
+      ? latest.refundStatus === "refunded"
+        ? `A payment on ${formatDate(latest.at)} arrived after you'd reached the pass limit, so it has been refunded.`
+        : `A payment on ${formatDate(latest.at)} arrived after you'd reached the pass limit. We're refunding it.`
+      : latest.reason === "invalid"
+        ? "We couldn't verify a recent payment. Our team has been alerted and will be in touch."
+        : null;
+  if (!message) return null;
+  return <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">{message}</p>;
 }
 
 function PastPassNotice({ status }: { status: AiPassStatus }) {

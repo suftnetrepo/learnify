@@ -1,6 +1,6 @@
 import { pgTable, uuid, varchar, text, integer, timestamp, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { aiPassPaymentStatusEnum, aiPassRevokeStatusEnum } from "./enums";
+import { aiPassPaymentStatusEnum, aiPassRevokeStatusEnum, aiPassCheckoutStatusEnum, aiPassRefundStatusEnum } from "./enums";
 import { users } from "./users";
 
 // ─── AI Tutor Pass ────────────────────────────────────────────────────────────
@@ -60,3 +60,51 @@ export const aiTutorPassesRelations = relations(aiTutorPasses, ({ one }) => ({
 }));
 
 export type AiTutorPass = typeof aiTutorPasses.$inferSelect;
+
+// ─── AI Tutor Pass checkouts ──────────────────────────────────────────────────
+// One row per Checkout Session Learnify starts. While "open" it reserves a pass slot (at most one
+// active + two queued passes, counting checkouts that may still be paid). A paid session that
+// cannot become a pass (limit reached, refunded/disputed before fulfilment, invalid) is kept here
+// as "rejected" with the refund it is owed — a successful payment is never silently dropped.
+// A refund or dispute that arrives before fulfilment is recorded here too (reversal), so a later
+// fulfilment attempt can never grant the pass.
+export const aiPassCheckouts = pgTable(
+  "ai_pass_checkouts",
+  {
+    stripeCheckoutSessionId: varchar("stripe_checkout_session_id", { length: 255 }).primaryKey(),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    status:                aiPassCheckoutStatusEnum("status").default("open").notNull(),
+    expiresAt:             timestamp("expires_at", { withTimezone: true }).notNull(),
+    stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 255 }).unique(),
+    passId:                uuid("pass_id").references(() => aiTutorPasses.id, { onDelete: "restrict" }),
+    amountPence:           integer("amount_pence"),
+
+    // Paid but not granted: queue_full | refunded | disputed | invalid
+    rejectReason: varchar("reject_reason", { length: 32 }),
+    rejectDetail: text("reject_detail"),
+
+    // Refund / dispute seen before the pass existed (refunded | disputed)
+    reversal:            varchar("reversal", { length: 16 }),
+    reversedAt:          timestamp("reversed_at", { withTimezone: true }),
+    refundedAmountPence: integer("refunded_amount_pence").default(0).notNull(),
+    disputeStatus:       varchar("dispute_status", { length: 64 }),
+
+    // Refund owed for a rejected payment (issued automatically, retried; invalid ones need review)
+    refundStatus:        aiPassRefundStatusEnum("refund_status").default("not_required").notNull(),
+    refundAttempts:      integer("refund_attempts").default(0).notNull(),
+    refundLastError:     text("refund_last_error"),
+    refundNextAttemptAt: timestamp("refund_next_attempt_at", { withTimezone: true }),
+    stripeRefundId:      varchar("stripe_refund_id", { length: 255 }),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("ai_pass_checkouts_student_status_idx").on(table.studentId, table.status, table.expiresAt),
+    index("ai_pass_checkouts_refund_queue_idx").on(table.refundStatus, table.refundNextAttemptAt),
+  ]
+);
+
+export type AiPassCheckout = typeof aiPassCheckouts.$inferSelect;

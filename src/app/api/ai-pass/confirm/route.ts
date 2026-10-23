@@ -37,14 +37,24 @@ export async function POST(req: NextRequest) {
       return errorResponse("Payment hasn't completed yet", "PAYMENT_PENDING", 409);
     }
 
+    let result;
     try {
-      await AiTutorPassService.fulfilCheckoutSession(checkout, "confirm");
+      result = await AiTutorPassService.fulfilCheckoutSession(checkout.id, "confirm");
     } catch (error) {
       if (error instanceof PassFulfilmentError) {
+        if (error.code === "not_paid") return errorResponse("Payment hasn't completed yet", "PAYMENT_PENDING", 409);
         log.error("AI Tutor Pass confirm rejected", { sessionId: checkout.id, reason: error.message });
         return errorResponse("This payment can't be used for an AI Tutor Pass", "INVALID_SESSION", 422);
       }
       throw error;
+    }
+    if (result.outcome === "rejected") {
+      // Paid but not granted — recorded, and refunded automatically when the pass limit was the reason
+      const message =
+        result.reason === "queue_full" ? "You already hold the maximum number of passes, so this payment is being refunded." :
+        result.reason === "invalid"    ? "We couldn't verify this payment. Our team has been alerted and will contact you." :
+        "This payment was refunded or disputed, so no pass was added.";
+      return errorResponse(message, `PASS_NOT_GRANTED_${result.reason.toUpperCase()}`, 409);
     }
     return successResponse(await AiTutorPassService.status(session.user.id));
   } catch (error) {

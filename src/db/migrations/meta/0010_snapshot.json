@@ -1,5 +1,5 @@
 {
-  "id": "06febb9f-5bb8-4c8e-9b75-2f4c0e7c8207",
+  "id": "3fbd670f-a81e-4147-9de6-9a943d46ef62",
   "prevId": "9a84f226-751e-4dfd-9ff3-441c48c17e5d",
   "version": "7",
   "dialect": "postgresql",
@@ -2122,6 +2122,231 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.ai_pass_checkouts": {
+      "name": "ai_pass_checkouts",
+      "schema": "",
+      "columns": {
+        "stripe_checkout_session_id": {
+          "name": "stripe_checkout_session_id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "student_id": {
+          "name": "student_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "ai_pass_checkout_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'open'"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "stripe_payment_intent_id": {
+          "name": "stripe_payment_intent_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pass_id": {
+          "name": "pass_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "amount_pence": {
+          "name": "amount_pence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reject_reason": {
+          "name": "reject_reason",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reject_detail": {
+          "name": "reject_detail",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reversal": {
+          "name": "reversal",
+          "type": "varchar(16)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reversed_at": {
+          "name": "reversed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refunded_amount_pence": {
+          "name": "refunded_amount_pence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "dispute_status": {
+          "name": "dispute_status",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refund_status": {
+          "name": "refund_status",
+          "type": "ai_pass_refund_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'not_required'"
+        },
+        "refund_attempts": {
+          "name": "refund_attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "refund_last_error": {
+          "name": "refund_last_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refund_next_attempt_at": {
+          "name": "refund_next_attempt_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stripe_refund_id": {
+          "name": "stripe_refund_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "ai_pass_checkouts_student_status_idx": {
+          "name": "ai_pass_checkouts_student_status_idx",
+          "columns": [
+            {
+              "expression": "student_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "ai_pass_checkouts_refund_queue_idx": {
+          "name": "ai_pass_checkouts_refund_queue_idx",
+          "columns": [
+            {
+              "expression": "refund_status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "refund_next_attempt_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "ai_pass_checkouts_student_id_users_id_fk": {
+          "name": "ai_pass_checkouts_student_id_users_id_fk",
+          "tableFrom": "ai_pass_checkouts",
+          "tableTo": "users",
+          "columnsFrom": [
+            "student_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "ai_pass_checkouts_pass_id_ai_tutor_passes_id_fk": {
+          "name": "ai_pass_checkouts_pass_id_ai_tutor_passes_id_fk",
+          "tableFrom": "ai_pass_checkouts",
+          "tableTo": "ai_tutor_passes",
+          "columnsFrom": [
+            "pass_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "ai_pass_checkouts_stripe_payment_intent_id_unique": {
+          "name": "ai_pass_checkouts_stripe_payment_intent_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "stripe_payment_intent_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.ai_tutor_passes": {
       "name": "ai_tutor_passes",
       "schema": "",
@@ -3989,6 +4214,16 @@
     }
   },
   "enums": {
+    "public.ai_pass_checkout_status": {
+      "name": "ai_pass_checkout_status",
+      "schema": "public",
+      "values": [
+        "open",
+        "expired",
+        "fulfilled",
+        "rejected"
+      ]
+    },
     "public.ai_pass_payment_status": {
       "name": "ai_pass_payment_status",
       "schema": "public",
@@ -3997,6 +4232,16 @@
         "partially_refunded",
         "refunded",
         "disputed"
+      ]
+    },
+    "public.ai_pass_refund_status": {
+      "name": "ai_pass_refund_status",
+      "schema": "public",
+      "values": [
+        "not_required",
+        "required",
+        "refunded",
+        "manual_review"
       ]
     },
     "public.ai_pass_revoke_status": {
