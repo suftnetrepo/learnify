@@ -6,6 +6,18 @@ import { withSentryConfig } from "@sentry/nextjs";
 // enabled through src/instrumentation.ts and src/instrumentation-client.ts.
 const isLowMemoryRender = process.env.RENDER === "true" || process.env.SENTRY_SKIP_UPLOAD === "1";
 
+// The browser talks to StudyMind directly with its session token. Production's API is always
+// allowed; a different STUDYMIND_API_URL (staging, local) is added so its panel isn't blocked.
+const STUDYMIND_ORIGIN = "https://api.aismartlearner.com";
+const studyMindConnectSrc = (() => {
+  try {
+    const configured = process.env.STUDYMIND_API_URL ? new URL(process.env.STUDYMIND_API_URL).origin : null;
+    return configured && configured !== STUDYMIND_ORIGIN ? `${STUDYMIND_ORIGIN} ${configured}` : STUDYMIND_ORIGIN;
+  } catch {
+    return STUDYMIND_ORIGIN;
+  }
+})();
+
 const nextConfig: NextConfig = {
   // pdfkit reads its bundled .afm font-metric files from disk at runtime via
   // fs.readFileSync — Turbopack/webpack bundling a route handler rewrites
@@ -60,7 +72,7 @@ const nextConfig: NextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://images.unsplash.com",
               "media-src 'self' https://res.cloudinary.com https://*.cloudinary.com blob:",
-              "connect-src 'self' https://api.cloudinary.com https://api.stripe.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://api.aismartlearner.com",
+              `connect-src 'self' https://api.cloudinary.com https://api.stripe.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io ${studyMindConnectSrc}`,
               "frame-src https://js.stripe.com https://hooks.stripe.com https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
             ].join("; "),
           },

@@ -34,6 +34,14 @@ export const FEATURE_LABELS = {
   summary:    "Lecture summaries",
 } as const;
 
+/** Mid-sentence form ("60 AI tutor questions") — keeps the "AI" acronym capitalised. */
+export const FEATURE_PHRASES = {
+  chat:       "AI tutor questions",
+  quiz:       "practice quizzes",
+  flashcards: "flashcard sets",
+  summary:    "lecture summaries",
+} as const;
+
 export function formatPrice(pence: number, currency: string) {
   return new Intl.NumberFormat("en-GB", { style: "currency", currency: currency.toUpperCase() }).format(pence / 100);
 }

@@ -236,6 +236,15 @@ describe.skipIf(!hasDb)("AI Tutor Pass purchase routes", () => {
       expect(body.usageAvailable).toBe(false);
     });
 
+    it("last state is the pass that most recently stopped (an expiry after an older refund shows as expired)", async () => {
+      const s = await makeUser(); signIn(s);
+      const refunded = await makePass(s.id, { endOffsetMs: 20 * DAY_MS });   // original end still in the future
+      await db.update(aiTutorPasses).set({ revokedAt: new Date(Date.now() - 2 * DAY_MS), revokeReason: "refunded" }).where(eq(aiTutorPasses.id, refunded.id));
+      const expired = await makePass(s.id, { startOffsetMs: -30 * DAY_MS, endOffsetMs: -60_000 });
+      const body = (await (await status()).json()).data;
+      expect(body.last).toMatchObject({ passId: expired.id, state: "expired" });
+    });
+
     it("shows a refunded pass as the last state", async () => {
       const s = await makeUser(); signIn(s); await makePass(s.id, { revoked: true });
       const body = (await (await status()).json()).data;

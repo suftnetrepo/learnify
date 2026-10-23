@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Sparkles, Check, CalendarClock, ShieldCheck, Loader2 } from "lucide-react";
-import { FEATURE_LABELS, formatDate, formatPrice, type AiPassStatus } from "./types";
+import { FEATURE_LABELS, FEATURE_PHRASES, formatDate, formatPrice, type AiPassStatus } from "./types";
 
 interface Props {
   courseId: string;
@@ -72,16 +72,16 @@ export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
       </div>
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Included every day</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Included every day</p>
         <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {(Object.keys(FEATURE_LABELS) as (keyof typeof FEATURE_LABELS)[]).map((k) => (
             <li key={k} className="flex items-center gap-2 rounded-xl border border-surface-100 bg-surface-50 px-3 py-2 text-sm text-gray-700">
               <Check size={14} className="flex-shrink-0 text-emerald-500" />
-              <span><strong className="font-semibold text-gray-900">{offer.allowances[k]}</strong> {FEATURE_LABELS[k].toLowerCase()}</span>
+              <span><strong className="font-semibold text-gray-900">{offer.allowances[k]}</strong> {FEATURE_PHRASES[k]}</span>
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-xs text-gray-400">
+        <p className="mt-2 text-xs text-gray-500">
           Allowances reset daily at midnight UK time. A fair-use limit also applies. Works on all your free courses.
         </p>
       </div>
@@ -119,7 +119,7 @@ export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
             {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
             {variant === "extend" ? `Add 30 days for ${price}` : `Get AI Tutor Pass · ${price}`}
           </button>
-          <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400">
+          <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-500">
             <ShieldCheck size={12} /> Secure payment by Stripe
           </p>
         </>

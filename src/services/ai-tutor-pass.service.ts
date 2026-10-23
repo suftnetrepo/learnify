@@ -713,8 +713,12 @@ export class AiTutorPassService {
     const [current, queued, lastPass, rejected] = await Promise.all([
       AiTutorPassService.currentPass(studentId, now),
       AiTutorPassService.queuedPasses(studentId, now),
-      db.select().from(aiTutorPasses).where(eq(aiTutorPasses.studentId, studentId))
-        .orderBy(desc(aiTutorPasses.endsAt)).limit(1).then((r) => r[0] ?? null),
+      // The pass that most recently stopped being usable (revoked, or ended) — a refunded pass's
+      // original end date is in the future, so order by when it actually stopped
+      db.select().from(aiTutorPasses)
+        .where(and(eq(aiTutorPasses.studentId, studentId),
+                   or(sql`${aiTutorPasses.revokedAt} is not null`, lte(aiTutorPasses.endsAt, now))))
+        .orderBy(desc(sql`coalesce(${aiTutorPasses.revokedAt}, ${aiTutorPasses.endsAt})`)).limit(1).then((r) => r[0] ?? null),
       // Payments in the last 30 days that couldn't become a pass (and what happens to the money)
       db.select().from(aiPassCheckouts)
         .where(and(eq(aiPassCheckouts.studentId, studentId), eq(aiPassCheckouts.status, "rejected"),

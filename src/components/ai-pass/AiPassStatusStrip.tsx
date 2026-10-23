@@ -54,8 +54,8 @@ export function AiPassStatusStrip({ courseId, status }: { courseId: string; stat
             const f = usage.features[k];
             return (
               <li key={k} className="rounded-lg bg-white px-2 py-1.5 text-center shadow-sm" title={FEATURE_LABELS[k]}>
-                <p className={`text-sm font-semibold ${f.remaining > 0 && !usage.budget_exhausted ? "text-gray-900" : "text-gray-400"}`}>
-                  {f.remaining}<span className="text-[10px] font-normal text-gray-400">/{f.limit}</span>
+                <p className={`text-sm font-semibold ${f.remaining > 0 && !usage.budget_exhausted ? "text-gray-900" : "text-gray-500"}`}>
+                  {f.remaining}<span className="text-[10px] font-normal text-gray-500">/{f.limit}</span>
                 </p>
                 <p className="truncate text-[10px] text-gray-500">{FEATURE_LABELS[k].split(" ").at(-1)}</p>
               </li>
@@ -63,7 +63,7 @@ export function AiPassStatusStrip({ courseId, status }: { courseId: string; stat
           })}
         </ul>
       ) : status.usageAvailable === false ? (
-        <p className="px-5 pb-3 text-[11px] text-gray-400">Today&apos;s usage is unavailable right now.</p>
+        <p className="px-5 pb-3 text-[11px] text-gray-500">Today&apos;s usage is unavailable right now.</p>
       ) : null}
       {usage?.budget_exhausted && (
         <p className="px-5 pb-3 text-[11px] text-amber-700">You&apos;ve reached today&apos;s fair-use limit. It resets at midnight UK time.</p>

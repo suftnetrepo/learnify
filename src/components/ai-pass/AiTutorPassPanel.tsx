@@ -8,6 +8,8 @@ import { AiTutorPassCard } from "./AiTutorPassCard";
 import { AiPassStatusStrip } from "./AiPassStatusStrip";
 import { fetchAiPassStatus, type AiPassStatus } from "./types";
 
+const STATUS_REFRESH_MS = 20_000;
+
 interface Props {
   courseId:   string;
   /** Present when the server granted this student pass access to the course. */
@@ -29,6 +31,24 @@ export function AiTutorPassPanel({ courseId, courseData }: Props) {
       .catch((e: unknown) => { if (!cancelled) setError(e instanceof Error ? e.message : "Couldn't load your AI Tutor Pass"); });
     return () => { cancelled = true; };
   }, []);
+
+  // Pass holders: keep today's allowances current while the tutor is in use (the StudyMind panel
+  // has no usage callback). Refreshes on an interval while visible and when the tab regains focus.
+  useEffect(() => {
+    if (!courseData) return;
+    let cancelled = false;
+    const refresh = () => {
+      if (document.visibilityState !== "visible") return;
+      fetchAiPassStatus().then((s) => { if (!cancelled) setStatus(s); }).catch(() => {});   // keep the last good status
+    };
+    const timer = setInterval(refresh, STATUS_REFRESH_MS);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [courseData]);
 
   if (courseData) {
     return (
