@@ -90,3 +90,18 @@ export const emailQueueStatusEnum = pgEnum("email_queue_status", [
   "sent",
   "failed",
 ]);
+
+// ─── AI Tutor Pass ────────────────────────────────────────────────────────────
+export const aiPassPaymentStatusEnum = pgEnum("ai_pass_payment_status", [
+  "paid",
+  "partially_refunded",
+  "refunded",
+  "disputed",
+]);
+
+// Whether a revoked pass's StudyMind policy still needs revoking (retried until "done")
+export const aiPassRevokeStatusEnum = pgEnum("ai_pass_revoke_status", [
+  "not_needed",
+  "pending",
+  "done",
+]);

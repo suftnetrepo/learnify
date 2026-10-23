@@ -1,0 +1,166 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type Stripe from "stripe";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { aiTutorPasses } from "@/db/schema";
+import { AiTutorPassService } from "@/services/ai-tutor-pass.service";
+import { DAY_MS } from "@/lib/ai-pass/config";
+import { hasDb, json, makePass, makeUser, mockStudyMind, resetDb } from "../helpers";
+
+const charge = (pi: string, refunded: number) => ({ id: "ch_1", payment_intent: pi, amount: 999, amount_refunded: refunded }) as Stripe.Charge;
+const dispute = (pi: string, status = "needs_response") => ({ id: "dp_1", payment_intent: pi, status, amount: 999 }) as Stripe.Dispute;
+const load = async (id: string) => (await db.select().from(aiTutorPasses).where(eq(aiTutorPasses.id, id)))[0];
+
+describe.skipIf(!hasDb)("AI Tutor Pass refunds, disputes and StudyMind revocation", () => {
+  beforeEach(resetDb);
+  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+
+  it("full refund revokes immediately and revokes the StudyMind policy", async () => {
+    const sm = mockStudyMind(() => json(200, { status: "revoked" }));
+    const s = await makeUser(); const p = await makePass(s.id, { policy: true });
+    expect(await AiTutorPassService.handleRefund(charge(p.stripePaymentIntentId!, 999))).toBe(true);
+    const row = await load(p.id);
+    expect(row.revokedAt).not.toBeNull();
+    expect(row.paymentStatus).toBe("refunded");
+    expect(row.studymindRevokeStatus).toBe("done");
+    expect(sm.calls[0].url).toBe("https://studymind.test/api/v1/usage/policy/revoke");
+    expect(sm.calls[0].body).toMatchObject({ pass_id: p.id, user_id: s.id });
+    expect(await AiTutorPassService.currentPass(s.id)).toBeNull();
+  });
+
+  it("partial refund is recorded and access is kept", async () => {
+    const sm = mockStudyMind(() => json(200, {}));
+    const s = await makeUser(); const p = await makePass(s.id);
+    await AiTutorPassService.handleRefund(charge(p.stripePaymentIntentId!, 300));
+    const row = await load(p.id);
+    expect(row.revokedAt).toBeNull();
+    expect(row.paymentStatus).toBe("partially_refunded");
+    expect(row.refundedAmountPence).toBe(300);
+    expect(sm.calls).toHaveLength(0);
+    expect((await AiTutorPassService.currentPass(s.id))?.id).toBe(p.id);
+  });
+
+  it("partial then full refund revokes", async () => {
+    mockStudyMind(() => json(200, {}));
+    const s = await makeUser(); const p = await makePass(s.id);
+    await AiTutorPassService.handleRefund(charge(p.stripePaymentIntentId!, 300));
+    await AiTutorPassService.handleRefund(charge(p.stripePaymentIntentId!, 999));
+    expect((await load(p.id)).revokedAt).not.toBeNull();
+  });
+
+  it("a later partial-refund event never restores a revoked pass", async () => {
+    mockStudyMind(() => json(200, {}));
+    const s = await makeUser(); const p = await makePass(s.id);
+    await AiTutorPassService.handleDisputeCreated(dispute(p.stripePaymentIntentId!));
+    await AiTutorPassService.handleRefund(charge(p.stripePaymentIntentId!, 100));
+    const row = await load(p.id);
+    expect(row.revokedAt).not.toBeNull();
+    expect(row.paymentStatus).toBe("disputed");
+  });
+
+  it("refunds for unrelated payment intents are not handled", async () => {
+    expect(await AiTutorPassService.handleRefund(charge("pi_course_purchase", 999))).toBe(false);
+  });
+
+  it("dispute revokes; a won dispute stays revoked", async () => {
+    mockStudyMind(() => json(200, {}));
+    const s = await makeUser(); const p = await makePass(s.id);
+    await AiTutorPassService.handleDisputeCreated(dispute(p.stripePaymentIntentId!));
+    await AiTutorPassService.handleDisputeClosed(dispute(p.stripePaymentIntentId!, "won"));
+    const row = await load(p.id);
+    expect(row.revokedAt).not.toBeNull();
+    expect(row.revokeReason).toBe("disputed");
+    expect(row.disputeStatus).toBe("won");
+    expect(await AiTutorPassService.currentPass(s.id)).toBeNull();
+  });
+
+  it("StudyMind unreachable: Learnify stays revoked, revocation is queued and retried", async () => {
+    mockStudyMind(() => { throw new TypeError("fetch failed"); });
+    const s = await makeUser(); const p = await makePass(s.id, { policy: true });
+    await AiTutorPassService.handleRefund(charge(p.stripePaymentIntentId!, 999));
+
+    let row = await load(p.id);
+    expect(row.revokedAt).not.toBeNull();
+    expect(row.studymindRevokeStatus).toBe("pending");
+    expect(row.studymindRevokeAttempts).toBe(1);
+    expect(row.studymindRevokeLastError).toContain("fetch failed");
+    expect(row.studymindRevokeNextAttemptAt!.getTime()).toBeGreaterThan(Date.now());
+    expect(await AiTutorPassService.currentPass(s.id)).toBeNull();
+
+    // Not due yet → the cron skips it
+    vi.unstubAllGlobals();
+    const sm = mockStudyMind(() => json(200, {}));
+    expect((await AiTutorPassService.processPendingRevocations()).due).toBe(0);
+
+    // Due → retried and completed
+    await db.update(aiTutorPasses).set({ studymindRevokeNextAttemptAt: new Date(Date.now() - 1000) }).where(eq(aiTutorPasses.id, p.id));
+    expect(await AiTutorPassService.processPendingRevocations()).toEqual({ due: 1, done: 1, failed: 0 });
+    row = await load(p.id);
+    expect(row.studymindRevokeStatus).toBe("done");
+    expect(row.revokedAt).not.toBeNull();
+    expect(sm.calls).toHaveLength(1);
+
+    // Idempotent: nothing left to do
+    expect((await AiTutorPassService.processPendingRevocations()).due).toBe(0);
+  });
+
+  it("StudyMind 5xx backs off exponentially without touching the Learnify revocation", async () => {
+    mockStudyMind(() => json(503, { detail: "down" }));
+    const s = await makeUser(); const p = await makePass(s.id, { policy: true });
+    await AiTutorPassService.revoke(p.id, "refunded");
+    const first = await load(p.id);
+    await db.update(aiTutorPasses).set({ studymindRevokeNextAttemptAt: new Date(0) }).where(eq(aiTutorPasses.id, p.id));
+    await AiTutorPassService.processPendingRevocations();
+    const second = await load(p.id);
+    expect(second.studymindRevokeAttempts).toBe(2);
+    expect(second.studymindRevokeNextAttemptAt!.getTime() - Date.now()).toBeGreaterThan(first.studymindRevokeNextAttemptAt!.getTime() - first.updatedAt.getTime());
+    expect(second.revokedAt!.getTime()).toBe(first.revokedAt!.getTime());
+  });
+
+  it("no StudyMind policy yet (pass never used) counts as revoked", async () => {
+    mockStudyMind(() => json(404, { detail: "Policy not found", code: "policy_not_found" }));
+    const s = await makeUser(); const p = await makePass(s.id);
+    await AiTutorPassService.revoke(p.id, "refunded");
+    expect((await load(p.id)).studymindRevokeStatus).toBe("done");
+  });
+
+  it("an unexpected 404 (wrong URL etc.) is retried, not treated as done", async () => {
+    mockStudyMind(() => json(404, { detail: "Not Found" }));
+    const s = await makeUser(); const p = await makePass(s.id);
+    await AiTutorPassService.revoke(p.id, "refunded");
+    expect((await load(p.id)).studymindRevokeStatus).toBe("pending");
+  });
+
+  it("concurrent retries complete once", async () => {
+    let n = 0;
+    mockStudyMind(() => { n++; return json(200, {}); });
+    const s = await makeUser(); const p = await makePass(s.id, { policy: true });
+    await db.update(aiTutorPasses).set({ revokedAt: new Date(), studymindRevokeStatus: "pending", studymindRevokeNextAttemptAt: new Date(0) }).where(eq(aiTutorPasses.id, p.id));
+    await Promise.all([AiTutorPassService.processPendingRevocations(), AiTutorPassService.processPendingRevocations()]);
+    expect((await load(p.id)).studymindRevokeStatus).toBe("done");
+    expect(n).toBeLessThanOrEqual(2);   // StudyMind revoke is idempotent; at most one call per worker
+  });
+
+  it("revoking the current pass moves queued (unused) passes forward", async () => {
+    mockStudyMind(() => json(200, {}));
+    const s = await makeUser();
+    const current = await makePass(s.id, { endOffsetMs: 10 * DAY_MS, policy: true });
+    const queued  = await makePass(s.id, { startOffsetMs: 10 * DAY_MS, endOffsetMs: 40 * DAY_MS });
+    await AiTutorPassService.revoke(current.id, "refunded");
+    const q = await load(queued.id);
+    expect(q.startsAt.getTime()).toBeLessThanOrEqual(Date.now() + 1000);
+    expect(q.endsAt.getTime() - q.startsAt.getTime()).toBe(30 * DAY_MS);
+    expect((await AiTutorPassService.currentPass(s.id))?.id).toBe(queued.id);
+  });
+
+  it("revoking a queued pass closes the gap for the one after it", async () => {
+    mockStudyMind(() => json(200, {}));
+    const s = await makeUser();
+    const current = await makePass(s.id, { endOffsetMs: 10 * DAY_MS, policy: true });
+    const q1 = await makePass(s.id, { startOffsetMs: 10 * DAY_MS, endOffsetMs: 40 * DAY_MS });
+    const q2 = await makePass(s.id, { startOffsetMs: 40 * DAY_MS, endOffsetMs: 70 * DAY_MS });
+    await AiTutorPassService.revoke(q1.id, "refunded");
+    expect((await load(q2.id)).startsAt.getTime()).toBe(current.endsAt.getTime());
+    expect((await load(current.id)).endsAt.getTime()).toBe(current.endsAt.getTime());
+  });
+});
