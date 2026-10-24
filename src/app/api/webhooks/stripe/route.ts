@@ -5,6 +5,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { constructWebhookEvent } from "@/lib/stripe";
 import { log } from "@/lib/logger";
 import type Stripe from "stripe";
+import { AiTutorPassService } from "@/services/ai-tutor-pass.service";
 
 export const runtime = "nodejs";
 
@@ -65,6 +66,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // AI Tutor Pass events (by metadata, or by a pass's payment intent for refunds/disputes).
+    // Course purchase handling below is unchanged; disputes still reach the admin alert.
+    if (await AiTutorPassService.handleStripeEvent(event)) {
+      return NextResponse.json({ received: true });
+    }
+
     switch (event.type) {
       case "checkout.session.completed":
         await handleCheckoutCompleted(event);

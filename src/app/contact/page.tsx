@@ -230,9 +230,13 @@ export default function ContactPage() {
                 <div className="flex items-start gap-3 text-sm text-gray-600">
                   <MapPin size={16} className="flex-shrink-0 mt-0.5 text-brand-500" />
                   <div>
-                    <p className="font-medium text-gray-900">Edquis Ltd</p>
+                    <p className="font-medium text-gray-900">Suftnet Limited</p>
                     <p>Peterborough, England</p>
                     <p>United Kingdom</p>
+                    <p className="mt-2 text-xs text-gray-500">
+                      Edquis is a trading name of Suftnet Limited, company number 07746154. Registered office:
+                      The Gatehouse, 453 Cranbrook Road, Ilford, Essex, IG2 6EW, United Kingdom.
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-gray-600">

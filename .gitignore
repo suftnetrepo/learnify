@@ -42,3 +42,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 learnify-testing-guide.html
+
+# Local UAT fixtures (test-account logins) and scripts — never commit
+.uat/

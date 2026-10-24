@@ -7,3 +7,8 @@
 export function isTutorManagerEnabled(): boolean {
   return process.env.ENABLE_TUTOR_MANAGER === "true";
 }
+
+/** AI Tutor Pass for free courses. Off by default; off = free courses behave exactly as before. */
+export function isAiTutorPassEnabled(): boolean {
+  return process.env.ENABLE_AI_TUTOR_PASS === "true";
+}

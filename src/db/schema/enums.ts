@@ -90,3 +90,45 @@ export const emailQueueStatusEnum = pgEnum("email_queue_status", [
   "sent",
   "failed",
 ]);
+
+// ─── AI Tutor Pass ────────────────────────────────────────────────────────────
+export const aiPassPaymentStatusEnum = pgEnum("ai_pass_payment_status", [
+  "paid",
+  "partially_refunded",
+  "refunded",
+  "disputed",
+]);
+
+// Whether a revoked pass's StudyMind policy still needs revoking (retried until "done")
+export const aiPassRevokeStatusEnum = pgEnum("ai_pass_revoke_status", [
+  "not_needed",
+  "pending",
+  "done",
+]);
+
+// A Checkout Session started for a pass: the reservation that enforces the pass limit, and the
+// durable record of a payment that could not be turned into a pass
+export const aiPassCheckoutStatusEnum = pgEnum("ai_pass_checkout_status", [
+  "open",
+  "expired",
+  "fulfilled",
+  "rejected",
+]);
+
+// Refund owed for a rejected (paid but unfulfillable) checkout
+export const aiPassRefundStatusEnum = pgEnum("ai_pass_refund_status", [
+  "not_required",
+  "required",
+  "refunded",
+  "manual_review",
+]);
+
+// AI Tutor Pass purchase confirmation email (an outbox on the pass row)
+export const aiPassEmailStatusEnum = pgEnum("ai_pass_email_status", [
+  "not_required",
+  "pending",
+  "sending",
+  "sent",
+  "failed",
+  "skipped",
+]);

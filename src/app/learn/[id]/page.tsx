@@ -8,6 +8,9 @@ import { courseHasAiTutor, loadStudyMindCourseData } from "@/lib/studymind";
 import { StudentStudyMindDrawer } from "@/components/studymind/StudentStudyMindDrawer";
 import { UnifiedMessagingDrawer } from "@/components/messaging/UnifiedMessagingDrawer";
 import { CourseMessagingService } from "@/services";
+import { isAiTutorPassEnabled } from "@/lib/flags";
+import { resolveStudentAiAccess } from "@/lib/ai-pass/access";
+import { AiPassReturnHandler } from "@/components/ai-pass/AiPassReturnHandler";
 
 /** Right offset shared by the floating AI Tutor / Messages buttons (see CourseViewer's layout). */
 const FLOATING_RIGHT = "right-4 lg:right-[384px] xl:right-[424px] 2xl:right-[464px]";
@@ -34,10 +37,17 @@ export default async function LearnPage({ params, searchParams }: Props) {
   if (!data) redirect(`/checkout/${courseId}`);
 
   const { enrollment, course, sectionsWithLectures, progressMap, myReview, totalLectures } = data;
+  // AI Tutor Pass (free courses only, behind the flag). Paid courses never take this path.
+  const passMode = isAiTutorPassEnabled() && !!process.env.STUDYMIND_API_KEY
+    && session.user.role === "student" && !(await courseHasAiTutor(courseId));
+
   const [studyMindCourse, liveSession] = await Promise.all([
-    // AI tutor is optional — the course player works without StudyMind configured —
-    // and a paid-course feature: free courses (price 0) don't get it
-    process.env.STUDYMIND_API_KEY
+    passMode
+      ? resolveStudentAiAccess(session.user.id, courseId)
+          .then((a) => (a.kind === "paid" || a.kind === "pass" ? loadStudyMindCourseData(courseId) : null))
+      // AI tutor is optional — the course player works without StudyMind configured —
+      // and a paid-course feature: free courses (price 0) don't get it
+      : process.env.STUDYMIND_API_KEY
       ? courseHasAiTutor(courseId).then((paid) => (paid ? loadStudyMindCourseData(courseId) : null))
       : Promise.resolve(null),
     // Live Q&A opens while one of the course's sessions is running (the drawer re-checks while open)
@@ -62,10 +72,12 @@ export default async function LearnPage({ params, searchParams }: Props) {
         studentName={session.user.name}
         myReview={myReview}
       />
-      {studyMindCourse && (
+      {passMode && <AiPassReturnHandler />}
+      {(studyMindCourse || passMode) && (
         <StudentStudyMindDrawer
           courseId={courseId}
           courseData={studyMindCourse}
+          aiPass={passMode}
           // Desktop: just left of CourseViewer's curriculum column (lg:360 xl:400 2xl:440) so it never
           // covers the lecture list; phones/tablets (stacked layout): bottom-right of the screen
           buttonPositionClassName={`bottom-6 ${FLOATING_RIGHT}`}
@@ -85,7 +97,7 @@ export default async function LearnPage({ params, searchParams }: Props) {
         // ?messages=private (dashboard Messages card) opens the drawer on that tab
         openOnTab={messagesParam === "private" || messagesParam === "announcements" || messagesParam === "live" ? messagesParam : undefined}
         // Stacked just above the AI Tutor button (same offset)
-        buttonPositionClassName={`${studyMindCourse ? "bottom-20" : "bottom-6"} ${FLOATING_RIGHT}`}
+        buttonPositionClassName={`${studyMindCourse || passMode ? "bottom-20" : "bottom-6"} ${FLOATING_RIGHT}`}
       />
     </>
   );
