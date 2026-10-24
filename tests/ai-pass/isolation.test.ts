@@ -137,8 +137,10 @@ describe("AI Tutor Pass terms content", () => {
     expect(section("faulty")).toContain("Your statutory rights under the Consumer Rights Act 2015 are not affected");
     expect(section("disputes")).toContain("not restored automatically");
     expect(section("courses")).toContain("30-day money-back guarantee, which applies to courses and not to AI Tutor Passes");
-    expect(AI_PASS_TERMS.taxNote).toBeNull();
-    expect(AI_PASS_TERMS_SECTIONS.flatMap((s) => s.paragraphs).join(" ")).not.toMatch(/\bVAT\b/);
+    // Confirmed business fact: not VAT-registered, so no VAT is charged (and none is claimed to be included)
+    expect(AI_PASS_TERMS.taxNote).toBe("No VAT is charged — Edquis Ltd is not registered for VAT.");
+    expect(section("price")).toContain(AI_PASS_TERMS.taxNote);
+    expect(AI_PASS_TERMS_SECTIONS.flatMap((s) => s.paragraphs).join(" ")).not.toMatch(/incl(uding|\.)? VAT|VAT number/i);
     expect(AI_PASS_TERMS.immediateAccessAckRequired).toBe(false);
   });
 

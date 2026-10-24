@@ -89,7 +89,8 @@ describe.skipIf(!hasDb)("AI Tutor Pass confirmation email", () => {
     expect(body).toContain(`version ${AI_PASS_TERMS.version}`);
     expect(mail.html).toContain(`mailto:${AI_PASS_TERMS.supportEmail}`);
     expect(body).not.toMatch(/(?<!not )unlimited/i);              // only ever "not unlimited"
-    expect(body).not.toMatch(/\bVAT\b|incl\. tax|including tax/i); // no unverified tax claims while taxNote is unset
+    expect(body).toContain("Tax No VAT is charged — Edquis Ltd is not registered for VAT.");
+    expect(body).not.toMatch(/incl(uding|\.)? VAT|VAT number/i);     // never claims VAT is included
   });
 
   it("without the immediate-access request: states the 14-day right to cancel and its end date", async () => {

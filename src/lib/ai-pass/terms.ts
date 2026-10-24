@@ -11,7 +11,7 @@
 import { AI_PASS } from "./config";
 
 export const AI_PASS_TERMS = {
-  version:      "2026-10-24-draft.2",
+  version:      "2026-10-24-draft.3",
   approved:     false,
   path:         "/terms/ai-tutor-pass",
   supportEmail: "info@suftnet.com",
@@ -26,11 +26,8 @@ export const AI_PASS_TERMS = {
     companyNumber:   null as string | null,
     registeredOffice: null as string | null,
   },
-  /**
-   * Tax statement for the price and the email. Null until tax review decides it — nothing about
-   * VAT is claimed meanwhile.
-   */
-  taxNote:      null as string | null,
+  /** Tax statement shown with the price, in the terms and in the email (confirmed: not VAT-registered). */
+  taxNote:      "No VAT is charged — Edquis Ltd is not registered for VAT." as string | null,
   /**
    * Whether the immediate-access acknowledgement is required to buy. Off: it's an explicit,
    * optional choice and statutory cancellation rights are never removed automatically.
@@ -79,6 +76,7 @@ export const AI_PASS_TERMS_SECTIONS: TermsSection[] = [
     heading: "2. Price",
     paragraphs: [
       `The price is ${price()}, paid once by card at checkout. The amount shown at checkout is the amount you pay.`,
+      ...(AI_PASS_TERMS.taxNote ? [AI_PASS_TERMS.taxNote] : []),
     ],
   },
   {
