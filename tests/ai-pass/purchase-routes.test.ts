@@ -45,7 +45,7 @@ describe.skipIf(!hasDb)("AI Tutor Pass purchase routes", () => {
       expect(reservation).toMatchObject({ studentId: s.id, status: "open" });
       const params = create.mock.calls[0][0] as Stripe.Checkout.SessionCreateParams;
       expect(params).toMatchObject({
-        mode: "payment", line_items: [{ price: "price_ai_pass_test", quantity: 1 }],
+        mode: "payment", line_items: [{ price: "price_ai_pass_test", quantity: 1 }], payment_method_types: ["card"],
         allow_promotion_codes: false, managed_payments: { enabled: false }, client_reference_id: s.id,
         metadata: { app: "learnify", kind: "ai_tutor_pass", student_id: s.id, return_course_id: c.id },
         payment_intent_data: { metadata: { app: "learnify", kind: "ai_tutor_pass", student_id: s.id } },

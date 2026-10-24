@@ -155,7 +155,7 @@ export async function refundPayment(
 
 /**
  * One-time Checkout for the AI Tutor Pass — platform revenue (no Connect transfer), the dedicated
- * Stripe Price (amount/currency re-validated at fulfilment), no promotion codes. Managed Payments
+ * Stripe Price (amount/currency re-validated at fulfilment), card payments only, no promotion codes. Managed Payments
  * is disabled, consistent with course checkout. Metadata is set on both the Session and the
  * PaymentIntent so refund and dispute events can be matched back to the pass.
  */
@@ -173,6 +173,9 @@ export async function createAiPassCheckoutSession({
   const params: Stripe.Checkout.SessionCreateParams & { managed_payments?: { enabled: boolean } } = {
     mode:                  "payment",
     managed_payments:      { enabled: false },
+    // Cards only for launch (wallets such as Apple Pay / Google Pay are card payments). Keeps
+    // refunds/disputes on the tested path — no delayed or buy-now-pay-later methods.
+    payment_method_types:  ["card"],
     line_items:            [{ price: priceId, quantity: 1 }],
     client_reference_id:   studentId,
     ...(studentEmail ? { customer_email: studentEmail } : {}),

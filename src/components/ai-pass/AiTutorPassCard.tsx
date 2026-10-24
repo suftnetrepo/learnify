@@ -15,7 +15,8 @@ interface Props {
  * Purchase card for the free-course AI Tutor Pass.
  *
  * LEGAL REVIEW REQUIRED before launch: the consent wording below (UK Consumer Contracts
- * Regulations 2013, digital content supplied immediately) is a draft.
+ * Regulations 2013, digital content supplied immediately) is a draft. Inventory and proposed
+ * wording: docs/ai-tutor-pass-customer-wording-DRAFT.md
  */
 export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
   const [consent, setConsent] = useState(false);

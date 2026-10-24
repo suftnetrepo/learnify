@@ -13,6 +13,16 @@ class EmailNotConfiguredError extends Error {
 
 let cachedSender: BrevoEmailSender | null = null;
 
+/**
+ * Reserved, never-real domains (RFC 2606/6761) used by test and UAT accounts. Mail to them is never
+ * handed to Brevo — so fixture accounts can't generate real email in any environment.
+ */
+const RESERVED_TLDS = [".local", ".test", ".example", ".invalid", ".localhost"];
+export function isReservedTestAddress(to: string): boolean {
+  const domain = to.trim().toLowerCase().split("@")[1] ?? "";
+  return RESERVED_TLDS.some((tld) => domain === tld.slice(1) || domain.endsWith(tld));
+}
+
 function config() {
   const apiKey = process.env.BREVO_API_KEY;
   const fromEmail = process.env.BREVO_FROM_EMAIL;
@@ -48,6 +58,10 @@ async function sendViaBrevo(to: string, subject: string, html: string, text?: st
 
 /** Send immediately, then durably queue any failure without breaking the business operation. */
 export async function sendEmail(to: string, subject: string, html: string, context = subject): Promise<void> {
+  if (isReservedTestAddress(to)) {
+    log.info("Email skipped: reserved test address", { to, subject, context });
+    return;
+  }
   const text = plainText(html);
   try {
     await sendViaBrevo(to, subject, html, text);
@@ -69,6 +83,13 @@ export async function processEmailQueue(): Promise<{ sent: number; pending: numb
   let failed = 0;
 
   for (const item of items) {
+    if (isReservedTestAddress(item.to)) {
+      await db.update(emailQueue).set({
+        status: "failed", lastError: "Not delivered: reserved test address", updatedAt: new Date(),
+      }).where(eq(emailQueue.id, item.id));
+      failed += 1;
+      continue;
+    }
     try {
       await sendViaBrevo(item.to, item.subject, item.html, item.text ?? undefined);
       await db.update(emailQueue).set({
