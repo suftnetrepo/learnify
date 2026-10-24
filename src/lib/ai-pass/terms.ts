@@ -3,16 +3,29 @@
  * Stripe metadata and the confirmation email, so they can't drift apart. Every purchase records
  * the `version` the student accepted.
  *
- * DRAFT — NOT LEGALLY APPROVED. Pending professional legal and tax review
- * (docs/ai-tutor-pass-customer-wording-DRAFT.md). Bump `version` whenever the wording changes.
+ * Cancellation and refund terms are set conservatively: under either reading of the pass (digital
+ * content or digital service) customers get at least their statutory rights. NOT APPROVED until
+ * the trader identity (`trader`) and tax position (`taxNote`) are confirmed — see
+ * docs/ai-tutor-pass-customer-wording-DRAFT.md. Bump `version` whenever the wording changes.
  */
 import { AI_PASS } from "./config";
 
 export const AI_PASS_TERMS = {
-  version:      "2026-10-24-draft.1",
+  version:      "2026-10-24-draft.2",
   approved:     false,
   path:         "/terms/ai-tutor-pass",
   supportEmail: "info@suftnet.com",
+  /**
+   * Trader identity required in the terms (Consumer Contracts Regulations 2013). Only the name and
+   * town are confirmed (contact page); the company number and full registered address are NOT, so
+   * these stay null and the terms stay unapproved until the business confirms them.
+   */
+  trader: {
+    name:            "Edquis Ltd",
+    town:            "Peterborough, England",
+    companyNumber:   null as string | null,
+    registeredOffice: null as string | null,
+  },
   /**
    * Tax statement for the price and the email. Null until tax review decides it — nothing about
    * VAT is claimed meanwhile.
@@ -36,6 +49,13 @@ export interface TermsSection { id: string; heading: string; paragraphs: string[
 
 const a = AI_PASS.allowances;
 
+const t = AI_PASS_TERMS.trader;
+const traderLine = [
+  t.name,
+  t.companyNumber ? `company number ${t.companyNumber}` : "[COMPANY NUMBER — TO BE CONFIRMED]",
+  t.registeredOffice ? `registered office ${t.registeredOffice}` : `[REGISTERED OFFICE ADDRESS — TO BE CONFIRMED] (${t.town})`,
+].join(", ");
+
 export const AI_PASS_TERMS_SECTIONS: TermsSection[] = [
   {
     id: "what-it-is",
@@ -44,6 +64,14 @@ export const AI_PASS_TERMS_SECTIONS: TermsSection[] = [
       `The AI Tutor Pass is a one-time digital purchase of ${price()} that gives you access to the AI tutor on the free Edquis courses you are enrolled in, for ${AI_PASS.durationDays} consecutive days.`,
       "It is not a subscription and it does not renew automatically. You are only charged when you choose to buy a pass.",
       "Paid courses already include the AI tutor, so you don't need a pass for them.",
+    ],
+  },
+  {
+    id: "who-can-buy",
+    heading: "1A. Who can buy",
+    paragraphs: [
+      "The AI Tutor Pass is currently available to customers in the United Kingdom only. You need a UK billing address and a card issued in the UK.",
+      "If a payment is made with a non-UK billing address or card, no pass is added and we refund the payment in full automatically.",
     ],
   },
   {
@@ -84,11 +112,12 @@ export const AI_PASS_TERMS_SECTIONS: TermsSection[] = [
     id: "cancellation",
     heading: "6. Your right to cancel",
     paragraphs: [
-      "As a consumer in the UK you normally have a right to cancel an online purchase within 14 days. How that right applies to the AI Tutor Pass depends on what you choose at checkout:",
-      "If you do NOT ask for immediate access: your pass still starts straight away, and you can cancel within 14 days of your purchase by contacting us. [LEGAL REVIEW: full refund, or a deduction for the access already provided.]",
-      "If you DO ask for immediate access and acknowledge the effect on your cancellation rights: [LEGAL REVIEW: depending on whether the pass is digital content or a digital service, you either lose the right to cancel once access begins, or you may still cancel within 14 days but pay for the access you have used.]",
-      "A queued pass that hasn't started yet can be cancelled for a full refund before its start date. [PROPOSED POLICY — business and legal approval required.]",
-      "Your choice and the time you made it are recorded with your purchase and shown in your confirmation email.",
+      "You can cancel any AI Tutor Pass within 14 days of the day you bought it by emailing us (see section 7). You don't need to give a reason. What you get back depends on the choice you made at checkout:",
+      "If you did NOT ask for immediate access: we refund the full price. Your pass still starts straight away so you can use it while you decide.",
+      "If you DID ask for immediate access and acknowledged the effect on your cancellation rights: we refund the price less a proportionate amount for the days of access you had before you told us you were cancelling (for example, cancelling on day 3 of 30 means we keep 3/30 of the price).",
+      "If your pass is queued and hasn't started yet, cancelling at any time before its start date gets you a full refund.",
+      "When you cancel, the cancelled pass ends immediately. Your choice at checkout and the time you made it are recorded with your purchase and shown in your confirmation email.",
+      "These rights are in addition to your other legal rights, which are not affected.",
     ],
   },
   {
@@ -104,8 +133,8 @@ export const AI_PASS_TERMS_SECTIONS: TermsSection[] = [
     id: "faulty",
     heading: "8. If the service is faulty or unavailable",
     paragraphs: [
-      "Your statutory rights are not affected. If the AI tutor does not work as described, contact us and we will put it right or, where that isn't possible, give you an appropriate refund. [LEGAL REVIEW: remedies under the Consumer Rights Act 2015 for digital content or services.]",
-      "If the AI tutor is unavailable for a significant part of your pass because of a problem on our side, contact us. [PROPOSED POLICY: extend the pass or refund the affected days.]",
+      "Your statutory rights under the Consumer Rights Act 2015 are not affected. If the AI tutor doesn't work as described, tell us and we will fix it within a reasonable time; if we can't, we will give you a full or partial refund.",
+      "If the AI tutor is unavailable for more than 24 hours in total during your pass because of a problem on our side, we will extend your pass by the time lost or, if you prefer, refund that part of the price.",
       "AI answers can be inaccurate or incomplete. Use them to support your learning and check important information against your course materials.",
     ],
   },
@@ -134,7 +163,10 @@ export const AI_PASS_TERMS_SECTIONS: TermsSection[] = [
   },
   {
     id: "contact",
-    heading: "12. Contact",
-    paragraphs: [`Questions about your AI Tutor Pass: ${AI_PASS_TERMS.supportEmail}.`],
+    heading: "12. Who we are and how to contact us",
+    paragraphs: [
+      `These terms are between you and ${traderLine}.`,
+      `Questions, cancellations or complaints about your AI Tutor Pass: ${AI_PASS_TERMS.supportEmail}.`,
+    ],
   },
 ];

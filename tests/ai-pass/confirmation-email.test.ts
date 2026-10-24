@@ -80,6 +80,11 @@ describe.skipIf(!hasDb)("AI Tutor Pass confirmation email", () => {
     expect(body).toContain("does not reset at midnight");
     expect(body).toContain("won't renew and you won't be charged again");
     expect(body).toContain("Your statutory rights are not affected");
+    // A copy of the accepted terms the customer can keep
+    expect(body).toContain(`Your AI Tutor Pass Terms (version ${AI_PASS_TERMS.version})`);
+    expect(body).toContain("Please keep this email");
+    expect(body).toContain("6. Your right to cancel");
+    expect(body).toContain("1A. Who can buy");
     expect(mail.html).toContain(`${AI_PASS_TERMS.path}`);
     expect(body).toContain(`version ${AI_PASS_TERMS.version}`);
     expect(mail.html).toContain(`mailto:${AI_PASS_TERMS.supportEmail}`);
@@ -92,7 +97,7 @@ describe.skipIf(!hasDb)("AI Tutor Pass confirmation email", () => {
     const session = await purchase(stripe, s.id, false);
     await AiTutorPassService.fulfilCheckoutSession(session.id, "webhook");
     const body = text(sent[0].html);
-    expect(body).toContain("You didn't ask for immediate access, so you keep your right to cancel within 14 days of your purchase");
+    expect(body).toMatch(/You didn't ask for immediate access, so you can cancel until .+ \(14 days after your purchase\) for a full refund/);
     expect(body).not.toContain(IMMEDIATE_ACCESS_ACK_TEXT);
   });
 
@@ -103,7 +108,8 @@ describe.skipIf(!hasDb)("AI Tutor Pass confirmation email", () => {
     const html = sent[0].html;
     expect(html).toContain(escapedAck);
     expect(text(html)).toMatch(/you asked for it to start immediately/);
-    expect(text(html)).not.toContain("you keep your right to cancel within 14 days");
+    expect(text(html)).toContain("we'll refund the price less a proportionate amount for the days of access you've had");
+    expect(text(html)).not.toContain("for a full refund. To cancel");
   });
 
   it("queued renewal: states the future activation date and the cancel-before-start option", async () => {

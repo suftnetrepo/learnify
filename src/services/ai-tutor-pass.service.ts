@@ -32,7 +32,7 @@ export interface PurchaseConsent {
   immediateAccess: boolean;
 }
 
-export type RejectReason = "queue_full" | "refunded" | "disputed" | "invalid";
+export type RejectReason = "queue_full" | "refunded" | "disputed" | "invalid" | "outside_uk";
 export type FulfilResult =
   | { outcome: "granted"; pass: AiTutorPass; created: boolean }
   | { outcome: "rejected"; reason: RejectReason; refundStatus: AiPassCheckout["refundStatus"] };
@@ -259,12 +259,14 @@ export class AiTutorPassService {
         invalid                ? "invalid" :
         payment.reversal       ? payment.reversal :
         (row.reversal as Reversal | null) ? (row.reversal as Reversal) :
+        payment.outsideUk      ? "outside_uk" :
         (await countHeld(tx, student.id, now)) >= MAX_HELD ? "queue_full" :
         null;
 
       if (reason) {
         fresh = true;
-        const refundStatus = reason === "queue_full" ? "required" : reason === "invalid" ? "manual_review" : "not_required";
+        // Paid but not grantable through no fault of a reversal → refund automatically
+        const refundStatus = reason === "queue_full" || reason === "outside_uk" ? "required" : reason === "invalid" ? "manual_review" : "not_required";
         await tx.update(aiPassCheckouts).set({
           status: "rejected", rejectReason: reason, rejectDetail: invalid,
           refundStatus, refundNextAttemptAt: refundStatus === "required" ? now : null,
@@ -358,7 +360,7 @@ export class AiTutorPassService {
 
   /** The PaymentIntent's live state at Stripe: succeeded, our amount/owner, and whether it was refunded or disputed. */
   private static async paymentState(session: Stripe.Checkout.Session, studentId: string):
-      Promise<{ problem: string | null; reversal: Reversal | null; refundedPence: number }> {
+      Promise<{ problem: string | null; reversal: Reversal | null; refundedPence: number; outsideUk?: boolean }> {
     const piId = idOf(session.payment_intent);
     if (!piId) return { problem: "No payment intent", reversal: null, refundedPence: 0 };
     const pi = await stripe.paymentIntents.retrieve(piId, { expand: ["latest_charge"] });
@@ -376,7 +378,10 @@ export class AiTutorPassService {
     const refundedPence = charge.amount_refunded ?? 0;
     const reversal: Reversal | null =
       charge.disputed ? "disputed" : charge.refunded || refundedPence >= pi.amount ? "refunded" : null;
-    return { problem: null, reversal, refundedPence };
+    // Launch is UK-only: a UK billing address AND a UK-issued card (missing data counts as non-UK)
+    const outsideUk = charge.billing_details?.address?.country !== AI_PASS.sellingCountry
+      || charge.payment_method_details?.card?.country !== AI_PASS.sellingCountry;
+    return { problem: null, reversal, refundedPence, outsideUk };
   }
 
   // ─── Refunds, disputes, revocation ──────────────────────────────────────────

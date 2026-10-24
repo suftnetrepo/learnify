@@ -2,6 +2,30 @@
 
 Status: **prepared, not approved for merge or deployment.** Nothing in this document has been run against production.
 
+## Exact remaining actions (2026-10-24)
+
+Verified: the read-only production check passed (journal `0000`–`0009`, hashes match, no `ai_*` objects, `users.id` uuid, PostgreSQL 18.6). `yarn db:migrate` was rehearsed on a schema-only copy of production: only `0010` and `0011` applied, the schema matched the code, and a re-run was a no-op.
+
+**Blocked on business facts (needed before enabling the flag):**
+1. Confirm whether Edquis Ltd is VAT-registered (and the VAT number if so). Then set `AI_PASS_TERMS.taxNote` (and Stripe Tax / `tax_behavior` if registered).
+2. Confirm the company number and registered office address. Then set `AI_PASS_TERMS.trader`, set `approved: true`, and bump `version`.
+
+**Deployment (each needs your approval):**
+3. Create the GitHub environment with a reviewer: `gh api -X PUT repos/suftnetrepo/learnify/environments/production -F 'reviewers[][type]=User' -F 'reviewers[][id]=<your GitHub user id>'`
+4. Add the secrets (values from Neon and Render; use the **direct**, non-pooler Neon URL):
+   - `gh secret set PRODUCTION_DATABASE_URL --env production`
+   - `gh secret set RENDER_DEPLOY_HOOK_URL --env production`
+5. Render dashboard → service → Settings → Build & Deploy → **Auto-Deploy: Off**.
+6. Merge PR #8 alone and confirm its first run migrates nothing, then deploys.
+7. Merge `feat/ai-tutor-pass`, with Render env `ENABLE_AI_TUTOR_PASS=false` (or unset). The workflow applies `0010` and `0011`, then deploys.
+8. Stripe live (see the checklist):
+   - create the £9.99 Price → `STRIPE_AI_PASS_PRICE_ID`;
+   - add `charge.refunded` and `charge.dispute.closed` to the live endpoint;
+   - add a Radar block rule for non-UK cards on pass payments;
+   - set `CRON_SECRET` and `ADMIN_EMAIL`, and schedule `/api/cron/ai-pass-revocations` every 10 minutes.
+9. Production StudyMind must be on the usage-policy release (`c045a0a`).
+10. After steps 1, 2 and 8: set `ENABLE_AI_TUTOR_PASS=true` and run the go-live smoke test.
+
 ## What the release contains
 
 - **Migration `0010_ai_tutor_passes`** is additive only. It creates:

@@ -237,3 +237,29 @@ describe.skipIf(!hasDb)("AI Tutor Pass fulfilment", () => {
     });
   });
 });
+
+describe.skipIf(!hasDb)("UK-only launch", () => {
+  let stripe: ReturnType<typeof fakeStripe>;
+  beforeEach(async () => { await resetDb(); stripe = fakeStripe(); });
+  afterEach(() => { vi.restoreAllMocks(); });
+
+  for (const [name, change] of [
+    ["non-UK billing address", (c: Record<string, unknown>) => { c.billing_details = { address: { country: "US" } }; }],
+    ["non-UK card",            (c: Record<string, unknown>) => { c.payment_method_details = { type: "card", card: { country: "FR" } }; }],
+    ["missing country data",   (c: Record<string, unknown>) => { c.billing_details = { address: {} }; }],
+  ] as const) {
+    it(`${name}: no pass, recorded and refunded automatically`, async () => {
+      const s = await makeUser(); const session = stripe.pay(s.id);
+      change(stripe.intents.get(session.payment_intent as string)!.latest_charge as never);
+      expect(await AiTutorPassService.fulfilCheckoutSession(session.id, "webhook")).toEqual({ outcome: "rejected", reason: "outside_uk", refundStatus: "required" });
+      expect(await passesOf(s.id)).toHaveLength(0);
+      expect((await checkout(session.id)).refundStatus).toBe("refunded");
+      expect(stripe.refunds).toHaveLength(1);
+    });
+  }
+
+  it("UK billing address and UK card: granted", async () => {
+    const s = await makeUser();
+    expect((await AiTutorPassService.fulfilCheckoutSession(stripe.pay(s.id).id, "webhook")).outcome).toBe("granted");
+  });
+});

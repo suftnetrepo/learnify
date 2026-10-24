@@ -8,6 +8,8 @@ export const AI_PASS = {
   durationDays: 30,
   maxQueued:    2,            // future (not yet started) passes a student may hold
   policyType:   "learnify_free_course_pass",
+  /** Initial launch is UK-only: billing address and card must both be from this country (ISO 3166-1). */
+  sellingCountry: "GB",
   allowances:   { chat: 60, quiz: 5, flashcards: 5, summary: 3 },
   /** StudyMind rejects token lifetimes below 300 s; it clamps a pass token to the pass end itself. */
   studymindMinTokenSeconds: 300,

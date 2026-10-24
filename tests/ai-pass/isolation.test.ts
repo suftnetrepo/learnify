@@ -101,7 +101,7 @@ describe("AI Tutor Pass terms content", () => {
     expect(AI_PASS_TERMS.version).toMatch(/draft/);
     expect(AI_PASS_TERMS.approved).toBe(false);
     const ids = AI_PASS_TERMS_SECTIONS.map((s) => s.id);
-    for (const id of ["what-it-is", "price", "access", "allowances", "fair-use", "cancellation", "refunds", "faulty", "disputes", "courses", "changes", "contact"]) {
+    for (const id of ["what-it-is", "who-can-buy", "price", "access", "allowances", "fair-use", "cancellation", "refunds", "faulty", "disputes", "courses", "changes", "contact"]) {
       expect(ids).toContain(id);
     }
   });
@@ -125,16 +125,31 @@ describe("AI Tutor Pass terms content", () => {
   it("cancellation and refunds: statutory rights preserved, legal questions flagged, no VAT claim", async () => {
     const { AI_PASS_TERMS, AI_PASS_TERMS_SECTIONS } = await import("@/lib/ai-pass/terms");
     const section = (id: string) => AI_PASS_TERMS_SECTIONS.find((s) => s.id === id)!.paragraphs.join(" ");
-    expect(section("cancellation")).toContain("If you do NOT ask for immediate access: your pass still starts straight away, and you can cancel within 14 days");
-    expect(section("cancellation")).toContain("[LEGAL REVIEW");
-    expect(section("cancellation")).toContain("A queued pass that hasn't started yet can be cancelled for a full refund");
+    // Conservative: at least statutory rights whichever way the pass is classified
+    expect(section("cancellation")).toContain("You can cancel any AI Tutor Pass within 14 days of the day you bought it");
+    expect(section("cancellation")).toContain("If you did NOT ask for immediate access: we refund the full price");
+    expect(section("cancellation")).toContain("we refund the price less a proportionate amount for the days of access you had");
+    expect(section("cancellation")).toContain("cancelling at any time before its start date gets you a full refund");
+    expect(section("cancellation")).toContain("your other legal rights, which are not affected");
+    expect(AI_PASS_TERMS_SECTIONS.flatMap((s) => s.paragraphs).join(" ")).not.toMatch(/LEGAL REVIEW|PROPOSED POLICY/);
+    expect(section("who-can-buy")).toContain("United Kingdom only");
     expect(section("refunds")).toContain("its access ends immediately");
-    expect(section("faulty")).toContain("Your statutory rights are not affected");
+    expect(section("faulty")).toContain("Your statutory rights under the Consumer Rights Act 2015 are not affected");
     expect(section("disputes")).toContain("not restored automatically");
     expect(section("courses")).toContain("30-day money-back guarantee, which applies to courses and not to AI Tutor Passes");
     expect(AI_PASS_TERMS.taxNote).toBeNull();
     expect(AI_PASS_TERMS_SECTIONS.flatMap((s) => s.paragraphs).join(" ")).not.toMatch(/\bVAT\b/);
     expect(AI_PASS_TERMS.immediateAccessAckRequired).toBe(false);
+  });
+
+  it("stays unapproved while the trader identity is unconfirmed (no invented company details)", async () => {
+    const { AI_PASS_TERMS, AI_PASS_TERMS_SECTIONS } = await import("@/lib/ai-pass/terms");
+    expect(AI_PASS_TERMS.trader.companyNumber).toBeNull();
+    expect(AI_PASS_TERMS.trader.registeredOffice).toBeNull();
+    expect(AI_PASS_TERMS.approved).toBe(false);
+    const contact = AI_PASS_TERMS_SECTIONS.find((s) => s.id === "contact")!.paragraphs.join(" ");
+    expect(contact).toContain("Edquis Ltd");
+    expect(contact).toContain("[COMPANY NUMBER — TO BE CONFIRMED]");
   });
 });
 

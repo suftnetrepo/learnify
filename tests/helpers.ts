@@ -167,7 +167,10 @@ export function fakeStripe(opts: { lineItem?: Parameters<typeof mockLineItems>[0
       intents.set(piId, {
         id: piId, object: "payment_intent", status: "succeeded", amount: 999, currency: "gbp",
         metadata: { app: "learnify", kind: "ai_tutor_pass", student_id: studentId },
-        latest_charge: { id: `ch_${uniq()}`, object: "charge", amount: 999, amount_refunded: 0, refunded: false, disputed: false, payment_intent: piId } as Stripe.Charge,
+        latest_charge: {
+          id: `ch_${uniq()}`, object: "charge", amount: 999, amount_refunded: 0, refunded: false, disputed: false, payment_intent: piId,
+          billing_details: { address: { country: "GB" } }, payment_method_details: { type: "card", card: { country: "GB" } },
+        } as Stripe.Charge,
         ...piOver,
       } as Stripe.PaymentIntent & { latest_charge: Stripe.Charge });
       return sess;

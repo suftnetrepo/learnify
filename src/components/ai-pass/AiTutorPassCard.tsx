@@ -79,7 +79,7 @@ export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
             <span className="text-sm text-white/60">one-time payment · {offer.durationDays} consecutive days</span>
           </div>
           <p className="mt-1 text-xs text-white/60">
-            No subscription — it won&apos;t renew automatically.{AI_PASS_TERMS.taxNote ? ` ${AI_PASS_TERMS.taxNote}` : ""}
+            No subscription — it won&apos;t renew automatically. UK billing address and UK card only.{AI_PASS_TERMS.taxNote ? ` ${AI_PASS_TERMS.taxNote}` : ""}
           </p>
         </div>
       </div>
@@ -189,6 +189,8 @@ function RejectedPaymentNotice({ status }: { status: AiPassStatus }) {
       ? latest.refundStatus === "refunded"
         ? `A payment on ${formatDate(latest.at)} arrived after you'd reached the pass limit, so it has been refunded.`
         : `A payment on ${formatDate(latest.at)} arrived after you'd reached the pass limit. We're refunding it.`
+      : latest.reason === "outside_uk"
+        ? `A payment on ${formatDate(latest.at)} used a non-UK billing address or card. The pass is UK-only for now, so it ${latest.refundStatus === "refunded" ? "has been" : "is being"} refunded.`
       : latest.reason === "invalid"
         ? "We couldn't verify a recent payment. Our team has been alerted and will be in touch."
         : null;

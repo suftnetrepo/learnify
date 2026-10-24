@@ -1,6 +1,6 @@
 import { sendEmail } from "@/lib/email";
 import { AI_PASS } from "@/lib/ai-pass/config";
-import { AI_PASS_TERMS, IMMEDIATE_ACCESS_ACK_TEXT } from "@/lib/ai-pass/terms";
+import { AI_PASS_TERMS, AI_PASS_TERMS_SECTIONS, IMMEDIATE_ACCESS_ACK_TEXT } from "@/lib/ai-pass/terms";
 
 const APP = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
@@ -567,11 +567,12 @@ export const EmailService = {
       `</table>`,
     ].join("");
 
+    const cancelUntil = ukDate(new Date(data.purchasedAt.getTime() + 14 * 24 * 60 * 60 * 1000));
     const cancellation = data.queued
-      ? p(`This pass hasn't started yet. You can cancel it for a full refund at any time before ${escapeHtml(ukDate(data.startsAt))} by emailing <a href="mailto:${support}">${support}</a>.`)
+      ? p(`This pass hasn't started yet. You can cancel it for a full refund at any time before ${escapeHtml(ukDate(data.startsAt))} by emailing <a href="mailto:${support}">${support}</a> (section 6 of the terms below).`)
       : data.immediateAccessAck
-        ? p(`When you bought this pass${data.consentAt ? ` on ${escapeHtml(ukDateTime(data.consentAt))}` : ""}, you asked for it to start immediately and confirmed: “${escapeHtml(IMMEDIATE_ACCESS_ACK_TEXT)}” Section 6 of the AI Tutor Pass Terms explains how this affects your right to cancel.`)
-        : p(`You didn't ask for immediate access, so you keep your right to cancel within 14 days of your purchase — until ${escapeHtml(ukDate(new Date(data.purchasedAt.getTime() + 14 * 24 * 60 * 60 * 1000)))}. To cancel, email <a href="mailto:${support}">${support}</a>. Section 6 of the AI Tutor Pass Terms explains what you'll get back.`);
+        ? p(`When you bought this pass${data.consentAt ? ` on ${escapeHtml(ukDateTime(data.consentAt))}` : ""}, you asked for it to start immediately and confirmed: “${escapeHtml(IMMEDIATE_ACCESS_ACK_TEXT)}” You can still cancel until ${escapeHtml(cancelUntil)} by emailing <a href="mailto:${support}">${support}</a>; we'll refund the price less a proportionate amount for the days of access you've had (section 6 of the terms below).`)
+        : p(`You didn't ask for immediate access, so you can cancel until ${escapeHtml(cancelUntil)} (14 days after your purchase) for a full refund. To cancel, email <a href="mailto:${support}">${support}</a> (section 6 of the terms below).`);
 
     const html = baseTemplate(
       h1(data.queued ? "Your next AI Tutor Pass is booked" : "Your AI Tutor Pass is confirmed") +
@@ -590,7 +591,16 @@ export const EmailService = {
       cancellation +
       p("Refunds go back to the card you paid with, usually within 5–10 business days. If a pass is fully refunded, its access ends straight away. Your statutory rights are not affected.") +
       btn("Read the AI Tutor Pass Terms", termsUrl) +
-      p(`<span style="font-size:13px">You accepted version ${escapeHtml(data.termsVersion)} of the <a href="${escapeHtml(termsUrl)}">AI Tutor Pass Terms</a>. Questions? Email <a href="mailto:${support}">${support}</a>.</span>`),
+      p(`<span style="font-size:13px">You accepted version ${escapeHtml(data.termsVersion)} of the <a href="${escapeHtml(termsUrl)}">AI Tutor Pass Terms</a>. Questions? Email <a href="mailto:${support}">${support}</a>.</span>`) +
+      // A copy of the terms the customer can keep (durable record)
+      `<div style="margin-top:28px;border-top:1px solid #e4e4ef;padding-top:20px">` +
+      h2(`Your AI Tutor Pass Terms (version ${escapeHtml(AI_PASS_TERMS.version)})`) +
+      `<p style="margin:0 0 12px;font-size:12px;line-height:1.6;color:#64748b">Please keep this email — it is your copy of the terms that apply to this purchase.</p>` +
+      AI_PASS_TERMS_SECTIONS.map((sec) =>
+        `<p style="margin:14px 0 4px;font-size:13px;font-weight:700;color:#111827">${escapeHtml(sec.heading)}</p>` +
+        sec.paragraphs.map((para) => `<p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:#475569">${escapeHtml(para)}</p>`).join("")
+      ).join("") +
+      `</div>`,
       data.queued ? `Your next AI Tutor Pass starts ${ukDate(data.startsAt)}` : "Your AI Tutor Pass is confirmed"
     );
     const subject = data.queued ? `Your next AI Tutor Pass starts ${ukDate(data.startsAt)}` : "Your AI Tutor Pass is confirmed";

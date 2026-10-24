@@ -38,6 +38,7 @@ Test-mode reference (UAT, 2026-10-23):
 - [ ] `CRON_SECRET` set (a long random value).
 - [ ] `ADMIN_EMAIL` set to a monitored mailbox. Pass alerts and the existing dispute alerts go there.
 - [ ] `STUDYMIND_API_URL` / `STUDYMIND_API_KEY` are production values. Production StudyMind must include the usage-policy release (StudyMind `origin/main` `c045a0a`, verified 2026-10-23).
+- [ ] **UK-only launch:** add a Radar rule so non-UK cards are blocked before charge for pass payments, for example `Block if :card_country: != 'GB' and ::kind:: = 'ai_tutor_pass'` (metadata on the PaymentIntent). The app also enforces a UK billing address and UK card at fulfilment, and refunds anything else automatically.
 - [ ] Checkout is card-only for launch (`payment_method_types: ["card"]`, in code). Apple Pay and Google Pay still appear as card wallets. Other methods would need their own refund and dispute testing first.
 
 ## 5. Webhook endpoint

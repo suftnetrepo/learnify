@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
       // Paid but not granted — recorded, and refunded automatically when the pass limit was the reason
       const message =
         result.reason === "queue_full" ? "You already hold the maximum number of passes, so this payment is being refunded." :
+        result.reason === "outside_uk" ? "The AI Tutor Pass is currently only available with a UK billing address and UK card, so this payment is being refunded." :
         result.reason === "invalid"    ? "We couldn't verify this payment. Our team has been alerted and will contact you." :
         "This payment was refunded or disputed, so no pass was added.";
       return errorResponse(message, `PASS_NOT_GRANTED_${result.reason.toUpperCase()}`, 409);
