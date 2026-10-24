@@ -49,6 +49,8 @@ export function AiPassStatusStrip({ courseId, status }: { courseId: string; stat
       </div>
 
       {usage ? (
+        <>
+        <p className="px-5 pb-1 text-[11px] text-gray-500">Left today · resets at midnight UK time</p>
         <ul className="grid grid-cols-4 gap-2 px-5 pb-3">
           {(Object.keys(FEATURE_LABELS) as (keyof typeof FEATURE_LABELS)[]).map((k) => {
             const f = usage.features[k];
@@ -62,7 +64,36 @@ export function AiPassStatusStrip({ courseId, status }: { courseId: string; stat
             );
           })}
         </ul>
-      ) : status.usageAvailable === false ? (
+        </>
+      ) : null}
+      {status.fairUse && status.fairUse.level !== "used_up" && (
+        <div className="px-5 pb-3">
+          <div className="flex items-center justify-between text-[11px] text-gray-600">
+            <span>Fair-use left for this pass</span>
+            <span className={status.fairUse.level === "low" ? "font-semibold text-amber-700" : "font-semibold text-gray-900"}>
+              about {status.fairUse.remainingPercent}%
+            </span>
+          </div>
+          <div
+            role="progressbar"
+            aria-label="Fair-use allowance left for this pass"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={status.fairUse.remainingPercent}
+            className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-200"
+          >
+            <div
+              className={`h-full rounded-full ${status.fairUse.level === "low" ? "bg-amber-500" : "bg-brand-500"}`}
+              style={{ width: `${status.fairUse.remainingPercent}%` }}
+            />
+          </div>
+          <p className="mt-1 text-[11px] text-gray-500">
+            Covers the whole pass, separate from the daily limits above, and doesn&apos;t reset at midnight.
+            {status.fairUse.level === "low" && " Running low — when it's used up, the AI tutor stops for this pass."}
+          </p>
+        </div>
+      )}
+      {!usage && status.usageAvailable === false ? (
         <p className="px-5 pb-3 text-[11px] text-gray-500">Today&apos;s usage is unavailable right now.</p>
       ) : null}
       {usage?.budget_exhausted && (
@@ -70,7 +101,9 @@ export function AiPassStatusStrip({ courseId, status }: { courseId: string; stat
       )}
 
       {extending && (
-        <div className="border-t border-surface-100 bg-white">
+        // Scrolls on its own: the strip sits above the tutor panel and doesn't scroll, so without
+        // this the purchase button could fall below the fold on shorter screens
+        <div className="max-h-[60vh] overflow-y-auto overscroll-contain border-t border-surface-100 bg-white" tabIndex={0} aria-label="Extend your AI Tutor Pass">
           <AiTutorPassCard courseId={courseId} status={status} variant="extend" />
         </div>
       )}

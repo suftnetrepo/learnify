@@ -1,4 +1,6 @@
 import { eq } from "drizzle-orm";
+import fs from "node:fs";
+import path from "node:path";
 import { db } from "@/db";
 import { emailQueue } from "@/db/schema";
 import { BrevoEmailSender } from "@/lib/brevo-email-sender";
@@ -42,7 +44,28 @@ function plainText(html: string): string {
     .trim();
 }
 
-async function sendViaBrevo(to: string, subject: string, html: string, text?: string): Promise<void> {
+/**
+ * Development only: EMAIL_SINK_DIR writes emails to files instead of sending them (UAT). Ignored
+ * in production.
+ */
+function sinkDir(): string | null {
+  return process.env.NODE_ENV !== "production" && process.env.EMAIL_SINK_DIR ? process.env.EMAIL_SINK_DIR : null;
+}
+
+function writeToSink(dir: string, to: string, subject: string, html: string): string {
+  fs.mkdirSync(dir, { recursive: true });
+  const id = `sink-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  fs.writeFileSync(path.join(dir, `${id}.html`), `<!-- to: ${to} | subject: ${subject} -->\n${html}`);
+  log.info("Email written to development sink", { to, subject, id });
+  return id;
+}
+
+async function sendViaBrevo(
+  to: string, subject: string, html: string, text?: string,
+  extra: { headers?: Record<string, string>; timeoutMs?: number } = {},
+): Promise<string | undefined> {
+  const dir = sinkDir();
+  if (dir) return writeToSink(dir, to, subject, html);
   const { apiKey, fromEmail, fromName } = config();
   cachedSender ??= new BrevoEmailSender(apiKey);
   const result = await cachedSender.sendEmail({
@@ -51,9 +74,53 @@ async function sendViaBrevo(to: string, subject: string, html: string, text?: st
     subject,
     htmlContent: html,
     textContent: text ?? plainText(html),
-  });
-  if (!result.success) throw new Error(`Brevo rejected the email: ${result.error}`);
+    ...(extra.headers ? { headers: extra.headers } : {}),
+  }, 0, { timeoutMs: extra.timeoutMs });
+  if (!result.success) {
+    throw Object.assign(new Error(`Brevo rejected the email: ${result.error}`), { status: result.status, providerError: result.error });
+  }
   log.info("Email sent", { to, subject, messageId: result.messageId });
+  return result.messageId;
+}
+
+export type DeliveryResult =
+  | { status: "sent"; messageId?: string }
+  | { status: "duplicate" }    // the provider already accepted this idempotency key
+  | { status: "skipped"; reason: string };
+
+/** A failure that retrying won't fix (invalid recipient, request rejected by the provider...). */
+export class PermanentEmailError extends Error {
+  constructor(message: string) { super(message); this.name = "PermanentEmailError"; }
+}
+
+/**
+ * Send one email and report the outcome (unlike sendEmail, nothing is queued). The caller owns
+ * retries. `idempotencyKey` (a UUID) is passed to Brevo, which rejects a repeat of the same key
+ * within its TTL (30 minutes per Brevo's docs) with `duplicate_parameter` — reported here as
+ * "duplicate", i.e. already delivered. Throws PermanentEmailError for failures retrying won't fix.
+ */
+export async function deliverEmail(
+  to: string, subject: string, html: string,
+  opts: { idempotencyKey?: string; timeoutMs?: number } = {},
+): Promise<DeliveryResult> {
+  if (isReservedTestAddress(to) && !sinkDir()) return { status: "skipped", reason: "reserved test address" };
+  try {
+    const messageId = await sendViaBrevo(to, subject, html, undefined, {
+      headers: opts.idempotencyKey ? { idempotencyKey: opts.idempotencyKey } : undefined,
+      timeoutMs: opts.timeoutMs ?? 15_000,
+    });
+    return { status: "sent", messageId };
+  } catch (error) {
+    const providerError = (error as { providerError?: string }).providerError ?? "";
+    const status = (error as { status?: number }).status;
+    if (providerError.includes("duplicate_parameter")) return { status: "duplicate" };
+    const message = error instanceof Error ? error.message : String(error);
+    if (/recipient|sender email|subject is required|content is required/i.test(message)
+        || (status !== undefined && status >= 400 && status < 500 && status !== 429)) {
+      throw new PermanentEmailError(message);
+    }
+    throw error;   // transient (timeout, network, 429, 5xx) — the caller retries
+  }
 }
 
 /** Send immediately, then durably queue any failure without breaking the business operation. */

@@ -7,9 +7,10 @@ import {
 import { and, asc, count, desc, eq, gt, gte, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { stripe } from "@/lib/stripe";
 import { AI_PASS, AI_PASS_METADATA, DAY_MS, aiPassPriceId } from "@/lib/ai-pass/config";
-import { getPolicyStatus, revokePolicy, type StudyMindPolicyStatus } from "@/lib/ai-pass/studymind";
+import { fairUseSummary, getPolicyStatus, revokePolicy, type StudyMindPolicyStatus } from "@/lib/ai-pass/studymind";
 import { AI_PASS_TERMS } from "@/lib/ai-pass/terms";
 import { log } from "@/lib/logger";
+import { deliverEmail, PermanentEmailError } from "@/lib/email";
 
 /**
  * A Checkout Session that cannot be processed as a pass right now and should not be retried by
@@ -44,6 +45,9 @@ const BACKOFF_MAX_MS = 6 * 60 * 60 * 1000;
 const CLAIM_LEASE_MS = 5 * 60 * 1000;
 /** Retries keep going (capped at BACKOFF_MAX_MS) but administrators are alerted at this attempt. */
 const ALERT_AT_ATTEMPT = 5;
+/** A "sending" claim older than this is treated as a crashed delivery and retried (inside Brevo's 30-min dedupe window). */
+const EMAIL_STALE_MS = 10 * 60 * 1000;
+const EMAIL_MAX_ATTEMPTS = 8;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -300,6 +304,9 @@ export class AiTutorPassService {
         startsAt,
         endsAt,
         paymentStatus:           refundedPence > 0 ? "partially_refunded" : "paid",
+        // Confirmation email outbox — committed with the pass, so the email can't be forgotten
+        confirmationEmailStatus:        "pending",
+        confirmationEmailNextAttemptAt: now,
         refundedAmountPence:     refundedPence,
       }).returning();
       await tx.update(aiPassCheckouts).set({
@@ -311,7 +318,10 @@ export class AiTutorPassService {
     });
 
     // One confirmation email per granted pass, whichever delivery (webhook or confirm) gets here first
-    if (result.outcome === "granted") await AiTutorPassService.sendConfirmationEmail(result.pass.id);
+    if (result.outcome === "granted") {
+      await AiTutorPassService.processPendingConfirmationEmails({ passId: result.pass.id })
+        .catch((error) => log.error("AI Tutor Pass confirmation email processing failed", { passId: result.pass.id, error }));
+    }
 
     if (result.outcome === "rejected" && fresh) {
       log.warn("AI Tutor Pass payment not granted", { sessionId: session.id, reason: result.reason, detail: invalid });
@@ -397,6 +407,8 @@ export class AiTutorPassService {
         ...(pass.studymindRevokeStatus === "done" ? {} : {
           studymindRevokeStatus: "pending" as const, studymindRevokeNextAttemptAt: now,
         }),
+        // Not yet delivered → don't send a confirmation for a revoked pass
+        ...(pass.confirmationEmailStatus === "pending" ? { confirmationEmailStatus: "skipped" as const, confirmationEmailLastError: `pass ${reason}` } : {}),
         updatedAt: now,
       }).where(eq(aiTutorPasses.id, passId));
       await AiTutorPassService.rechainQueued(tx, studentId, now);
@@ -692,41 +704,99 @@ export class AiTutorPassService {
   // ─── Confirmation email ─────────────────────────────────────────────────────
 
   /**
-   * Send the purchase confirmation once: the pass row is claimed first, so concurrent or repeated
-   * deliveries never send twice. Not sent for a pass revoked before the email went out. If building
-   * or handing over the email fails, the claim is released so a later delivery can retry (the
-   * email layer itself queues failed sends for retry).
+   * Deliver pending purchase confirmations (an outbox on the pass row). Jobs are claimed with
+   * FOR UPDATE SKIP LOCKED, so duplicate webhooks, concurrent confirmations and cron runs never
+   * deliver the same email at the same time. The pass id is sent as the provider idempotency key,
+   * so a retry within the provider's dedupe window (30 min per Brevo) isn't delivered twice.
+   * A claim left in "sending" (process crashed mid-delivery) is reclaimed after EMAIL_STALE_MS —
+   * inside that window, so a resend is deduplicated by the provider.
+   *
+   * Not exactly-once: if a delivery was accepted by the provider but the outcome was lost, and the
+   * retry happens after the provider's dedupe window, the student can receive a second copy.
    */
-  static async sendConfirmationEmail(passId: string): Promise<boolean> {
-    const [pass] = await db.update(aiTutorPasses).set({ confirmationEmailSentAt: new Date() })
-      .where(and(eq(aiTutorPasses.id, passId), isNull(aiTutorPasses.confirmationEmailSentAt), isNull(aiTutorPasses.revokedAt)))
-      .returning();
-    if (!pass) return false;
-    try {
-      const [student] = await db.select({ name: users.name, email: users.email }).from(users).where(eq(users.id, pass.studentId)).limit(1);
-      if (!student?.email) throw new Error("Student has no email address");
-      const { EmailService } = await import("@/services/email.service");
-      await EmailService.aiTutorPassConfirmation(student.email, {
-        studentName:        student.name ?? "there",
-        amountPence:        pass.amountPence,
-        currency:           pass.currency,
-        purchasedAt:        pass.purchasedAt,
-        startsAt:           pass.startsAt,
-        endsAt:             pass.endsAt,
-        // Queued: bought while another pass was active, so it starts later
-        queued:             pass.startsAt.getTime() - pass.purchasedAt.getTime() > 60_000,
-        immediateAccessAck: pass.immediateAccessAck,
-        consentAt:          pass.consentAt,
-        termsVersion:       pass.termsVersion ?? AI_PASS_TERMS.version,
-        reference:          pass.id.slice(0, 8).toUpperCase(),
-      });
-      log.info("AI Tutor Pass confirmation email sent", { passId });
-      return true;
-    } catch (error) {
-      await db.update(aiTutorPasses).set({ confirmationEmailSentAt: null }).where(eq(aiTutorPasses.id, passId));
-      log.error("AI Tutor Pass confirmation email failed", { passId, error });
-      return false;
+  static async processPendingConfirmationEmails(opts: { passId?: string; limit?: number } = {}) {
+    const now = new Date();
+    const claimed = await db.transaction(async (tx) => {
+      const rows = await tx.select().from(aiTutorPasses)
+        .where(and(
+          opts.passId ? eq(aiTutorPasses.id, opts.passId) : undefined,
+          or(
+            and(eq(aiTutorPasses.confirmationEmailStatus, "pending"), lte(aiTutorPasses.confirmationEmailNextAttemptAt, now)),
+            and(eq(aiTutorPasses.confirmationEmailStatus, "sending"), lte(aiTutorPasses.confirmationEmailClaimedAt, new Date(now.getTime() - EMAIL_STALE_MS))),
+          ),
+        ))
+        .orderBy(asc(aiTutorPasses.confirmationEmailNextAttemptAt))
+        .limit(opts.limit ?? 25)
+        .for("update", { skipLocked: true });
+      if (rows.length) {
+        await tx.update(aiTutorPasses).set({
+          confirmationEmailStatus: "sending", confirmationEmailClaimedAt: now,
+          confirmationEmailAttempts: sql`${aiTutorPasses.confirmationEmailAttempts} + 1`,
+        }).where(inArray(aiTutorPasses.id, rows.map((r) => r.id)));
+      }
+      return rows;
+    });
+
+    let sent = 0, failed = 0, retrying = 0, skipped = 0;
+    for (const pass of claimed) {
+      const attempt = pass.confirmationEmailAttempts + 1;
+      const finish = (fields: Partial<typeof aiTutorPasses.$inferInsert>) =>
+        db.update(aiTutorPasses).set({ ...fields, updatedAt: new Date() })
+          .where(and(eq(aiTutorPasses.id, pass.id), eq(aiTutorPasses.confirmationEmailStatus, "sending")));
+
+      if (pass.revokedAt) {
+        await finish({ confirmationEmailStatus: "skipped", confirmationEmailLastError: `pass ${pass.revokeReason ?? "revoked"}` });
+        skipped++;
+        continue;
+      }
+      try {
+        const [student] = await db.select({ name: users.name, email: users.email }).from(users).where(eq(users.id, pass.studentId)).limit(1);
+        if (!student?.email) throw new PermanentEmailError("Student has no email address");
+        const { EmailService } = await import("@/services/email.service");
+        const { subject, html } = EmailService.buildAiTutorPassConfirmation({
+          studentName:        student.name ?? "there",
+          amountPence:        pass.amountPence,
+          currency:           pass.currency,
+          purchasedAt:        pass.purchasedAt,
+          startsAt:           pass.startsAt,
+          endsAt:             pass.endsAt,
+          // Queued: bought while another pass was active, so it starts later
+          queued:             pass.startsAt.getTime() - pass.purchasedAt.getTime() > 60_000,
+          immediateAccessAck: pass.immediateAccessAck,
+          consentAt:          pass.consentAt,
+          termsVersion:       pass.termsVersion ?? AI_PASS_TERMS.version,
+          reference:          pass.id.slice(0, 8).toUpperCase(),
+        });
+        const outcome = await deliverEmail(student.email, subject, html, { idempotencyKey: pass.id });
+        if (outcome.status === "skipped") {
+          await finish({ confirmationEmailStatus: "skipped", confirmationEmailLastError: outcome.reason });
+          skipped++;
+        } else {
+          await finish({
+            confirmationEmailStatus: "sent", confirmationEmailSentAt: new Date(), confirmationEmailLastError: null,
+            confirmationEmailMessageId: outcome.status === "sent" ? outcome.messageId ?? null : "duplicate-accepted",
+            confirmationEmailNextAttemptAt: null,
+          });
+          log.info("AI Tutor Pass confirmation email delivered", { passId: pass.id, outcome: outcome.status });
+          sent++;
+        }
+      } catch (error) {
+        const message = (error instanceof Error ? error.message : String(error)).slice(0, 500);
+        const permanent = error instanceof PermanentEmailError || attempt >= EMAIL_MAX_ATTEMPTS;
+        await finish(permanent
+          ? { confirmationEmailStatus: "failed", confirmationEmailLastError: message, confirmationEmailNextAttemptAt: null }
+          : { confirmationEmailStatus: "pending", confirmationEmailLastError: message, confirmationEmailNextAttemptAt: new Date(Date.now() + backoff(attempt)) });
+        log.error("AI Tutor Pass confirmation email failed", { passId: pass.id, attempt, permanent, error: message });
+        if (permanent) {
+          failed++;
+          await alertOps("Purchase confirmation email could not be delivered", [
+            `Pass ${pass.id} (student ${pass.studentId}) is active, but its confirmation email failed after ${attempt} attempt(s): ${message}.`,
+            "The pass itself is unaffected. Contact the student, or fix the address and set confirmation_email_status back to 'pending'.",
+          ]);
+        } else retrying++;
+      }
     }
+    return { due: claimed.length, sent, retrying, failed, skipped };
   }
 
   // ─── Stripe webhook routing ─────────────────────────────────────────────────
@@ -816,7 +886,10 @@ export class AiTutorPassService {
       rejectedPayments: rejected.map((r) => ({
         at: r.updatedAt.toISOString(), reason: r.rejectReason, refundStatus: r.refundStatus,
       })),
-      usage,
+      // Daily allowances for the browser — without the internal dollar budget
+      usage: usage ? { ...usage, budget: undefined } : null,
+      // Pass-level fair-use budget as a rounded percentage (separate from daily allowances; never resets)
+      fairUse: fairUseSummary(usage),
       usageAvailable,
     };
   }
@@ -841,6 +914,14 @@ export class AiTutorPassService {
                   and(eq(aiPassCheckouts.refundStatus, "required"), gt(aiPassCheckouts.refundAttempts, 0))))
         .orderBy(desc(aiPassCheckouts.updatedAt)).limit(100),
     ]);
-    return { failingRevocations: revocations, paymentsNeedingAttention: payments };
+    const emails = await db.select({
+      passId: aiTutorPasses.id, studentId: aiTutorPasses.studentId, status: aiTutorPasses.confirmationEmailStatus,
+      attempts: aiTutorPasses.confirmationEmailAttempts, lastError: aiTutorPasses.confirmationEmailLastError,
+      nextAttemptAt: aiTutorPasses.confirmationEmailNextAttemptAt,
+    }).from(aiTutorPasses)
+      .where(or(eq(aiTutorPasses.confirmationEmailStatus, "failed"),
+                and(eq(aiTutorPasses.confirmationEmailStatus, "pending"), gt(aiTutorPasses.confirmationEmailAttempts, 0))))
+      .orderBy(desc(aiTutorPasses.updatedAt)).limit(100);
+    return { failingRevocations: revocations, paymentsNeedingAttention: payments, confirmationEmails: emails };
   }
 }

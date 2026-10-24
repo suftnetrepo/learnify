@@ -22,6 +22,8 @@ export interface AiPassStatus {
     features:         Record<"chat" | "quiz" | "flashcards" | "summary", AiPassFeatureUsage>;
     budget_exhausted: boolean;
   } | null;
+  /** Pass-level fair-use budget (whole pass, never resets) as a rounded percentage. */
+  fairUse?: { remainingPercent: number; level: "ok" | "low" | "used_up" } | null;
   usageAvailable?: boolean;
   /** Recent payments that couldn't become a pass, and what happens to the money. */
   rejectedPayments?: { at: string; reason: string | null; refundStatus: string }[];

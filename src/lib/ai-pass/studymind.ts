@@ -18,6 +18,21 @@ export interface StudyMindPolicyStatus {
   resets_at:        string;
   features:         Record<"chat" | "quiz" | "flashcards" | "summary", { limit: number; used: number; remaining: number; available: boolean }>;
   budget_exhausted: boolean;
+  /** Server-to-server only (API key): the pass's total AI-cost budget in USD. Never sent to browsers. */
+  budget?:          { total_usd: number; spent_usd: number; reserved_usd: number; remaining_usd: number };
+}
+
+/**
+ * Customer-facing view of the pass-level fair-use budget: a rounded percentage, never the internal
+ * dollar amounts. Rounded down to 5% so it never overstates what's left.
+ */
+export function fairUseSummary(usage: StudyMindPolicyStatus | null) {
+  if (!usage) return null;
+  if (usage.budget_exhausted) return { remainingPercent: 0, level: "used_up" as const };
+  const b = usage.budget;
+  if (!b || !(b.total_usd > 0)) return null;
+  const pct = Math.max(0, Math.min(100, Math.floor((b.remaining_usd / b.total_usd) * 100 / 5) * 5));
+  return { remainingPercent: pct, level: pct <= 20 ? ("low" as const) : ("ok" as const) };
 }
 
 /** The pass's live usage, or null when StudyMind has no policy for it yet (first use creates it). */

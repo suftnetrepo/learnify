@@ -137,3 +137,17 @@ describe("AI Tutor Pass terms content", () => {
     expect(AI_PASS_TERMS.immediateAccessAckRequired).toBe(false);
   });
 });
+
+describe("pass-level fair-use summary", () => {
+  const base = { pass_id: "p", status: "active" as const, expires_at: "", usage_date: "", resets_at: "", features: {} as never };
+  it("rounds down to 5%, flags 'low' at 20% or less, and 'used_up' when exhausted", async () => {
+    const { fairUseSummary } = await import("@/lib/ai-pass/studymind");
+    const b = (remaining: number) => ({ total_usd: 4.5, spent_usd: 4.5 - remaining, reserved_usd: 0, remaining_usd: remaining });
+    expect(fairUseSummary({ ...base, budget_exhausted: false, budget: b(4.5) })).toEqual({ remainingPercent: 100, level: "ok" });
+    expect(fairUseSummary({ ...base, budget_exhausted: false, budget: b(3.69) })).toEqual({ remainingPercent: 80, level: "ok" });   // 82% → 80
+    expect(fairUseSummary({ ...base, budget_exhausted: false, budget: b(0.9) })).toEqual({ remainingPercent: 20, level: "low" });
+    expect(fairUseSummary({ ...base, budget_exhausted: true, budget: b(0.01) })).toEqual({ remainingPercent: 0, level: "used_up" });
+    expect(fairUseSummary({ ...base, budget_exhausted: false })).toBeNull();   // no budget data → show nothing
+    expect(fairUseSummary(null)).toBeNull();
+  });
+});

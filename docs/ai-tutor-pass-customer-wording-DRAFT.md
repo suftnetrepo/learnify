@@ -46,7 +46,7 @@
 
 ## Confirmation email (implemented)
 
-Sent **once per granted pass**. The pass row is claimed (`confirmation_email_sent_at`) before sending, so duplicate or concurrent webhooks and confirmations never resend. If handing over the email fails, the claim is released so the next delivery retries. It is never sent for a payment that wasn't granted, or for a pass revoked before the email went out. It reuses the existing Brevo email layer and template; course emails are unchanged.
+Delivered through an outbox on the pass row, with the pass ID as Brevo's idempotency key: **at-least-once, provider-deduplicated, not exactly-once.** See `docs/ai-tutor-pass-email-reliability.md`. It is never sent for a payment that wasn't granted, or for a pass revoked before delivery. It reuses the existing Brevo email layer and template; course emails are unchanged.
 
 Contents:
 - **Subject:** "Your AI Tutor Pass is confirmed", or "Your next AI Tutor Pass starts {date}" for a queued pass.
@@ -64,10 +64,39 @@ Contents:
   All variants add: refund timing, full refund ends access, statutory rights not affected.
 - A link to the AI Tutor Pass Terms with the accepted version, and the support email.
 
+## Fair-use transparency (implemented in the status strip)
+
+StudyMind's server-to-server policy endpoint (API key) returns the pass's budget: `total_usd`, `spent_usd`, `reserved_usd` and `remaining_usd`, plus per-feature `available` and `budget_exhausted`. That is enough to show meaningful remaining overall allowance. StudyMind was not changed.
+
+The AI tutor drawer shows three things, kept visually separate:
+
+| Concept | What the student sees |
+|---|---|
+| 30-day expiry | "Active until 23 Nov 2026" (plus "(1 more queued)") |
+| Daily feature allowances | "Left today · resets at midnight UK time", with tiles for 60 questions, 5 quizzes, 5 sets and 3 summaries |
+| Pass-level fair-use budget | "Fair-use left for this pass — about 80%", a progress bar, and "Covers the whole pass, separate from the daily limits above, and doesn't reset at midnight." At 20% or less: amber, plus "Running low — when it's used up, the AI tutor stops for this pass." When used up: "You've reached this pass's total fair-use limit, so the AI tutor is no longer available on it. It doesn't reset at midnight." |
+
+- The percentage is rounded **down** to 5%, so it never overstates what's left.
+- **Dollar amounts are never sent to the browser.** Previously the raw StudyMind payload, including `budget` in USD, reached the student; it is now removed and replaced by the summary.
+- The $4.50 cap is unchanged (a StudyMind setting).
+
 ## Corrections made in this revision
 
 - The status strip previously said the fair-use limit "resets at midnight UK time". It doesn't (it's per pass). Now: "You've reached this pass's total fair-use limit, so the AI tutor is no longer available on it. It doesn't reset at midnight."
 - The earlier draft of this document called the AI cost budget "daily". It is **per pass**.
+
+## Decisions needed from a UK consumer-law adviser (short list)
+
+1. Is the AI Tutor Pass **digital content** or a **digital service** (CCR 2013 / CRA 2015)?
+2. Is the **immediate-access acknowledgement** wording valid express consent and acknowledgement? Should it be **optional** (as built) or **required**?
+3. If a student cancels within 14 days **without** the acknowledgement: **full refund**, or a deduction for access used?
+4. **Queued passes:** when does the cancellation period run, and is "full refund before the start date" right?
+5. Is the **confirmation email** (with a link to versioned terms) an adequate durable-medium confirmation, or must the terms be attached?
+6. Must the **fair-use limit** be stated in numbers, or is the percentage indicator plus the explanation enough?
+7. **Remedies** for faulty or unavailable service, and the **dispute** suspension policy.
+8. Wording for the **main Terms** referencing the pass, and whether the course "30-day money-back guarantee" needs an explicit carve-out there.
+
+Nothing here declares the cancellation terms legally compliant.
 
 ## Outstanding legal questions (professional review required)
 

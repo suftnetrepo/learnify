@@ -6,7 +6,12 @@ export type SendParams = {
   subject: string;
   htmlContent?: string;
   textContent?: string;
+  /** Optional Brevo message headers, e.g. `idempotencyKey` (a UUID; Brevo rejects repeats within its TTL). */
+  headers?: Record<string, string>;
 };
+
+/** Optional per-call settings; omitted = the original behaviour (no timeout). */
+export type SendOptions = { timeoutMs?: number };
 
 export type SendResult =
   | { success: true; messageId?: string }
@@ -38,7 +43,7 @@ export class BrevoEmailSender {
     await new Promise((resolve) => setTimeout(resolve, this.retryDelayMs * attempt));
   }
 
-  async sendEmail(params: SendParams, retryCount = 0): Promise<SendResult> {
+  async sendEmail(params: SendParams, retryCount = 0, options: SendOptions = {}): Promise<SendResult> {
     this.validate(params);
 
     try {
@@ -50,6 +55,7 @@ export class BrevoEmailSender {
           "content-type": "application/json",
         },
         body: JSON.stringify(params),
+        ...(options.timeoutMs ? { signal: AbortSignal.timeout(options.timeoutMs) } : {}),
       });
       const body = (await response.json().catch(() => ({}))) as {
         messageId?: string;
@@ -62,14 +68,14 @@ export class BrevoEmailSender {
       const error = [body.code, body.message].filter(Boolean).join(": ") || `HTTP ${response.status}`;
       if (response.status >= 500 && retryCount < this.maxRetries) {
         await this.wait(retryCount + 1);
-        return this.sendEmail(params, retryCount + 1);
+        return this.sendEmail(params, retryCount + 1, options);
       }
       return { success: false, error, status: response.status, retryCount };
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown network error";
       if (retryCount < this.maxRetries) {
         await this.wait(retryCount + 1);
-        return this.sendEmail(params, retryCount + 1);
+        return this.sendEmail(params, retryCount + 1, options);
       }
       return { success: false, error: message, retryCount };
     }

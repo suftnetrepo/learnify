@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
 vi.mock("@/services/email.service", () => ({
-  EmailService: { purchaseConfirmation: vi.fn(), disputeAlert: vi.fn(), paymentFailed: vi.fn(), aiTutorPassConfirmation: vi.fn(), aiPassOpsAlert: vi.fn() },
+  EmailService: { purchaseConfirmation: vi.fn(), disputeAlert: vi.fn(), paymentFailed: vi.fn(), buildAiTutorPassConfirmation: vi.fn(() => ({ subject: "s", html: "<p>h</p>" })), aiPassOpsAlert: vi.fn() },
 }));
 import { EmailService } from "@/services/email.service";
 import { stripe } from "@/lib/stripe";
@@ -19,7 +19,7 @@ function deliver(type: string, object: unknown, opts: { secret?: string } = {}) 
 
 describe.skipIf(!hasDb)("Stripe webhook", () => {
   let fake: ReturnType<typeof fakeStripe>;
-  beforeEach(async () => { await resetDb(); fake = fakeStripe(); vi.mocked(EmailService.disputeAlert).mockClear(); vi.mocked(EmailService.purchaseConfirmation).mockClear(); vi.mocked(EmailService.aiTutorPassConfirmation).mockClear(); });
+  beforeEach(async () => { await resetDb(); fake = fakeStripe(); vi.mocked(EmailService.disputeAlert).mockClear(); vi.mocked(EmailService.purchaseConfirmation).mockClear(); vi.mocked(EmailService.buildAiTutorPassConfirmation).mockClear(); });
   afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); delete process.env.ADMIN_EMAIL; delete process.env.CAREERMIND_API_URL; });
 
   it("rejects a bad signature without touching anything", async () => {
@@ -35,7 +35,7 @@ describe.skipIf(!hasDb)("Stripe webhook", () => {
     const rows = await db.select().from(aiTutorPasses);
     expect(rows).toHaveLength(1);
     expect(rows[0].fulfilledVia).toBe("webhook");
-    expect(EmailService.aiTutorPassConfirmation).toHaveBeenCalledOnce();
+    expect(EmailService.buildAiTutorPassConfirmation).toHaveBeenCalledOnce();
     expect(EmailService.purchaseConfirmation).not.toHaveBeenCalled();
     expect(rows[0].stripeEventId).toMatch(/^evt_test_/);
   });
@@ -95,7 +95,7 @@ describe.skipIf(!hasDb)("Stripe webhook", () => {
     expect(lineItems).not.toHaveBeenCalled();
     expect(fake.spies.retrieve).not.toHaveBeenCalled();
     expect(EmailService.purchaseConfirmation).toHaveBeenCalledOnce();
-    expect(EmailService.aiTutorPassConfirmation).not.toHaveBeenCalled();   // course emails unchanged, no pass email
+    expect(EmailService.buildAiTutorPassConfirmation).not.toHaveBeenCalled();   // course emails unchanged, no pass email
   });
 
   it("Tranquis events are still forwarded and never reach the pass handler", async () => {

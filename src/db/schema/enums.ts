@@ -122,3 +122,13 @@ export const aiPassRefundStatusEnum = pgEnum("ai_pass_refund_status", [
   "refunded",
   "manual_review",
 ]);
+
+// AI Tutor Pass purchase confirmation email (an outbox on the pass row)
+export const aiPassEmailStatusEnum = pgEnum("ai_pass_email_status", [
+  "not_required",
+  "pending",
+  "sending",
+  "sent",
+  "failed",
+  "skipped",
+]);

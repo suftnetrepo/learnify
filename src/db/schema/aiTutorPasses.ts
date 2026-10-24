@@ -1,6 +1,6 @@
 import { pgTable, uuid, varchar, text, integer, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { aiPassPaymentStatusEnum, aiPassRevokeStatusEnum, aiPassCheckoutStatusEnum, aiPassRefundStatusEnum } from "./enums";
+import { aiPassPaymentStatusEnum, aiPassRevokeStatusEnum, aiPassCheckoutStatusEnum, aiPassRefundStatusEnum, aiPassEmailStatusEnum } from "./enums";
 import { users } from "./users";
 
 // ─── AI Tutor Pass ────────────────────────────────────────────────────────────
@@ -50,8 +50,16 @@ export const aiTutorPasses = pgTable(
     studymindRevokeNextAttemptAt: timestamp("studymind_revoke_next_attempt_at", { withTimezone: true }),
     studymindRevokedAt:           timestamp("studymind_revoked_at",             { withTimezone: true }),
 
-    // Purchase confirmation email — claimed once, so duplicate webhooks/confirmations never resend
-    confirmationEmailSentAt:      timestamp("confirmation_email_sent_at",       { withTimezone: true }),
+    // Purchase confirmation email — an outbox: "pending" is set in the same transaction that grants
+    // the pass, then a worker claims it ("sending"), delivers it with the pass id as the provider
+    // idempotency key, and records the outcome. A stale "sending" claim (crash) is reclaimed.
+    confirmationEmailStatus:        aiPassEmailStatusEnum("confirmation_email_status").default("not_required").notNull(),
+    confirmationEmailAttempts:      integer("confirmation_email_attempts").default(0).notNull(),
+    confirmationEmailNextAttemptAt: timestamp("confirmation_email_next_attempt_at", { withTimezone: true }),
+    confirmationEmailClaimedAt:     timestamp("confirmation_email_claimed_at",      { withTimezone: true }),
+    confirmationEmailSentAt:        timestamp("confirmation_email_sent_at",         { withTimezone: true }),
+    confirmationEmailMessageId:     varchar("confirmation_email_message_id", { length: 255 }),
+    confirmationEmailLastError:     text("confirmation_email_last_error"),
 
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -59,6 +67,7 @@ export const aiTutorPasses = pgTable(
   (table) => [
     index("ai_tutor_passes_student_period_idx").on(table.studentId, table.endsAt),
     index("ai_tutor_passes_revoke_queue_idx").on(table.studymindRevokeStatus, table.studymindRevokeNextAttemptAt),
+    index("ai_tutor_passes_email_queue_idx").on(table.confirmationEmailStatus, table.confirmationEmailNextAttemptAt),
   ]
 );
 

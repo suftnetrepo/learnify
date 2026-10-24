@@ -71,3 +71,32 @@ Card-only Checkout was added afterwards (release preparation).
 - **Courses:** "UAT Free Course A — Cloud Computing Basics", "UAT Free Course B — Git Essentials", "UAT Paid Course — Software Testing Fundamentals".
 - Logins and the Playwright scripts are kept **outside git** in `.uat/` (git-ignored). Email to `.local` addresses is never sent.
 - The two UAT emails queued in the development `email_queue` were cancelled (marked failed).
+
+## Consent UAT (2026-10-24, commit after `1f2e289`)
+
+Development database migrated to `0011` (backup taken first). Same local Stripe test-mode and StudyMind setup, plus `EMAIL_SINK_DIR` so confirmation emails were written to files, not sent. New fixtures: `uat-studentc@learnify.local` and `uat-studentd@learnify.local`.
+
+| Check | Result |
+|---|---|
+| Both checkboxes unticked initially; button disabled; terms box `aria-required` | Pass |
+| Only the acknowledgement ticked → still can't buy | Pass |
+| Terms link opens `/terms/ai-tutor-pass` (draft banner, versioned) in a new tab; desktop and mobile | Pass |
+| API rejects missing consent and the old request shape (400) | Pass |
+| Outdated terms version → "The AI Tutor Pass terms have been updated…" | Pass |
+| Immediate purchase without the acknowledgement → `immediate_access_ack=false`, email states the 14-day right and its end date | Pass |
+| Immediate purchase with the acknowledgement (mobile) → `true`, email quotes it with the time given | Pass |
+| Queued renewal → no acknowledgement offered, cancel-before-start note, starts when the current pass ends, "Your next AI Tutor Pass starts …" email | Pass |
+| Cancel at Stripe → toast; the open checkout is expired by the next one | Pass |
+| Declined card (desktop and mobile) → stays on Stripe; then the same Checkout succeeds | Pass |
+| Refund → revoked, token 402, refunded notice; no extra email | Pass |
+| Each purchase: exactly one confirmation email (`sent`, 1 attempt) | Pass |
+| Status strip: daily tiles, the pass-level fair-use bar and the expiry shown separately | Pass |
+| Flag off: terms page 404, no free-course tutor, checkout 404 | Pass |
+| Paid course: tutor unrestricted; £19 course purchase completed through the existing webhook; course Checkout still offers Klarna/Revolut/promo codes | Pass |
+| Pass Checkout is card-only (Card, Apple Pay, Link) | Pass |
+
+Defects found and fixed:
+- The Extend panel overflowed the drawer, so "Add 30 days" was unreachable on 1440×900 and mobile. It now scrolls within the strip.
+- Nested brackets in the email's consent line.
+
+Screenshots: `screenshots/consent/`.

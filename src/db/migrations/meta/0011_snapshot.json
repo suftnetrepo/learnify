@@ -1,5 +1,5 @@
 {
-  "id": "63036dec-b5b5-4fc9-af26-7493d38df35e",
+  "id": "4f6914d9-7dcb-4ce4-894b-ba92ec22b5c3",
   "prevId": "3fbd670f-a81e-4147-9de6-9a943d46ef62",
   "version": "7",
   "dialect": "postgresql",
@@ -2540,9 +2540,48 @@
           "primaryKey": false,
           "notNull": false
         },
+        "confirmation_email_status": {
+          "name": "confirmation_email_status",
+          "type": "ai_pass_email_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'not_required'"
+        },
+        "confirmation_email_attempts": {
+          "name": "confirmation_email_attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "confirmation_email_next_attempt_at": {
+          "name": "confirmation_email_next_attempt_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "confirmation_email_claimed_at": {
+          "name": "confirmation_email_claimed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "confirmation_email_sent_at": {
           "name": "confirmation_email_sent_at",
           "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "confirmation_email_message_id": {
+          "name": "confirmation_email_message_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "confirmation_email_last_error": {
+          "name": "confirmation_email_last_error",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -2594,6 +2633,27 @@
             },
             {
               "expression": "studymind_revoke_next_attempt_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "ai_tutor_passes_email_queue_idx": {
+          "name": "ai_tutor_passes_email_queue_idx",
+          "columns": [
+            {
+              "expression": "confirmation_email_status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "confirmation_email_next_attempt_at",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -4260,6 +4320,18 @@
         "expired",
         "fulfilled",
         "rejected"
+      ]
+    },
+    "public.ai_pass_email_status": {
+      "name": "ai_pass_email_status",
+      "schema": "public",
+      "values": [
+        "not_required",
+        "pending",
+        "sending",
+        "sent",
+        "failed",
+        "skipped"
       ]
     },
     "public.ai_pass_payment_status": {

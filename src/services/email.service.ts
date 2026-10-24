@@ -539,9 +539,10 @@ export const EmailService = {
 
   /**
    * AI Tutor Pass purchase confirmation (durable record of the purchase, its dates, limits and the
-   * consent given). Wording is DRAFT pending legal review — see src/lib/ai-pass/terms.ts.
+   * consent given). Built here, delivered by AiTutorPassService (idempotent, retried, tracked on
+   * the pass). Wording is DRAFT pending legal review — see src/lib/ai-pass/terms.ts.
    */
-  async aiTutorPassConfirmation(to: string, data: {
+  buildAiTutorPassConfirmation(data: {
     studentName: string; amountPence: number; currency: string; purchasedAt: Date; startsAt: Date; endsAt: Date;
     queued: boolean; immediateAccessAck: boolean; consentAt: Date | null; termsVersion: string; reference: string;
   }) {
@@ -569,7 +570,7 @@ export const EmailService = {
     const cancellation = data.queued
       ? p(`This pass hasn't started yet. You can cancel it for a full refund at any time before ${escapeHtml(ukDate(data.startsAt))} by emailing <a href="mailto:${support}">${support}</a>.`)
       : data.immediateAccessAck
-        ? p(`When you bought this pass${data.consentAt ? ` (${escapeHtml(ukDateTime(data.consentAt))})` : ""}, you asked for it to start immediately and confirmed: “${escapeHtml(IMMEDIATE_ACCESS_ACK_TEXT)}” Section 6 of the AI Tutor Pass Terms explains how this affects your right to cancel.`)
+        ? p(`When you bought this pass${data.consentAt ? ` on ${escapeHtml(ukDateTime(data.consentAt))}` : ""}, you asked for it to start immediately and confirmed: “${escapeHtml(IMMEDIATE_ACCESS_ACK_TEXT)}” Section 6 of the AI Tutor Pass Terms explains how this affects your right to cancel.`)
         : p(`You didn't ask for immediate access, so you keep your right to cancel within 14 days of your purchase — until ${escapeHtml(ukDate(new Date(data.purchasedAt.getTime() + 14 * 24 * 60 * 60 * 1000)))}. To cancel, email <a href="mailto:${support}">${support}</a>. Section 6 of the AI Tutor Pass Terms explains what you'll get back.`);
 
     const html = baseTemplate(
@@ -593,7 +594,7 @@ export const EmailService = {
       data.queued ? `Your next AI Tutor Pass starts ${ukDate(data.startsAt)}` : "Your AI Tutor Pass is confirmed"
     );
     const subject = data.queued ? `Your next AI Tutor Pass starts ${ukDate(data.startsAt)}` : "Your AI Tutor Pass is confirmed";
-    await send(to, subject, html);
+    return { subject, html };
   },
 
   /** Sent to admin when an AI Tutor Pass payment, refund or revocation needs attention. */

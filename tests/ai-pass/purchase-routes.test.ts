@@ -278,6 +278,20 @@ describe.skipIf(!hasDb)("AI Tutor Pass purchase routes", () => {
       expect(body.usage.status).toBe("active");
     });
 
+    it("shows the pass-level fair-use as a percentage and never sends the internal dollar budget to the browser", async () => {
+      mockStudyMind(() => json(200, {
+        pass_id: "x", status: "active", features: {}, budget_exhausted: false,
+        budget: { total_usd: 4.5, spent_usd: 1.0, reserved_usd: 0.05, remaining_usd: 3.45 },
+      }));
+      const s = await makeUser(); signIn(s); await makePass(s.id, { policy: true });
+      const raw = await (await status()).text();
+      expect(raw).not.toContain("total_usd");
+      expect(raw).not.toContain("4.5");
+      const body = JSON.parse(raw).data;
+      expect(body.usage).not.toHaveProperty("budget");
+      expect(body.fairUse).toEqual({ remainingPercent: 75, level: "ok" });
+    });
+
     it("StudyMind down: status still works, usage marked unavailable", async () => {
       mockStudyMind(() => { throw new TypeError("fetch failed"); });
       const s = await makeUser(); signIn(s); await makePass(s.id, { policy: true });
