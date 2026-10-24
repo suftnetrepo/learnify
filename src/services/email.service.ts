@@ -560,6 +560,7 @@ export const EmailService = {
     const details = [
       `<table role="presentation" style="width:100%;background:#f8f8fc;border:1px solid #e4e4ef;border-radius:10px;padding:14px 16px;margin-bottom:8px">`,
       row("Total paid", `${escapeHtml(price)} — one-time payment, not a subscription`),
+      row("Seller", `${escapeHtml(AI_PASS_TERMS.trader.name)} (${escapeHtml(AI_PASS_TERMS.trader.brand)})`),
       ...(AI_PASS_TERMS.taxNote ? [row("Tax", escapeHtml(AI_PASS_TERMS.taxNote))] : []),
       row(data.queued ? "Starts automatically" : "Started", escapeHtml(ukDateTime(data.startsAt))),
       row("Ends", escapeHtml(ukDateTime(data.endsAt))),

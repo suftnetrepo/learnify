@@ -89,7 +89,9 @@ describe.skipIf(!hasDb)("AI Tutor Pass confirmation email", () => {
     expect(body).toContain(`version ${AI_PASS_TERMS.version}`);
     expect(mail.html).toContain(`mailto:${AI_PASS_TERMS.supportEmail}`);
     expect(body).not.toMatch(/(?<!not )unlimited/i);              // only ever "not unlimited"
-    expect(body).toContain("Tax No VAT is charged — Edquis Ltd is not registered for VAT.");
+    expect(body).toContain("Tax No VAT is charged — Suftnet Limited is not registered for VAT.");
+    expect(body).toContain("Seller Suftnet Limited (Edquis)");
+    expect(body).not.toContain("Edquis Ltd");
     expect(body).not.toMatch(/incl(uding|\.)? VAT|VAT number/i);     // never claims VAT is included
   });
 

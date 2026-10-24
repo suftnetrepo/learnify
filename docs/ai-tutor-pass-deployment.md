@@ -7,8 +7,8 @@ Status: **prepared, not approved for merge or deployment.** Nothing in this docu
 Verified: the read-only production check passed (journal `0000`–`0009`, hashes match, no `ai_*` objects, `users.id` uuid, PostgreSQL 18.6). `yarn db:migrate` was rehearsed on a schema-only copy of production: only `0010` and `0011` applied, the schema matched the code, and a re-run was a no-op.
 
 **Blocked on business facts (needed before enabling the flag):**
-1. Confirm whether Edquis Ltd is VAT-registered (and the VAT number if so). Then set `AI_PASS_TERMS.taxNote` (and Stripe Tax / `tax_behavior` if registered).
-2. Confirm the company number and registered office address. Then set `AI_PASS_TERMS.trader`, set `approved: true`, and bump `version`.
+1. ~~VAT~~ Resolved: the seller, Suftnet Limited, is not VAT-registered. £9.99 total, no VAT; this is stated in the terms, card and email.
+2. Provide Suftnet Limited's company number and registered office address. Then set `AI_PASS_TERMS.trader`, set `approved: true`, and bump `version`.
 
 **Deployment (each needs your approval):**
 3. Create the GitHub environment with a reviewer: `gh api -X PUT repos/suftnetrepo/learnify/environments/production -F 'reviewers[][type]=User' -F 'reviewers[][id]=<your GitHub user id>'`

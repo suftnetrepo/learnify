@@ -11,23 +11,24 @@
 import { AI_PASS } from "./config";
 
 export const AI_PASS_TERMS = {
-  version:      "2026-10-24-draft.3",
+  version:      "2026-10-24-draft.4",
   approved:     false,
   path:         "/terms/ai-tutor-pass",
   supportEmail: "info@suftnet.com",
   /**
-   * Trader identity required in the terms (Consumer Contracts Regulations 2013). Only the name and
-   * town are confirmed (contact page); the company number and full registered address are NOT, so
-   * these stay null and the terms stay unapproved until the business confirms them.
+   * Trader identity required in the terms (Consumer Contracts Regulations 2013). The seller is
+   * Suftnet Limited (confirmed); Edquis is the product brand. The company number and registered
+   * office have NOT been provided, so they stay null and the terms stay unapproved until confirmed.
    */
   trader: {
-    name:            "Edquis Ltd",
+    name:            "Suftnet Limited",
+    brand:           "Edquis",
     town:            "Peterborough, England",
     companyNumber:   null as string | null,
     registeredOffice: null as string | null,
   },
   /** Tax statement shown with the price, in the terms and in the email (confirmed: not VAT-registered). */
-  taxNote:      "No VAT is charged — Edquis Ltd is not registered for VAT." as string | null,
+  taxNote:      "No VAT is charged — Suftnet Limited is not registered for VAT." as string | null,
   /**
    * Whether the immediate-access acknowledgement is required to buy. Off: it's an explicit,
    * optional choice and statutory cancellation rights are never removed automatically.
@@ -48,7 +49,7 @@ const a = AI_PASS.allowances;
 
 const t = AI_PASS_TERMS.trader;
 const traderLine = [
-  t.name,
+  `${t.name} (trading as ${t.brand})`,
   t.companyNumber ? `company number ${t.companyNumber}` : "[COMPANY NUMBER — TO BE CONFIRMED]",
   t.registeredOffice ? `registered office ${t.registeredOffice}` : `[REGISTERED OFFICE ADDRESS — TO BE CONFIRMED] (${t.town})`,
 ].join(", ");
@@ -60,6 +61,7 @@ export const AI_PASS_TERMS_SECTIONS: TermsSection[] = [
     paragraphs: [
       `The AI Tutor Pass is a one-time digital purchase of ${price()} that gives you access to the AI tutor on the free Edquis courses you are enrolled in, for ${AI_PASS.durationDays} consecutive days.`,
       "It is not a subscription and it does not renew automatically. You are only charged when you choose to buy a pass.",
+      `The AI Tutor Pass is sold by ${t.name}, which operates ${t.brand}.`,
       "Paid courses already include the AI tutor, so you don't need a pass for them.",
     ],
   },

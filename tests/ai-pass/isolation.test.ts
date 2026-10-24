@@ -138,7 +138,7 @@ describe("AI Tutor Pass terms content", () => {
     expect(section("disputes")).toContain("not restored automatically");
     expect(section("courses")).toContain("30-day money-back guarantee, which applies to courses and not to AI Tutor Passes");
     // Confirmed business fact: not VAT-registered, so no VAT is charged (and none is claimed to be included)
-    expect(AI_PASS_TERMS.taxNote).toBe("No VAT is charged — Edquis Ltd is not registered for VAT.");
+    expect(AI_PASS_TERMS.taxNote).toBe("No VAT is charged — Suftnet Limited is not registered for VAT.");
     expect(section("price")).toContain(AI_PASS_TERMS.taxNote);
     expect(AI_PASS_TERMS_SECTIONS.flatMap((s) => s.paragraphs).join(" ")).not.toMatch(/incl(uding|\.)? VAT|VAT number/i);
     expect(AI_PASS_TERMS.immediateAccessAckRequired).toBe(false);
@@ -150,7 +150,9 @@ describe("AI Tutor Pass terms content", () => {
     expect(AI_PASS_TERMS.trader.registeredOffice).toBeNull();
     expect(AI_PASS_TERMS.approved).toBe(false);
     const contact = AI_PASS_TERMS_SECTIONS.find((s) => s.id === "contact")!.paragraphs.join(" ");
-    expect(contact).toContain("Edquis Ltd");
+    expect(contact).toContain("Suftnet Limited (trading as Edquis)");
+    expect(AI_PASS_TERMS_SECTIONS.flatMap((s) => s.paragraphs).join(" ")).not.toContain("Edquis Ltd");
+    expect(AI_PASS_TERMS_SECTIONS.find((s) => s.id === "what-it-is")!.paragraphs.join(" ")).toContain("sold by Suftnet Limited, which operates Edquis");
     expect(contact).toContain("[COMPANY NUMBER — TO BE CONFIRMED]");
   });
 });
