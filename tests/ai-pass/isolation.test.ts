@@ -98,8 +98,8 @@ describe("email safety", () => {
 describe("AI Tutor Pass terms content", () => {
   it("covers every required topic, is versioned and marked as a draft", async () => {
     const { AI_PASS_TERMS, AI_PASS_TERMS_SECTIONS } = await import("@/lib/ai-pass/terms");
-    expect(AI_PASS_TERMS.version).toMatch(/draft/);
-    expect(AI_PASS_TERMS.approved).toBe(false);
+    expect(AI_PASS_TERMS.version).toBe("2026-10-24.1");
+    expect(AI_PASS_TERMS.approved).toBe(true);
     const ids = AI_PASS_TERMS_SECTIONS.map((s) => s.id);
     for (const id of ["what-it-is", "who-can-buy", "price", "access", "allowances", "fair-use", "cancellation", "refunds", "faulty", "disputes", "courses", "changes", "contact"]) {
       expect(ids).toContain(id);
@@ -144,16 +144,18 @@ describe("AI Tutor Pass terms content", () => {
     expect(AI_PASS_TERMS.immediateAccessAckRequired).toBe(false);
   });
 
-  it("stays unapproved while the trader identity is unconfirmed (no invented company details)", async () => {
+  it("identifies the seller in full (Companies House) with no placeholders or draft markers left", async () => {
     const { AI_PASS_TERMS, AI_PASS_TERMS_SECTIONS } = await import("@/lib/ai-pass/terms");
-    expect(AI_PASS_TERMS.trader.companyNumber).toBeNull();
-    expect(AI_PASS_TERMS.trader.registeredOffice).toBeNull();
-    expect(AI_PASS_TERMS.approved).toBe(false);
+    expect(AI_PASS_TERMS.trader).toMatchObject({ name: "Suftnet Limited", companyNumber: "07746154" });
+    const all = AI_PASS_TERMS_SECTIONS.flatMap((s) => s.paragraphs).join(" ");
+    expect(all).not.toMatch(/TO BE CONFIRMED|LEGAL REVIEW|PROPOSED POLICY|DRAFT/i);
     const contact = AI_PASS_TERMS_SECTIONS.find((s) => s.id === "contact")!.paragraphs.join(" ");
+    expect(contact).toContain("company number 07746154");
+    expect(contact).toContain("registered office The Gatehouse, 453 Cranbrook Road, Ilford, Essex, IG2 6EW, United Kingdom");
     expect(contact).toContain("Suftnet Limited (trading as Edquis)");
     expect(AI_PASS_TERMS_SECTIONS.flatMap((s) => s.paragraphs).join(" ")).not.toContain("Edquis Ltd");
     expect(AI_PASS_TERMS_SECTIONS.find((s) => s.id === "what-it-is")!.paragraphs.join(" ")).toContain("sold by Suftnet Limited, which operates Edquis");
-    expect(contact).toContain("[COMPANY NUMBER — TO BE CONFIRMED]");
+
   });
 });
 

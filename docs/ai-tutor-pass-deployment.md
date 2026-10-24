@@ -8,7 +8,7 @@ Verified: the read-only production check passed (journal `0000`–`0009`, hashes
 
 **Blocked on business facts (needed before enabling the flag):**
 1. ~~VAT~~ Resolved: the seller, Suftnet Limited, is not VAT-registered. £9.99 total, no VAT; this is stated in the terms, card and email.
-2. Provide Suftnet Limited's company number and registered office address. Then set `AI_PASS_TERMS.trader`, set `approved: true`, and bump `version`.
+2. ~~Trader identity~~ Resolved: Suftnet Limited, company number 07746154, registered office The Gatehouse, 453 Cranbrook Road, Ilford, Essex, IG2 6EW (verified on Companies House, active). Terms finalised as version `2026-10-24.1`.
 
 **Deployment (each needs your approval):**
 3. Create the GitHub environment with a reviewer: `gh api -X PUT repos/suftnetrepo/learnify/environments/production -F 'reviewers[][type]=User' -F 'reviewers[][id]=<your GitHub user id>'`

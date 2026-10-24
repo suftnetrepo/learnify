@@ -4,28 +4,27 @@
  * the `version` the student accepted.
  *
  * Cancellation and refund terms are set conservatively: under either reading of the pass (digital
- * content or digital service) customers get at least their statutory rights. NOT APPROVED until
- * the trader identity (`trader`) and tax position (`taxNote`) are confirmed — see
- * docs/ai-tutor-pass-customer-wording-DRAFT.md. Bump `version` whenever the wording changes.
+ * content or digital service) customers get at least their statutory rights. Seller details and
+ * VAT status confirmed by the business (company verified on Companies House, 2026-10-24).
+ * Bump `version` whenever the wording changes.
  */
 import { AI_PASS } from "./config";
 
 export const AI_PASS_TERMS = {
-  version:      "2026-10-24-draft.4",
-  approved:     false,
+  version:      "2026-10-24.1",
+  approved:     true,
   path:         "/terms/ai-tutor-pass",
   supportEmail: "info@suftnet.com",
   /**
    * Trader identity required in the terms (Consumer Contracts Regulations 2013). The seller is
-   * Suftnet Limited (confirmed); Edquis is the product brand. The company number and registered
-   * office have NOT been provided, so they stay null and the terms stay unapproved until confirmed.
+   * Suftnet Limited; Edquis is the product brand. Verified on Companies House (active, 2026-10-24).
    */
   trader: {
     name:            "Suftnet Limited",
     brand:           "Edquis",
     town:            "Peterborough, England",
-    companyNumber:   null as string | null,
-    registeredOffice: null as string | null,
+    companyNumber:   "07746154" as string | null,
+    registeredOffice: "The Gatehouse, 453 Cranbrook Road, Ilford, Essex, IG2 6EW, United Kingdom" as string | null,
   },
   /** Tax statement shown with the price, in the terms and in the email (confirmed: not VAT-registered). */
   taxNote:      "No VAT is charged — Suftnet Limited is not registered for VAT." as string | null,

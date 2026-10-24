@@ -19,8 +19,7 @@ interface Props {
  * immediate-access acknowledgement is a separate, optional choice — statutory cancellation rights
  * are never removed without it. All of it is recorded server-side with the checkout.
  *
- * LEGAL REVIEW REQUIRED before launch — wording lives in src/lib/ai-pass/terms.ts
- * (docs/ai-tutor-pass-customer-wording-DRAFT.md).
+ * Wording lives in src/lib/ai-pass/terms.ts (versioned; the accepted version is stored per purchase).
  */
 export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
   const [acceptTerms,     setAcceptTerms]     = useState(false);
@@ -110,7 +109,7 @@ export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
 
       {canBuy ? (
         <>
-          {/* DRAFT — pending legal review (src/lib/ai-pass/terms.ts) */}
+          {/* Wording: src/lib/ai-pass/terms.ts */}
           <fieldset className="flex flex-col gap-2">
             <legend className="sr-only">Before you buy</legend>
             <label htmlFor={ids.terms} className="flex cursor-pointer items-start gap-3 rounded-xl border border-surface-200 p-3 text-xs leading-relaxed text-gray-600">

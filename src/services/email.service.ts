@@ -540,7 +540,7 @@ export const EmailService = {
   /**
    * AI Tutor Pass purchase confirmation (durable record of the purchase, its dates, limits and the
    * consent given). Built here, delivered by AiTutorPassService (idempotent, retried, tracked on
-   * the pass). Wording is DRAFT pending legal review — see src/lib/ai-pass/terms.ts.
+   * the pass). Wording and terms come from src/lib/ai-pass/terms.ts.
    */
   buildAiTutorPassConfirmation(data: {
     studentName: string; amountPence: number; currency: string; purchasedAt: Date; startsAt: Date; endsAt: Date;
