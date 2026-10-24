@@ -1,4 +1,6 @@
 import { sendEmail } from "@/lib/email";
+import { AI_PASS } from "@/lib/ai-pass/config";
+import { AI_PASS_TERMS, IMMEDIATE_ACCESS_ACK_TEXT } from "@/lib/ai-pass/terms";
 
 const APP = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
@@ -533,6 +535,65 @@ export const EmailService = {
       data.subject
     );
     await send(to, data.subject, html);
+  },
+
+  /**
+   * AI Tutor Pass purchase confirmation (durable record of the purchase, its dates, limits and the
+   * consent given). Wording is DRAFT pending legal review — see src/lib/ai-pass/terms.ts.
+   */
+  async aiTutorPassConfirmation(to: string, data: {
+    studentName: string; amountPence: number; currency: string; purchasedAt: Date; startsAt: Date; endsAt: Date;
+    queued: boolean; immediateAccessAck: boolean; consentAt: Date | null; termsVersion: string; reference: string;
+  }) {
+    const ukDateTime = (d: Date) =>
+      `${d.toLocaleString("en-GB", { timeZone: "Europe/London", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })} (UK time)`;
+    const ukDate = (d: Date) => d.toLocaleDateString("en-GB", { timeZone: "Europe/London", day: "numeric", month: "long", year: "numeric" });
+    const price = new Intl.NumberFormat("en-GB", { style: "currency", currency: data.currency.toUpperCase() }).format(data.amountPence / 100);
+    const termsUrl = `${APP}${AI_PASS_TERMS.path}`;
+    const support = AI_PASS_TERMS.supportEmail;
+    const a = AI_PASS.allowances;
+    const row = (label: string, value: string) =>
+      `<tr><td style="font-size:13px;color:#475569;padding:5px 0;width:38%">${label}</td><td style="font-size:13px;font-weight:600;color:#111827;padding:5px 0">${value}</td></tr>`;
+    const h2 = (text: string) => `<h2 style="margin:24px 0 8px;font-size:16px;line-height:1.4;font-weight:700;color:#111827">${text}</h2>`;
+
+    const details = [
+      `<table role="presentation" style="width:100%;background:#f8f8fc;border:1px solid #e4e4ef;border-radius:10px;padding:14px 16px;margin-bottom:8px">`,
+      row("Total paid", `${escapeHtml(price)} — one-time payment, not a subscription`),
+      ...(AI_PASS_TERMS.taxNote ? [row("Tax", escapeHtml(AI_PASS_TERMS.taxNote))] : []),
+      row(data.queued ? "Starts automatically" : "Started", escapeHtml(ukDateTime(data.startsAt))),
+      row("Ends", escapeHtml(ukDateTime(data.endsAt))),
+      row("Reference", escapeHtml(data.reference)),
+      `</table>`,
+    ].join("");
+
+    const cancellation = data.queued
+      ? p(`This pass hasn't started yet. You can cancel it for a full refund at any time before ${escapeHtml(ukDate(data.startsAt))} by emailing <a href="mailto:${support}">${support}</a>.`)
+      : data.immediateAccessAck
+        ? p(`When you bought this pass${data.consentAt ? ` (${escapeHtml(ukDateTime(data.consentAt))})` : ""}, you asked for it to start immediately and confirmed: “${escapeHtml(IMMEDIATE_ACCESS_ACK_TEXT)}” Section 6 of the AI Tutor Pass Terms explains how this affects your right to cancel.`)
+        : p(`You didn't ask for immediate access, so you keep your right to cancel within 14 days of your purchase — until ${escapeHtml(ukDate(new Date(data.purchasedAt.getTime() + 14 * 24 * 60 * 60 * 1000)))}. To cancel, email <a href="mailto:${support}">${support}</a>. Section 6 of the AI Tutor Pass Terms explains what you'll get back.`);
+
+    const html = baseTemplate(
+      h1(data.queued ? "Your next AI Tutor Pass is booked" : "Your AI Tutor Pass is confirmed") +
+      p(`Hi ${escapeHtml(data.studentName)}, thanks for your purchase.` +
+        (data.queued
+          ? ` You already have an AI Tutor Pass, so this one is queued: <strong>it will start automatically on ${escapeHtml(ukDateTime(data.startsAt))}</strong>, when your current pass ends, and lasts ${AI_PASS.durationDays} days.`
+          : ` Your pass is active now and lasts ${AI_PASS.durationDays} consecutive days.`)) +
+      details +
+      h2("What's included") +
+      p(`Each day: up to ${a.chat} AI tutor questions, ${a.quiz} quizzes, ${a.flashcards} flashcard sets and ${a.summary} summaries, shared across all the free courses you're enrolled in. Daily allowances reset at midnight UK time and don't carry over.`) +
+      h2("Fair-use limit") +
+      p(`The pass is not unlimited. Each pass also has a total fair-use limit on AI usage for its ${AI_PASS.durationDays} days. If you reach it, the AI tutor stops working on this pass before the end date — even if days remain — and it does not reset at midnight.`) +
+      h2("No automatic renewal") +
+      p("This pass won't renew and you won't be charged again. If you want more time, you can buy another pass at any point; it starts when your latest pass ends.") +
+      h2("Cancellation and refunds") +
+      cancellation +
+      p("Refunds go back to the card you paid with, usually within 5–10 business days. If a pass is fully refunded, its access ends straight away. Your statutory rights are not affected.") +
+      btn("Read the AI Tutor Pass Terms", termsUrl) +
+      p(`<span style="font-size:13px">You accepted version ${escapeHtml(data.termsVersion)} of the <a href="${escapeHtml(termsUrl)}">AI Tutor Pass Terms</a>. Questions? Email <a href="mailto:${support}">${support}</a>.</span>`),
+      data.queued ? `Your next AI Tutor Pass starts ${ukDate(data.startsAt)}` : "Your AI Tutor Pass is confirmed"
+    );
+    const subject = data.queued ? `Your next AI Tutor Pass starts ${ukDate(data.startsAt)}` : "Your AI Tutor Pass is confirmed";
+    await send(to, subject, html);
   },
 
   /** Sent to admin when an AI Tutor Pass payment, refund or revocation needs attention. */

@@ -1,88 +1,92 @@
-# AI Tutor Pass: customer wording (DRAFT)
+# AI Tutor Pass: customer terms, consent and confirmation email (DRAFT)
 
-> **DRAFT — NOT LEGALLY APPROVED.** This is an engineering inventory and a proposal for legal and tax review. Nothing here is legal advice, and none of the proposed wording is live. The text currently in the app (section 1) is also unapproved.
+> **DRAFT — NOT LEGALLY APPROVED.** The wording below is implemented behind the (disabled) feature flag so it can be reviewed in context. It is not legal advice and is not in force. Terms version: `2026-10-24-draft.1`.
 
-## 1. Text currently shown to customers
+## Where the wording lives
 
-| # | Where | Current text |
-|---|---|---|
-| C1 | Purchase card, heading | "Your personal AI tutor for free courses" (renewal: "Keep your AI tutor going") |
-| C2 | Purchase card | "Ask questions, generate quizzes, flashcards and summaries from your course content." |
-| C3 | Purchase card, price | "£9.99 · one-time · 30 days · no subscription" |
-| C4 | Purchase card | "Included every day: 60 AI tutor questions · 5 practice quizzes · 5 flashcard sets · 3 lecture summaries" |
-| C5 | Purchase card | "Allowances reset daily at midnight UK time. A fair-use limit also applies. Works on all your free courses." |
-| C6 | Renewal note | "This pass will start on {date}, when your current one ends, and run for 30 days." |
-| C7 | **Consent checkbox** | "I want access to the AI Tutor Pass to begin immediately [renewal: as described above]. I understand that once access begins I lose my right to cancel within 14 days." |
-| C8 | Button | "Get AI Tutor Pass · £9.99" / "Add 30 days for £9.99" · "Secure payment by Stripe" |
-| C9 | Stripe Checkout | "One-time payment — not a subscription. Your 30-day AI Tutor Pass starts straight away, or when your current pass ends if you already have one." |
-| C10 | Status strip | "Active until {date}" · "Your AI Tutor Pass ends in {n} days. Extend now to keep your tutor." |
-| C11 | Status strip | "You've reached today's fair-use limit. It resets at midnight UK time." |
-| C12 | StudyMind panel (StudyMind's text) | "You've used today's 60 tutor questions. Your allowance resets at midnight (UK time)." |
-| C13 | Notices | "Your AI Tutor Pass was refunded, so it's no longer active." · "Your last AI Tutor Pass ended on {date}." · "Your AI Tutor Pass is paused because the payment is disputed. Contact support for help." |
-| C14 | Payment outcomes | "…arrived after you'd reached the pass limit, so it has been refunded." · "We couldn't verify this payment. Our team has been alerted…" · "This payment was refunded or disputed, so no pass was added." · "You already have an active pass and 2 upcoming passes" |
-| C15 | Toasts | "AI Tutor Pass activated" · "Checkout cancelled — You haven't been charged." · "Payment processing…" |
+| Item | Source |
+|---|---|
+| Terms (12 sections), version, support contact, tax note, acknowledgement text | `src/lib/ai-pass/terms.ts` — the single source |
+| Terms page | `/terms/ai-tutor-pass` (shows a "Draft for legal review" banner; 404 while the feature flag is off) |
+| Purchase card and consent UI | `src/components/ai-pass/AiTutorPassCard.tsx` |
+| Confirmation email | `EmailService.aiTutorPassConfirmation` in `src/services/email.service.ts` |
+| Email previews | `docs/ai-tutor-pass-email-previews/` (immediate start and queued renewal) |
 
-## 2. Points needing legal or tax approval
+## Key facts the wording must reflect
 
-1. **Price and VAT (C3, C8, C9).**
-   - Is £9.99 VAT-inclusive?
-   - The site Terms (§4) say prices "include applicable taxes".
-   - Does VAT need to be shown, and are non-UK (EU) buyers in scope?
-2. **What the pass legally is.**
-   - Under the Consumer Contracts Regulations 2013, *digital content* and *services* have different cancellation rules. An interactive AI tutor may be classed as a service, in which case the right to cancel is not simply lost when access begins: a proportionate charge may apply instead.
-   - The consent wording (C7) depends on this classification.
-3. **Consent and confirmation (C7).**
-   - Losing the 14-day right normally requires express consent and acknowledgement *and* a confirmation on a durable medium (for example email) that records them.
-   - **The app currently sends no AI Tutor Pass confirmation email.** It relies on Stripe's receipt, if enabled, which does not mention the consent.
-   - The consent time is stored (`consent_at`) but is not communicated to the customer.
-4. **Queued renewals (C6, C7).** A renewal can start up to 60 days later. "Begin immediately" does not fit. Legal should decide whether the cancellation right persists until a queued pass starts, and whether Learnify should refund cancelled queued passes. Technically, revoking an unstarted pass is supported.
-5. **Fair use and the AI cost budget (C5, C11).**
-   - Besides the published allowances, StudyMind applies a hidden daily AI cost budget ($4.50 per pass), so a feature can stop before its allowance is used up.
-   - "A fair-use limit also applies" may be too vague: it could be a misleading omission under consumer protection rules. Proposed clearer text is in section 3.
-6. **Duration (C3, C10).** "30 days" means exactly 30 × 24 hours from the start time, and the end date is shown. Confirm this is acceptable versus "30 calendar days" or "until the end of day 30".
-7. **Refund policy.**
-   - The Terms' 30-day money-back guarantee covers *courses*; nothing covers the pass.
-   - Decide the pass refund policy (for example none once used, statutory rights only, or within 14 days if unused).
-   - Add an AI Tutor Pass section to the Terms.
-   - Technical behaviour: a full refund ends access immediately; a partial refund keeps access.
-8. **Disputes (C13).** Access is withdrawn when a chargeback is opened and is not automatically restored if the dispute is won. "Paused" may overstate it; consider "suspended".
-9. **Scope (C1, C5).** It works only on free courses the student is enrolled in (paid courses already include the AI tutor). "Works on all your free courses" should say "free courses you're enrolled in".
-10. **AI accuracy.** There is no notice that AI answers may be inaccurate. Consider a short disclaimer.
-11. **Limit of passes (C14).** At most one active and two upcoming passes. A payment over the limit is refunded automatically. Should this be stated before purchase?
+- £9.99 one-time card payment; 30 consecutive days (30 × 24 hours); no subscription and no automatic renewal.
+- Only for free courses the student is enrolled in. Paid courses already include the AI tutor.
+- Each day: 60 tutor questions, 5 quizzes, 5 flashcard sets and 3 summaries. The allowance is shared across all eligible courses and resets at midnight UK time.
+- **A total fair-use (AI cost) budget per pass ($4.50 of AI usage over the whole 30 days, not per day).** It never resets. When it runs out, the AI tutor stops for that pass even if days remain. The price of £9.99 is never described as "unlimited".
+- Further purchases queue after the latest pass (one active and at most two upcoming). A payment over the limit is refunded automatically.
+- A full refund ends access immediately; a partial refund does not. A dispute suspends access, and it is not restored automatically.
 
-## 3. Proposed wording (DRAFT, for review)
+## Purchase consent design (implemented)
 
-**Price line (C3):**
-> £9.99 one-time payment (incl. VAT) · 30 days of access · not a subscription — it won't renew automatically.
+1. **Terms acceptance: required, never pre-ticked.** "I have read and agree to the AI Tutor Pass Terms (version X)." The link opens the versioned terms in a new tab.
+2. **Immediate-access acknowledgement: separate, optional, never pre-ticked.**
+   - Shown only when the pass would start straight away.
+   - Text: "I ask for my AI Tutor Pass to start immediately, within the 14-day cancellation period. I understand this affects my right to cancel, as explained in the AI Tutor Pass Terms."
+   - Help text: "Optional. If you leave this unticked, your pass still starts straight away and you keep your 14-day right to cancel."
+   - **Statutory cancellation rights are never removed automatically.** Whether this acknowledgement should become required is a legal and business decision: `AI_PASS_TERMS.immediateAccessAckRequired`, currently `false`.
+3. **Queued renewals:** no acknowledgement is offered (the pass starts later). The card states that the pass can be cancelled for a full refund before it starts *(proposed policy)*.
+4. **Server checks:**
+   - `acceptTerms` must be literally `true`;
+   - `termsVersion` must equal the current version (otherwise 409 `TERMS_OUTDATED`, and the student must review again);
+   - `immediateAccess` must be sent explicitly (boolean).
+5. **Recorded** on `ai_pass_checkouts` when checkout starts (server time), then copied to `ai_tutor_passes`:
+   - terms version;
+   - consent timestamp;
+   - student ID;
+   - Checkout Session ID;
+   - the immediate-access choice (stored as false for queued passes).
 
-**Allowances and fair use (C4, C5):**
-> Each day you can ask up to 60 tutor questions and create up to 5 quizzes, 5 flashcard sets and 3 lecture summaries. Allowances reset at midnight UK time and unused allowances don't carry over. To keep the service fair for everyone, features may pause for the rest of the day if usage is unusually high. Works on the free courses you're enrolled in.
+   The same values go into Stripe metadata as a backup.
+6. **Accessibility:** a fieldset with a hidden legend; labelled checkboxes; `aria-required` on the terms box; help text linked with `aria-describedby`; the link announces "opens in a new tab"; errors use `role="alert"`; the button stays disabled until the terms are accepted.
 
-**Renewal note (C6):**
-> You already have an active pass. This pass will start automatically on {date}, when your current pass ends, and will last 30 days. You can hold up to two upcoming passes.
+## Confirmation email (implemented)
 
-**Consent: immediate start (C7). Wording depends on point 2:**
-> ☐ I ask for my AI Tutor Pass to start immediately. I understand that by starting it now, I lose my right to cancel within 14 days [*legal: or "I will pay for any use before I cancel" if the pass is a service*].
+Sent **once per granted pass**. The pass row is claimed (`confirmation_email_sent_at`) before sending, so duplicate or concurrent webhooks and confirmations never resend. If handing over the email fails, the claim is released so the next delivery retries. It is never sent for a payment that wasn't granted, or for a pass revoked before the email went out. It reuses the existing Brevo email layer and template; course emails are unchanged.
 
-**Consent: queued renewal (C7):**
-> ☐ I understand this pass will start on {date}. [*Legal to confirm cancellation rights before it starts.*]
+Contents:
+- **Subject:** "Your AI Tutor Pass is confirmed", or "Your next AI Tutor Pass starts {date}" for a queued pass.
+- **Details:** total paid £9.99 (one-time, not a subscription); start and end dates and times (UK time); a reference.
+  - For queued passes: "it will start automatically on {date}".
+  - A tax line appears only once `AI_PASS_TERMS.taxNote` is set.
+- **What's included:** daily allowances, shared across courses, resetting at midnight UK time.
+- **Fair-use limit:** not unlimited; a total limit per pass; access can stop before the end date; no reset at midnight.
+- **No automatic renewal.**
+- **Cancellation and refunds**, one of three variants:
+  - no immediate access → "you keep your right to cancel within 14 days — until {date}";
+  - immediate access → quotes the acknowledgement and when it was given, and points to Terms §6;
+  - queued → can be cancelled for a full refund before {start date}.
 
-**Below the button:**
-> By buying, you agree to the AI Tutor Pass terms [link]. AI answers can be inaccurate — check important information against your course materials.
+  All variants add: refund timing, full refund ends access, statutory rights not affected.
+- A link to the AI Tutor Pass Terms with the accepted version, and the support email.
 
-**Dispute notice (C13):**
-> Your AI Tutor Pass has been suspended because the payment is being disputed. Please contact support.
+## Corrections made in this revision
 
-**Confirmation email (new, required if point 3 is confirmed):**
-> Subject: Your AI Tutor Pass receipt
-> You bought an AI Tutor Pass for £9.99 on {date}. It runs from {start} to {end}. You asked for access to start immediately and acknowledged that this ends your right to cancel within 14 days [*per legal outcome*]. Daily allowances: … Need help? {support link}
+- The status strip previously said the fair-use limit "resets at midnight UK time". It doesn't (it's per pass). Now: "You've reached this pass's total fair-use limit, so the AI tutor is no longer available on it. It doesn't reset at midnight."
+- The earlier draft of this document called the AI cost budget "daily". It is **per pass**.
 
-**Terms of Use, new section (outline):** what the pass includes; allowances and fair use; duration and start date; queued passes and the limit; cancellation rights and refunds; disputes; changes and availability of the AI service; AI accuracy.
+## Outstanding legal questions (professional review required)
 
-## 4. Before launch
+1. **Classification:** is the pass *digital content* or a *digital service* under the Consumer Contracts Regulations 2013 and the Consumer Rights Act 2015? This decides what happens when a student cancels after access begins (no right to cancel, or a proportionate charge), and so the final text of Terms §6 and the acknowledgement.
+2. **Acknowledgement text:** is the drafted wording sufficient for express consent and acknowledgement? Should it be required, or stay optional as implemented?
+3. **Refund amount without the acknowledgement:** a full refund within 14 days, or a deduction for access used (Terms §6, marked `[LEGAL REVIEW]`)?
+4. **Queued passes:** confirm the proposed "full refund before start" policy, and when the 14-day period runs for a pass bought now that starts later.
+5. **Durable medium:** does the confirmation email satisfy the confirmation requirement? Should it include the full terms text (or a PDF) rather than a link?
+6. **Fair-use disclosure:** is "total fair-use limit" without a number adequate, or must the limit (or typical usage) be quantified? The budget is $4.50 of AI cost per pass; it is internal and in US dollars.
+7. **Faulty or unavailable service:** confirm remedies (Terms §8) and the proposed extend-or-refund policy for outages.
+8. **Disputes:** is suspending access during a dispute, with no automatic restoration, acceptable?
+9. **Pass exhausted early and queued passes:** a queued pass starts on its scheduled date even if the current pass's budget ran out earlier, so the student may have a gap. Is that acceptable to disclose, or should an exhausted pass end early? (That would be a product change.)
+10. **Main Terms of Service:** add a reference to the AI Tutor Pass Terms in §4 (not done, to keep draft text off the live Terms page).
+11. **Clock change:** "30 consecutive days" is 720 hours, so around a UK clock change the displayed end time is an hour different from the start time. Is that acceptable?
 
-- [ ] Legal decision on classification, consent wording and cancellation rights (points 2–4).
-- [ ] Tax decision on VAT presentation (point 1).
-- [ ] Refund policy written and added to the Terms (point 7).
-- [ ] Confirmation email designed and implemented, if required.
-- [ ] Approved wording applied to the app, and this document's status changed from DRAFT.
+## Outstanding VAT and tax questions (accountant review)
+
+1. Is Learnify VAT-registered, and is £9.99 VAT-inclusive? The app currently makes **no VAT claim** (`taxNote` is null). The main Terms say prices "include applicable taxes".
+2. What must the receipt or confirmation show (VAT amount, VAT number, supplier details)?
+3. Stripe Tax and the product tax code, if used.
+4. Buyers outside the UK (EU OSS for digital services): accept, restrict, or register?
+5. Approved wording for `AI_PASS_TERMS.taxNote`, shown on the card and in the email once set.

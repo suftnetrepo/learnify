@@ -160,13 +160,15 @@ export async function refundPayment(
  * PaymentIntent so refund and dispute events can be matched back to the pass.
  */
 export async function createAiPassCheckoutSession({
-  priceId, studentId, studentEmail, returnCourseId, consentAt,
+  priceId, studentId, studentEmail, returnCourseId, consentAt, termsVersion, immediateAccess,
 }: {
-  priceId:        string;
-  studentId:      string;
-  studentEmail:   string | null | undefined;
-  returnCourseId: string;
-  consentAt:      string;   // ISO time the student gave UK digital-content consent
+  priceId:         string;
+  studentId:       string;
+  studentEmail:    string | null | undefined;
+  returnCourseId:  string;
+  consentAt:       string;    // ISO time the student accepted the terms
+  termsVersion:    string;    // AI Tutor Pass terms version accepted
+  immediateAccess: boolean;   // optional request for immediate access (cancellation-rights acknowledgement)
 }): Promise<Stripe.Checkout.Session> {
   const appUrl   = process.env.NEXT_PUBLIC_APP_URL!;
   const metadata = { app: "learnify", kind: "ai_tutor_pass", student_id: studentId };
@@ -181,13 +183,16 @@ export async function createAiPassCheckoutSession({
     ...(studentEmail ? { customer_email: studentEmail } : {}),
     allow_promotion_codes: false,
     billing_address_collection: "required",
-    metadata:              { ...metadata, consent_at: consentAt, return_course_id: returnCourseId },
+    metadata: {
+      ...metadata, consent_at: consentAt, terms_version: termsVersion,
+      immediate_access: immediateAccess ? "true" : "false", return_course_id: returnCourseId,
+    },
     payment_intent_data:   { metadata },
     expires_at:            Math.floor(Date.now() / 1000) + 60 * 60,   // 1 hour (Stripe allows 30 min – 24 h)
     custom_text: {
       submit: {
-        message: "One-time payment — not a subscription. Your 30-day AI Tutor Pass starts straight away, " +
-                 "or when your current pass ends if you already have one.",
+        message: "One-time payment — not a subscription and it won't renew. Your 30-day AI Tutor Pass starts " +
+                 "straight away, or when your current pass ends if you already have one.",
       },
     },
     success_url: `${appUrl}/learn/${returnCourseId}?ai_pass=success&session_id={CHECKOUT_SESSION_ID}`,

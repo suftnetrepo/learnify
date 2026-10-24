@@ -12,10 +12,13 @@ import { db } from "@/db";
 import { aiPassCheckouts, aiTutorPasses } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { DAY_MS } from "@/lib/ai-pass/config";
+import { AI_PASS_TERMS } from "@/lib/ai-pass/terms";
 import { enrol, fakeStripe, hasDb, json, jsonRequest, makeCourse, makePass, makeUser, mockStudyMind, resetDb } from "../helpers";
 
 const signIn = (u: { id: string; role: string }) => vi.mocked(auth).mockResolvedValue({ user: { id: u.id, role: u.role, email: "s@test.local" } } as never);
 const buy = (body: unknown) => checkout(jsonRequest("https://learnify.test/api/ai-pass/checkout", body));
+/** A valid purchase request: terms accepted for the current version, immediate access as given. */
+const agree = (courseId: string, immediateAccess = false) => ({ courseId, acceptTerms: true, termsVersion: AI_PASS_TERMS.version, immediateAccess });
 
 describe.skipIf(!hasDb)("AI Tutor Pass purchase routes", () => {
   let create: MockInstance<typeof stripe.checkout.sessions.create>;
@@ -38,7 +41,7 @@ describe.skipIf(!hasDb)("AI Tutor Pass purchase routes", () => {
 
     it("creates a one-time Checkout with the dedicated price, no promo codes, managed payments off", async () => {
       const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
-      const res = await buy({ courseId: c.id, consent: true });
+      const res = await buy(agree(c.id));
       expect(res.status).toBe(200);
       expect((await res.json()).data.url).toMatch(/^https:\/\/checkout\.stripe\.test\/cs_test_/);
       const [reservation] = await db.select().from(aiPassCheckouts);
@@ -50,17 +53,64 @@ describe.skipIf(!hasDb)("AI Tutor Pass purchase routes", () => {
         metadata: { app: "learnify", kind: "ai_tutor_pass", student_id: s.id, return_course_id: c.id },
         payment_intent_data: { metadata: { app: "learnify", kind: "ai_tutor_pass", student_id: s.id } },
       });
+      expect(params.metadata).toMatchObject({ terms_version: AI_PASS_TERMS.version, immediate_access: "false" });
       expect(params.metadata?.consent_at).toBeTruthy();
       expect(params).not.toHaveProperty("discounts");
       expect(params.payment_intent_data).not.toHaveProperty("application_fee_amount");
       expect(params.payment_intent_data).not.toHaveProperty("transfer_data");
     });
 
-    it("requires explicit consent", async () => {
+    it("requires explicit acceptance of the terms — nothing is assumed", async () => {
       const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
-      expect((await buy({ courseId: c.id })).status).toBe(400);
-      expect((await buy({ courseId: c.id, consent: "yes" })).status).toBe(400);
+      const v = AI_PASS_TERMS.version;
+      for (const body of [
+        { courseId: c.id },                                                                  // nothing
+        { courseId: c.id, consent: true },                                                   // old shape
+        { courseId: c.id, acceptTerms: false, termsVersion: v, immediateAccess: false },     // not accepted
+        { courseId: c.id, acceptTerms: "yes", termsVersion: v, immediateAccess: false },     // not a real tick
+        { courseId: c.id, acceptTerms: true, immediateAccess: false },                       // no version
+        { courseId: c.id, acceptTerms: true, termsVersion: v },                              // immediate-access choice not explicit
+      ]) {
+        (globalThis as { __rateLimitStore?: Map<string, unknown> }).__rateLimitStore?.clear();   // isolate from the checkout rate limit
+        expect((await buy(body)).status).toBe(400);
+      }
       expect(create).not.toHaveBeenCalled();
+    });
+
+    it("rejects acceptance of an outdated terms version", async () => {
+      const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
+      const res = await buy({ ...agree(c.id), termsVersion: "2020-01-01" });
+      expect(res.status).toBe(409);
+      expect((await res.json()).code).toBe("TERMS_OUTDATED");
+      expect(create).not.toHaveBeenCalled();
+    });
+
+    it("records the consent server-side: terms version, timestamp, student, session and the immediate-access choice", async () => {
+      const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
+      const before = Date.now();
+      await buy(agree(c.id, true));
+      const [row] = await db.select().from(aiPassCheckouts);
+      expect(row).toMatchObject({ studentId: s.id, termsVersion: AI_PASS_TERMS.version, immediateAccessAck: true });
+      expect(row.stripeCheckoutSessionId).toMatch(/^cs_test_/);
+      expect(row.consentAt!.getTime()).toBeGreaterThanOrEqual(before - 1000);
+      const params = create.mock.calls[0][0] as Stripe.Checkout.SessionCreateParams;
+      expect(params.metadata).toMatchObject({ terms_version: AI_PASS_TERMS.version, immediate_access: "true" });
+    });
+
+    it("not ticking immediate access keeps cancellation rights (recorded as false)", async () => {
+      const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
+      expect((await buy(agree(c.id, false))).status).toBe(200);
+      const [row] = await db.select().from(aiPassCheckouts);
+      expect(row.immediateAccessAck).toBe(false);
+    });
+
+    it("a queued purchase never records an immediate-access request", async () => {
+      const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
+      await makePass(s.id, { endOffsetMs: 10 * DAY_MS });
+      await buy(agree(c.id, true));
+      const [row] = await db.select().from(aiPassCheckouts);
+      expect(row.immediateAccessAck).toBe(false);
+      expect((create.mock.calls[0][0] as Stripe.Checkout.SessionCreateParams).metadata).toMatchObject({ immediate_access: "false" });
     });
 
     it("requires enrolment in a free course", async () => {
@@ -68,31 +118,31 @@ describe.skipIf(!hasDb)("AI Tutor Pass purchase routes", () => {
       const free = await makeCourse("0"), paid = await makeCourse("10.00"), grand = await makeCourse("0");
       await enrol(s.id, paid.id, { amount: "10.00" });
       await enrol(s.id, grand.id, { amount: "10.00" });
-      for (const c of [free, paid, grand]) expect((await buy({ courseId: c.id, consent: true })).status).toBe(403);
+      for (const c of [free, paid, grand]) expect((await buy(agree(c.id))).status).toBe(403);
       expect(create).not.toHaveBeenCalled();
     });
 
     it("rejects non-students and signed-out users", async () => {
       const c = await makeCourse("0");
       vi.mocked(auth).mockResolvedValue(null as never);
-      expect((await buy({ courseId: c.id, consent: true })).status).toBe(401);
+      expect((await buy(agree(c.id))).status).toBe(401);
       signIn(await makeUser("tutor"));
-      expect((await buy({ courseId: c.id, consent: true })).status).toBe(403);
+      expect((await buy(agree(c.id))).status).toBe(403);
     });
 
     it("allows at most one active + two queued passes", async () => {
       const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
       await makePass(s.id, { endOffsetMs: 10 * DAY_MS });
       await makePass(s.id, { startOffsetMs: 10 * DAY_MS, endOffsetMs: 40 * DAY_MS });
-      expect((await buy({ courseId: c.id, consent: true })).status).toBe(200);
+      expect((await buy(agree(c.id))).status).toBe(200);
       await makePass(s.id, { startOffsetMs: 40 * DAY_MS, endOffsetMs: 70 * DAY_MS });
-      expect((await buy({ courseId: c.id, consent: true })).status).toBe(409);
+      expect((await buy(agree(c.id))).status).toBe(409);
     });
 
     it("multiple tabs: a new checkout expires the previous unpaid one, so only one can be paid", async () => {
       const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
-      await buy({ courseId: c.id, consent: true });
-      await buy({ courseId: c.id, consent: true });
+      await buy(agree(c.id));
+      await buy(agree(c.id));
       const rows = await db.select().from(aiPassCheckouts).orderBy(aiPassCheckouts.createdAt);
       expect(rows.map((r) => r.status)).toEqual(["expired", "open"]);
       expect(fake.sessions.get(rows[0].stripeCheckoutSessionId)!.status).toBe("expired");
@@ -103,10 +153,10 @@ describe.skipIf(!hasDb)("AI Tutor Pass purchase routes", () => {
       const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
       await makePass(s.id, { endOffsetMs: 10 * DAY_MS });
       await makePass(s.id, { startOffsetMs: 10 * DAY_MS, endOffsetMs: 40 * DAY_MS });
-      await buy({ courseId: c.id, consent: true });
+      await buy(agree(c.id));
       const [first] = await db.select().from(aiPassCheckouts);
       fake.pay(s.id, { id: first.stripeCheckoutSessionId });   // paid; webhook not processed yet
-      const res = await buy({ courseId: c.id, consent: true });
+      const res = await buy(agree(c.id));
       expect(res.status).toBe(409);
       expect((await db.select().from(aiPassCheckouts)).map((r) => r.status)).toEqual(["open"]);
     });
@@ -115,7 +165,7 @@ describe.skipIf(!hasDb)("AI Tutor Pass purchase routes", () => {
       const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
       await makePass(s.id, { endOffsetMs: 10 * DAY_MS });
       await makePass(s.id, { startOffsetMs: 10 * DAY_MS, endOffsetMs: 40 * DAY_MS });
-      const codes = await Promise.all([1, 2, 3].map(() => buy({ courseId: c.id, consent: true }).then((r) => r.status)));
+      const codes = await Promise.all([1, 2, 3].map(() => buy(agree(c.id)).then((r) => r.status)));
       const open = (await db.select().from(aiPassCheckouts)).filter((r) => r.status === "open");
       expect(open.length).toBeLessThanOrEqual(1);
       expect(codes.filter((x) => x === 200).length).toBeGreaterThanOrEqual(1);
@@ -125,12 +175,12 @@ describe.skipIf(!hasDb)("AI Tutor Pass purchase routes", () => {
       const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
       await makePass(s.id, { endOffsetMs: 10 * DAY_MS });
       await makePass(s.id, { startOffsetMs: 10 * DAY_MS, endOffsetMs: 40 * DAY_MS });
-      await buy({ courseId: c.id, consent: true });
+      await buy(agree(c.id));
       const [first] = await db.select().from(aiPassCheckouts);
       // Abandoned: past its expiry, even before Stripe's checkout.session.expired arrives
       await db.update(aiPassCheckouts).set({ expiresAt: new Date(Date.now() - 1000) }).where(eq(aiPassCheckouts.stripeCheckoutSessionId, first.stripeCheckoutSessionId));
       fake.sessions.get(first.stripeCheckoutSessionId)!.status = "expired";
-      expect((await buy({ courseId: c.id, consent: true })).status).toBe(200);
+      expect((await buy(agree(c.id))).status).toBe(200);
       // Expired by Stripe's webhook
       const { AiTutorPassService } = await import("@/services/ai-tutor-pass.service");
       const open = (await db.select().from(aiPassCheckouts)).find((r) => r.status === "open")!;
@@ -141,14 +191,14 @@ describe.skipIf(!hasDb)("AI Tutor Pass purchase routes", () => {
     it("503 without a configured price (never falls back to a dynamic amount)", async () => {
       delete process.env.STRIPE_AI_PASS_PRICE_ID;
       const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
-      expect((await buy({ courseId: c.id, consent: true })).status).toBe(503);
+      expect((await buy(agree(c.id))).status).toBe(503);
       expect(create).not.toHaveBeenCalled();
     });
 
     it("is rate limited", async () => {
       const s = await makeUser(); const c = await makeCourse("0"); await enrol(s.id, c.id); signIn(s);
       const codes = [];
-      for (let i = 0; i < 6; i++) codes.push((await buy({ courseId: c.id, consent: true })).status);
+      for (let i = 0; i < 6; i++) codes.push((await buy(agree(c.id))).status);
       expect(codes.at(-1)).toBe(429);
     });
   });

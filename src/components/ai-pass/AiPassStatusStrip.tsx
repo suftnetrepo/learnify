@@ -66,7 +66,7 @@ export function AiPassStatusStrip({ courseId, status }: { courseId: string; stat
         <p className="px-5 pb-3 text-[11px] text-gray-500">Today&apos;s usage is unavailable right now.</p>
       ) : null}
       {usage?.budget_exhausted && (
-        <p className="px-5 pb-3 text-[11px] text-amber-700">You&apos;ve reached today&apos;s fair-use limit. It resets at midnight UK time.</p>
+        <p className="px-5 pb-3 text-[11px] text-amber-700">You&apos;ve reached this pass&apos;s total fair-use limit, so the AI tutor is no longer available on it. It doesn&apos;t reset at midnight.</p>
       )}
 
       {extending && (

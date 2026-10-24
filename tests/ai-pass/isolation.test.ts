@@ -57,7 +57,7 @@ describe("Checkout payment methods", () => {
     const { createAiPassCheckoutSession } = await import("@/lib/stripe");
     const create = vi.spyOn(stripe.checkout.sessions, "create").mockResolvedValue({ id: "cs_test_x" } as never);
     try {
-      await createAiPassCheckoutSession({ priceId: "price_x", studentId: "s", studentEmail: "s@test.local", returnCourseId: "c", consentAt: new Date().toISOString() });
+      await createAiPassCheckoutSession({ priceId: "price_x", studentId: "s", studentEmail: "s@test.local", returnCourseId: "c", consentAt: new Date().toISOString(), termsVersion: "v1", immediateAccess: false });
       expect(create.mock.calls[0][0]).toMatchObject({ payment_method_types: ["card"], managed_payments: { enabled: false }, allow_promotion_codes: false });
     } finally { create.mockRestore(); }
   });
@@ -92,5 +92,48 @@ describe("email safety", () => {
     for (const a of ["admin@yahoo.com", "x@edquis.com", "x@learnify.dev", "x@localtest.me", "x@my.testing.io"]) {
       expect(isReservedTestAddress(a)).toBe(false);
     }
+  });
+});
+
+describe("AI Tutor Pass terms content", () => {
+  it("covers every required topic, is versioned and marked as a draft", async () => {
+    const { AI_PASS_TERMS, AI_PASS_TERMS_SECTIONS } = await import("@/lib/ai-pass/terms");
+    expect(AI_PASS_TERMS.version).toMatch(/draft/);
+    expect(AI_PASS_TERMS.approved).toBe(false);
+    const ids = AI_PASS_TERMS_SECTIONS.map((s) => s.id);
+    for (const id of ["what-it-is", "price", "access", "allowances", "fair-use", "cancellation", "refunds", "faulty", "disputes", "courses", "changes", "contact"]) {
+      expect(ids).toContain(id);
+    }
+  });
+
+  it("states the price, duration, no renewal, shared daily allowances and a per-pass fair-use limit", async () => {
+    const { AI_PASS_TERMS_SECTIONS } = await import("@/lib/ai-pass/terms");
+    const all = AI_PASS_TERMS_SECTIONS.flatMap((s) => s.paragraphs).join(" ");
+    expect(all).toContain("one-time digital purchase of £9.99");
+    expect(all).toContain("30 consecutive days");
+    expect(all).toContain("not a subscription and it does not renew automatically");
+    expect(all).toContain("up to 60 AI tutor questions and create up to 5 quizzes, 5 flashcard sets and 3 summaries");
+    expect(all).toContain("shared across all the free courses you're enrolled in");
+    expect(all).toContain("reset at midnight UK time");
+    expect(all).toContain("is not unlimited");
+    expect(all).toContain("total fair-use limit on AI usage for its whole 30 days");
+    expect(all).toContain("even if days remain");
+    expect(all).toContain("It does not reset at midnight");
+    expect(all).not.toMatch(/per day.*fair-use|daily fair-use/i);
+  });
+
+  it("cancellation and refunds: statutory rights preserved, legal questions flagged, no VAT claim", async () => {
+    const { AI_PASS_TERMS, AI_PASS_TERMS_SECTIONS } = await import("@/lib/ai-pass/terms");
+    const section = (id: string) => AI_PASS_TERMS_SECTIONS.find((s) => s.id === id)!.paragraphs.join(" ");
+    expect(section("cancellation")).toContain("If you do NOT ask for immediate access: your pass still starts straight away, and you can cancel within 14 days");
+    expect(section("cancellation")).toContain("[LEGAL REVIEW");
+    expect(section("cancellation")).toContain("A queued pass that hasn't started yet can be cancelled for a full refund");
+    expect(section("refunds")).toContain("its access ends immediately");
+    expect(section("faulty")).toContain("Your statutory rights are not affected");
+    expect(section("disputes")).toContain("not restored automatically");
+    expect(section("courses")).toContain("30-day money-back guarantee, which applies to courses and not to AI Tutor Passes");
+    expect(AI_PASS_TERMS.taxNote).toBeNull();
+    expect(AI_PASS_TERMS_SECTIONS.flatMap((s) => s.paragraphs).join(" ")).not.toMatch(/\bVAT\b/);
+    expect(AI_PASS_TERMS.immediateAccessAckRequired).toBe(false);
   });
 });

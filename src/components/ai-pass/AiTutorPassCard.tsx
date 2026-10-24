@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Sparkles, Check, CalendarClock, ShieldCheck, Loader2 } from "lucide-react";
 import { FEATURE_LABELS, FEATURE_PHRASES, formatDate, formatPrice, type AiPassStatus } from "./types";
+import { AI_PASS_TERMS, IMMEDIATE_ACCESS_ACK_TEXT } from "@/lib/ai-pass/terms";
 
 interface Props {
   courseId: string;
@@ -14,12 +15,17 @@ interface Props {
 /**
  * Purchase card for the free-course AI Tutor Pass.
  *
- * LEGAL REVIEW REQUIRED before launch: the consent wording below (UK Consumer Contracts
- * Regulations 2013, digital content supplied immediately) is a draft. Inventory and proposed
- * wording: docs/ai-tutor-pass-customer-wording-DRAFT.md
+ * Consent: acceptance of the versioned AI Tutor Pass Terms is required (never pre-ticked). The
+ * immediate-access acknowledgement is a separate, optional choice — statutory cancellation rights
+ * are never removed without it. All of it is recorded server-side with the checkout.
+ *
+ * LEGAL REVIEW REQUIRED before launch — wording lives in src/lib/ai-pass/terms.ts
+ * (docs/ai-tutor-pass-customer-wording-DRAFT.md).
  */
 export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
-  const [consent, setConsent] = useState(false);
+  const [acceptTerms,     setAcceptTerms]     = useState(false);
+  const [immediateAccess, setImmediateAccess] = useState(false);
+  const ids = { terms: useId(), immediate: useId(), immediateHelp: useId() };
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
   const { offer } = status;
@@ -37,7 +43,10 @@ export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
       const res  = await fetch("/api/ai-pass/checkout", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ courseId, consent: true }),
+        body:    JSON.stringify({
+          courseId, acceptTerms, termsVersion: AI_PASS_TERMS.version,
+          immediateAccess: lastEnd ? false : immediateAccess,   // a queued pass doesn't start immediately
+        }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok || !body?.data?.url) throw new Error(body?.message ?? "Couldn't start checkout");
@@ -67,13 +76,16 @@ export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
           </p>
           <div className="mt-5 flex items-baseline gap-2">
             <span className="text-3xl font-bold">{price}</span>
-            <span className="text-sm text-white/60">one-time · {offer.durationDays} days · no subscription</span>
+            <span className="text-sm text-white/60">one-time payment · {offer.durationDays} consecutive days</span>
           </div>
+          <p className="mt-1 text-xs text-white/60">
+            No subscription — it won&apos;t renew automatically.{AI_PASS_TERMS.taxNote ? ` ${AI_PASS_TERMS.taxNote}` : ""}
+          </p>
         </div>
       </div>
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Included every day</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Included every day, across your free courses</p>
         <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {(Object.keys(FEATURE_LABELS) as (keyof typeof FEATURE_LABELS)[]).map((k) => (
             <li key={k} className="flex items-center gap-2 rounded-xl border border-surface-100 bg-surface-50 px-3 py-2 text-sm text-gray-700">
@@ -83,7 +95,9 @@ export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
           ))}
         </ul>
         <p className="mt-2 text-xs text-gray-500">
-          Allowances reset daily at midnight UK time. A fair-use limit also applies. Works on all your free courses.
+          One shared allowance for the free courses you&apos;re enrolled in, reset at midnight UK time. Not unlimited:
+          each pass also has a total fair-use limit for its {offer.durationDays} days, and if you reach it the AI tutor
+          stops working on that pass early.
         </p>
       </div>
 
@@ -96,25 +110,59 @@ export function AiTutorPassCard({ courseId, status, variant = "buy" }: Props) {
 
       {canBuy ? (
         <>
-          {/* DRAFT — pending legal review */}
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-surface-200 p-3 text-xs leading-relaxed text-gray-600">
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-              className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-surface-300 text-brand-600 focus:ring-brand-500"
-            />
-            <span>
-              I want access to the AI Tutor Pass to begin {lastEnd ? "as described above" : "immediately"}. I understand that
-              once access begins I lose my right to cancel within 14 days.
-            </span>
-          </label>
+          {/* DRAFT — pending legal review (src/lib/ai-pass/terms.ts) */}
+          <fieldset className="flex flex-col gap-2">
+            <legend className="sr-only">Before you buy</legend>
+            <label htmlFor={ids.terms} className="flex cursor-pointer items-start gap-3 rounded-xl border border-surface-200 p-3 text-xs leading-relaxed text-gray-600">
+              <input
+                id={ids.terms}
+                type="checkbox"
+                required
+                aria-required="true"
+                checked={acceptTerms}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
+                className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-surface-300 text-brand-600 focus:ring-brand-500"
+              />
+              <span>
+                I have read and agree to the{" "}
+                <a href={AI_PASS_TERMS.path} target="_blank" rel="noopener noreferrer" className="font-medium text-brand-700 underline">
+                  AI Tutor Pass Terms<span className="sr-only"> (opens in a new tab)</span>
+                </a>{" "}
+                (version {AI_PASS_TERMS.version}). <span className="text-gray-500">Required</span>
+              </span>
+            </label>
+
+            {lastEnd ? (
+              <p className="rounded-xl bg-surface-50 px-3 py-2 text-xs text-gray-600">
+                Because this pass starts later, you can cancel it for a full refund before it starts (see section 6 of the Terms).
+              </p>
+            ) : (
+              <label htmlFor={ids.immediate} className="flex cursor-pointer items-start gap-3 rounded-xl border border-surface-200 p-3 text-xs leading-relaxed text-gray-600">
+                <input
+                  id={ids.immediate}
+                  type="checkbox"
+                  aria-describedby={ids.immediateHelp}
+                  checked={immediateAccess}
+                  onChange={(e) => setImmediateAccess(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-surface-300 text-brand-600 focus:ring-brand-500"
+                />
+                <span>
+                  {IMMEDIATE_ACCESS_ACK_TEXT}{" "}
+                  <span id={ids.immediateHelp} className="block pt-1 text-gray-500">
+                    {AI_PASS_TERMS.immediateAccessAckRequired
+                      ? "Required to buy a pass."
+                      : "Optional. If you leave this unticked, your pass still starts straight away and you keep your 14-day right to cancel."}
+                  </span>
+                </span>
+              </label>
+            )}
+          </fieldset>
 
           {error && <p className="text-sm text-red-500" role="alert">{error}</p>}
 
           <button
             onClick={buy}
-            disabled={!consent || loading}
+            disabled={!acceptTerms || (AI_PASS_TERMS.immediateAccessAckRequired && !lastEnd && !immediateAccess) || loading}
             className="flex h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}

@@ -8,6 +8,7 @@ import { and, asc, count, desc, eq, gt, gte, inArray, isNull, lte, or, sql } fro
 import { stripe } from "@/lib/stripe";
 import { AI_PASS, AI_PASS_METADATA, DAY_MS, aiPassPriceId } from "@/lib/ai-pass/config";
 import { getPolicyStatus, revokePolicy, type StudyMindPolicyStatus } from "@/lib/ai-pass/studymind";
+import { AI_PASS_TERMS } from "@/lib/ai-pass/terms";
 import { log } from "@/lib/logger";
 
 /**
@@ -20,6 +21,14 @@ export class PassFulfilmentError extends Error {
     super(message);
     this.name = "PassFulfilmentError";
   }
+}
+
+/** Consent the student gave when starting checkout (recorded server-side, then copied to the pass). */
+export interface PurchaseConsent {
+  termsVersion:    string;
+  consentAt:       Date;
+  /** Optional request for immediate access; only meaningful when the pass starts straight away. */
+  immediateAccess: boolean;
 }
 
 export type RejectReason = "queue_full" | "refunded" | "disputed" | "invalid";
@@ -138,8 +147,10 @@ export class AiTutorPassService {
    * expired at Stripe first, so it can no longer be paid. Fulfilment re-checks the limit regardless.
    */
   static async startCheckout(
-    studentId: string, create: () => Promise<Stripe.Checkout.Session>,
-  ): Promise<{ session: Stripe.Checkout.Session } | { full: true }> {
+    studentId: string,
+    consent: PurchaseConsent,
+    create: (opts: { queued: boolean; immediateAccess: boolean }) => Promise<Stripe.Checkout.Session>,
+  ): Promise<{ session: Stripe.Checkout.Session; queued: boolean } | { full: true }> {
     await AiTutorPassService.expireOpenCheckouts(studentId);
 
     return db.transaction(async (tx) => {
@@ -150,13 +161,19 @@ export class AiTutorPassService {
         .where(and(eq(aiPassCheckouts.studentId, studentId), eq(aiPassCheckouts.status, "open"), gt(aiPassCheckouts.expiresAt, now)));
       if (held + Number(open?.n ?? 0) >= MAX_HELD) return { full: true as const };
 
-      const session = await create();
+      // A queued pass starts later, so a request for *immediate* access doesn't apply to it
+      const queued = held > 0;
+      const immediateAccess = consent.immediateAccess && !queued;
+      const session = await create({ queued, immediateAccess });
       await tx.insert(aiPassCheckouts).values({
         stripeCheckoutSessionId: session.id,
         studentId,
         expiresAt: session.expires_at ? new Date(session.expires_at * 1000) : new Date(now.getTime() + 60 * 60_000),
+        termsVersion: consent.termsVersion,
+        consentAt: consent.consentAt,
+        immediateAccessAck: immediateAccess,
       });
-      return { session };
+      return { session, queued };
     });
   }
 
@@ -261,7 +278,11 @@ export class AiTutorPassService {
       const startsAt = latest ? latest.endsAt : now;
       const endsAt   = new Date(startsAt.getTime() + AI_PASS.durationDays * DAY_MS);
       const refundedPence = Math.max(payment.refundedPence, row.refundedAmountPence);
-      const consentAt = session.metadata?.consent_at ? new Date(session.metadata.consent_at) : null;
+      // Consent: the server-side checkout record is authoritative; Stripe metadata is the fallback
+      const metaConsent = session.metadata?.consent_at ? new Date(session.metadata.consent_at) : null;
+      const consentAt = row.consentAt ?? (metaConsent && !isNaN(metaConsent.getTime()) ? metaConsent : null);
+      const termsVersion = row.termsVersion ?? session.metadata?.terms_version ?? null;
+      const immediateAccessAck = row.termsVersion ? row.immediateAccessAck : session.metadata?.immediate_access === "true";
 
       const [pass] = await tx.insert(aiTutorPasses).values({
         studentId: student.id,
@@ -272,7 +293,9 @@ export class AiTutorPassService {
         fulfilledVia:            via,
         amountPence:             session.amount_total!,
         currency:                session.currency!,
-        consentAt:               consentAt && !isNaN(consentAt.getTime()) ? consentAt : null,
+        consentAt,
+        termsVersion,
+        immediateAccessAck,
         purchasedAt:             now,
         startsAt,
         endsAt,
@@ -286,6 +309,9 @@ export class AiTutorPassService {
       log.info("AI Tutor Pass granted", { passId: pass.id, studentId: student.id, via, startsAt, endsAt });
       return { outcome: "granted", pass, created: true };
     });
+
+    // One confirmation email per granted pass, whichever delivery (webhook or confirm) gets here first
+    if (result.outcome === "granted") await AiTutorPassService.sendConfirmationEmail(result.pass.id);
 
     if (result.outcome === "rejected" && fresh) {
       log.warn("AI Tutor Pass payment not granted", { sessionId: session.id, reason: result.reason, detail: invalid });
@@ -661,6 +687,46 @@ export class AiTutorPassService {
     }).where(eq(aiTutorPasses.id, passId));
     await AiTutorPassService.processPendingRevocations({ passId });
     return false;
+  }
+
+  // ─── Confirmation email ─────────────────────────────────────────────────────
+
+  /**
+   * Send the purchase confirmation once: the pass row is claimed first, so concurrent or repeated
+   * deliveries never send twice. Not sent for a pass revoked before the email went out. If building
+   * or handing over the email fails, the claim is released so a later delivery can retry (the
+   * email layer itself queues failed sends for retry).
+   */
+  static async sendConfirmationEmail(passId: string): Promise<boolean> {
+    const [pass] = await db.update(aiTutorPasses).set({ confirmationEmailSentAt: new Date() })
+      .where(and(eq(aiTutorPasses.id, passId), isNull(aiTutorPasses.confirmationEmailSentAt), isNull(aiTutorPasses.revokedAt)))
+      .returning();
+    if (!pass) return false;
+    try {
+      const [student] = await db.select({ name: users.name, email: users.email }).from(users).where(eq(users.id, pass.studentId)).limit(1);
+      if (!student?.email) throw new Error("Student has no email address");
+      const { EmailService } = await import("@/services/email.service");
+      await EmailService.aiTutorPassConfirmation(student.email, {
+        studentName:        student.name ?? "there",
+        amountPence:        pass.amountPence,
+        currency:           pass.currency,
+        purchasedAt:        pass.purchasedAt,
+        startsAt:           pass.startsAt,
+        endsAt:             pass.endsAt,
+        // Queued: bought while another pass was active, so it starts later
+        queued:             pass.startsAt.getTime() - pass.purchasedAt.getTime() > 60_000,
+        immediateAccessAck: pass.immediateAccessAck,
+        consentAt:          pass.consentAt,
+        termsVersion:       pass.termsVersion ?? AI_PASS_TERMS.version,
+        reference:          pass.id.slice(0, 8).toUpperCase(),
+      });
+      log.info("AI Tutor Pass confirmation email sent", { passId });
+      return true;
+    } catch (error) {
+      await db.update(aiTutorPasses).set({ confirmationEmailSentAt: null }).where(eq(aiTutorPasses.id, passId));
+      log.error("AI Tutor Pass confirmation email failed", { passId, error });
+      return false;
+    }
   }
 
   // ─── Stripe webhook routing ─────────────────────────────────────────────────

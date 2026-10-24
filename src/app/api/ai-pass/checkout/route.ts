@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { isAiTutorPassEnabled } from "@/lib/flags";
 import { aiPassPriceId, AI_PASS } from "@/lib/ai-pass/config";
+import { AI_PASS_TERMS } from "@/lib/ai-pass/terms";
 import { createAiPassCheckoutSession } from "@/lib/stripe";
 import { rateLimit } from "@/lib/rate-limit";
 import { AiTutorPassService } from "@/services/ai-tutor-pass.service";
@@ -12,14 +13,17 @@ import {
 import { log } from "@/lib/logger";
 
 const schema = z.object({
-  courseId: z.string().uuid(),
-  // UK digital content: explicit request for immediate access + acknowledgement of losing the
-  // 14-day cancellation right once used. Wording in AiTutorPassCard — pending legal review.
-  consent:  z.literal(true),
+  courseId:        z.string().uuid(),
+  // Explicit (never pre-ticked) acceptance of the AI Tutor Pass Terms, for the version on screen
+  acceptTerms:     z.literal(true),
+  termsVersion:    z.string().min(1).max(32),
+  // Separate, optional request for immediate access (affects cancellation rights — see the Terms).
+  // Must be sent explicitly; nothing is assumed.
+  immediateAccess: z.boolean(),
 });
 
 /**
- * POST /api/ai-pass/checkout { courseId, consent: true }
+ * POST /api/ai-pass/checkout { courseId, acceptTerms: true, termsVersion, immediateAccess }
  * Starts a one-time Stripe Checkout for the AI Tutor Pass. Grants nothing by itself — the pass is
  * created only from a verified, paid Checkout Session (webhook or /api/ai-pass/confirm).
  */
@@ -41,19 +45,32 @@ export async function POST(req: NextRequest) {
     const priceId = aiPassPriceId();
     if (!priceId) return errorResponse("The AI Tutor Pass isn't available right now", "NOT_CONFIGURED", 503);
 
-    const { courseId } = parsed.data;
+    const { courseId, termsVersion, immediateAccess } = parsed.data;
+    if (termsVersion !== AI_PASS_TERMS.version) {
+      return errorResponse("The AI Tutor Pass terms have been updated. Please review them and try again.", "TERMS_OUTDATED", 409);
+    }
+    if (AI_PASS_TERMS.immediateAccessAckRequired && !immediateAccess) {
+      return validationError({ immediateAccess: ["Immediate access must be requested to buy a pass"] });
+    }
     if (!(await AiTutorPassService.isEnrolledInFreeCourse(session.user.id, courseId))) {
       return forbidden("The AI Tutor Pass is for free courses you're enrolled in");
     }
     // Reserves a slot (one active + two queued, counting checkouts that may still be paid) and
     // expires this student's previous open checkout, so a second tab can't pay past the limit
-    const result = await AiTutorPassService.startCheckout(session.user.id, () => createAiPassCheckoutSession({
-      priceId,
-      studentId:      session.user.id,
-      studentEmail:   session.user.email,
-      returnCourseId: courseId,
-      consentAt:      new Date().toISOString(),
-    }));
+    const consentAt = new Date();
+    const result = await AiTutorPassService.startCheckout(
+      session.user.id,
+      { termsVersion, consentAt, immediateAccess },
+      (opts) => createAiPassCheckoutSession({
+        priceId,
+        studentId:       session.user.id,
+        studentEmail:    session.user.email,
+        returnCourseId:  courseId,
+        consentAt:       consentAt.toISOString(),
+        termsVersion,
+        immediateAccess: opts.immediateAccess,
+      }),
+    );
     if ("full" in result) {
       return conflict(`You already have an active pass and ${AI_PASS.maxQueued} upcoming passes`);
     }

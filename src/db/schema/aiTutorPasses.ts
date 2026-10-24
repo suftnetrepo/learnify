@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, integer, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, integer, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { aiPassPaymentStatusEnum, aiPassRevokeStatusEnum, aiPassCheckoutStatusEnum, aiPassRefundStatusEnum } from "./enums";
 import { users } from "./users";
@@ -24,7 +24,11 @@ export const aiTutorPasses = pgTable(
     fulfilledVia:            varchar("fulfilled_via",              { length: 16 }).notNull(), // webhook | confirm
     amountPence:             integer("amount_pence").notNull(),
     currency:                varchar("currency", { length: 3 }).notNull(),
-    consentAt:               timestamp("consent_at", { withTimezone: true }),   // UK digital-content consent
+    // Purchase consent, copied from the checkout record: terms version accepted and the optional
+    // request for immediate access (statutory cancellation rights are never removed without it)
+    consentAt:               timestamp("consent_at", { withTimezone: true }),
+    termsVersion:            varchar("terms_version", { length: 32 }),
+    immediateAccessAck:      boolean("immediate_access_ack").default(false).notNull(),
 
     purchasedAt: timestamp("purchased_at", { withTimezone: true }).notNull(),
     startsAt:    timestamp("starts_at",    { withTimezone: true }).notNull(),
@@ -45,6 +49,9 @@ export const aiTutorPasses = pgTable(
     studymindRevokeLastError:     text("studymind_revoke_last_error"),
     studymindRevokeNextAttemptAt: timestamp("studymind_revoke_next_attempt_at", { withTimezone: true }),
     studymindRevokedAt:           timestamp("studymind_revoked_at",             { withTimezone: true }),
+
+    // Purchase confirmation email — claimed once, so duplicate webhooks/confirmations never resend
+    confirmationEmailSentAt:      timestamp("confirmation_email_sent_at",       { withTimezone: true }),
 
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -80,6 +87,11 @@ export const aiPassCheckouts = pgTable(
     stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 255 }).unique(),
     passId:                uuid("pass_id").references(() => aiTutorPasses.id, { onDelete: "restrict" }),
     amountPence:           integer("amount_pence"),
+
+    // Consent given when the checkout was started (server-recorded; the source for the pass)
+    termsVersion:          varchar("terms_version", { length: 32 }),
+    consentAt:             timestamp("consent_at", { withTimezone: true }),
+    immediateAccessAck:    boolean("immediate_access_ack").default(false).notNull(),
 
     // Paid but not granted: queue_full | refunded | disputed | invalid
     rejectReason: varchar("reject_reason", { length: 32 }),
