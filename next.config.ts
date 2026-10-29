@@ -19,6 +19,15 @@ const studyMindConnectSrc = (() => {
 })();
 
 const nextConfig: NextConfig = {
+  // Render exposes the git commit for each deployment. Next uses this to force
+  // stale browser tabs onto the current build instead of submitting obsolete
+  // Server Action/reference IDs after a deploy.
+  deploymentId: process.env.NEXT_DEPLOYMENT_ID ?? process.env.RENDER_GIT_COMMIT,
+
+  // Next otherwise reserves a 50 MB in-process cache per instance. Render's
+  // small web instances are better served by the existing disk cache.
+  cacheMaxMemorySize: isLowMemoryRender ? 0 : undefined,
+
   // pdfkit reads its bundled .afm font-metric files from disk at runtime via
   // fs.readFileSync — Turbopack/webpack bundling a route handler rewrites
   // that path to a virtual location that doesn't exist on the real
@@ -43,6 +52,9 @@ const nextConfig: NextConfig = {
 
   // ── Images ──────────────────────────────────────────────────────────────────
   images: {
+    // Cloudinary already delivers optimized assets. Avoid spawning Sharp image
+    // transforms inside the memory-constrained Render web process.
+    unoptimized: isLowMemoryRender,
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "*.cloudinary.com" },

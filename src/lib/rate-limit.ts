@@ -20,6 +20,22 @@ const globalStore = globalThis as typeof globalThis & {
   __rateLimitStore?: Map<string, Window>;
 };
 const store = (globalStore.__rateLimitStore ??= new Map<string, Window>());
+const MAX_STORE_ENTRIES = 10_000;
+
+function makeRoomForEntry(now: number): void {
+  if (store.size < MAX_STORE_ENTRIES) return;
+
+  for (const [key, window] of store.entries()) {
+    if (window.resetAt < now) store.delete(key);
+  }
+
+  // Map preserves insertion order. If hostile traffic still filled the store,
+  // evict the oldest limiter window rather than allowing unbounded memory use.
+  if (store.size >= MAX_STORE_ENTRIES) {
+    const oldestKey = store.keys().next().value as string | undefined;
+    if (oldestKey) store.delete(oldestKey);
+  }
+}
 
 // Clean up expired entries every 5 minutes to prevent memory bloat
 const cleanupTimer = setInterval(() => {
@@ -54,6 +70,7 @@ export function rateLimit(
 
   if (!existing || existing.resetAt < now) {
     // New or expired window
+    makeRoomForEntry(now);
     store.set(key, { count: 1, resetAt: now + options.windowMs });
     return { success: true, remaining: options.limit - 1, resetAt: now + options.windowMs };
   }

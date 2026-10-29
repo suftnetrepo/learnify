@@ -18,6 +18,10 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 const TTL_MS = 30_000;
+// During a database/network incident, briefly share the rejected lookup across
+// requests. Auth fails open, but this prevents every component and API call from
+// immediately opening another database connection attempt.
+const FAILURE_TTL_MS = 10_000;
 
 export type AuthState =
   | { revoked: true }
@@ -49,9 +53,10 @@ export function getAuthState(userId: string): Promise<AuthState> {
 
   const value = load(userId);
   store.set(userId, { value, expiresAt: now + TTL_MS });
-  // Don't cache failures — let the next request retry.
+  // Keep failures only long enough to suppress a connection retry storm.
   value.catch(() => {
-    if (store.get(userId)?.value === value) store.delete(userId);
+    const current = store.get(userId);
+    if (current?.value === value) current.expiresAt = Date.now() + FAILURE_TTL_MS;
   });
   return value;
 }
