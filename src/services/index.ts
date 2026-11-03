@@ -11,3 +11,4 @@ export { MessagingService, MessagingError } from "./messaging.service";
 export { CourseMessagingService } from "./course-messaging.service";
 export { DirectMessagingService } from "./direct-messaging.service";
 export { ReviewService, ReviewError, REVIEW_MIN_PROGRESS } from "./review.service";
+export { QuizService, QuizError } from "./quiz.service";

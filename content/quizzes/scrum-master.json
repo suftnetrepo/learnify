@@ -1,0 +1,301 @@
+{
+  "courseTitle": "Certified Scrum Master Foundations",
+  "sourceDocument": "COMPLETE COURSE BOOKLET SCRUM MASTER.pdf",
+  "modules": [
+    {
+      "sortOrder": 2,
+      "sourceReference": "Day 1 Summary — Quiz Yourself, page 7; answers cross-checked with facilitator Day 1 recap",
+      "title": "Day 1 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What are the four values of the Agile Manifesto?",
+          "explanation": "The Agile Manifesto values individuals and interactions, working software, customer collaboration and responding to change over their counterparts.",
+          "options": [
+            { "label": "Individuals and interactions, working software, customer collaboration, and responding to change", "correct": true },
+            { "label": "Scope, schedule, cost, and quality", "correct": false },
+            { "label": "Planning, execution, inspection, and closure", "correct": false },
+            { "label": "Documentation, contracts, processes, and fixed plans", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the three pillars of Scrum theory?",
+          "explanation": "Scrum is founded on Transparency, Inspection and Adaptation.",
+          "options": [
+            { "label": "Transparency, Inspection and Adaptation", "correct": true },
+            { "label": "Scope, Time and Cost", "correct": false },
+            { "label": "Plan, Build and Test", "correct": false },
+            { "label": "People, Process and Technology", "correct": false }
+          ]
+        },
+        {
+          "question": "Name the five Scrum values.",
+          "explanation": "The five Scrum values are Commitment, Focus, Openness, Respect and Courage.",
+          "options": [
+            { "label": "Commitment, Focus, Openness, Respect and Courage", "correct": true },
+            { "label": "Speed, Quality, Scope, Cost and Control", "correct": false },
+            { "label": "Planning, Estimation, Delivery, Review and Closure", "correct": false },
+            { "label": "Trust, Authority, Process, Compliance and Reporting", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the difference between Waterfall and Agile?",
+          "explanation": "Waterfall is sequential and plan-driven; Agile is iterative and incremental and welcomes feedback and change.",
+          "options": [
+            { "label": "Waterfall is sequential; Agile is iterative and incremental", "correct": true },
+            { "label": "Waterfall uses teams; Agile uses only individuals", "correct": false },
+            { "label": "Agile prohibits planning; Waterfall requires daily planning", "correct": false },
+            { "label": "There is no practical difference", "correct": false }
+          ]
+        },
+        {
+          "question": "Who are the three accountabilities in a Scrum Team?",
+          "explanation": "A Scrum Team contains one Product Owner, one Scrum Master and Developers.",
+          "options": [
+            { "label": "Product Owner, Scrum Master and Developers", "correct": true },
+            { "label": "Project Manager, Business Analyst and Test Manager", "correct": false },
+            { "label": "Sponsor, Customer and Supplier", "correct": false },
+            { "label": "Architect, Team Lead and Quality Manager", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 3,
+      "sourceReference": "Day 2 Summary — Quiz Yourself, page 13; answers cross-checked with facilitator Day 2 recap",
+      "title": "Day 2 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What is the Scrum Master accountable for?",
+          "explanation": "The Scrum Master is accountable for establishing Scrum and for the Scrum Team's effectiveness.",
+          "options": [
+            { "label": "Establishing Scrum and enabling the Scrum Team's effectiveness", "correct": true },
+            { "label": "Assigning daily tasks to every Developer", "correct": false },
+            { "label": "Owning and ordering the Product Backlog", "correct": false },
+            { "label": "Approving every technical design decision", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the five Scrum events?",
+          "explanation": "The five events are the Sprint, Sprint Planning, Daily Scrum, Sprint Review and Sprint Retrospective.",
+          "options": [
+            { "label": "Sprint, Sprint Planning, Daily Scrum, Sprint Review and Sprint Retrospective", "correct": true },
+            { "label": "Charter, Planning, Execution, Control and Closure", "correct": false },
+            { "label": "Discovery, Design, Build, Test and Release", "correct": false },
+            { "label": "Backlog, Increment, Goal, Review and Deployment", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the purpose of the Daily Scrum?",
+          "explanation": "The Daily Scrum is a 15-minute event for Developers to inspect progress toward the Sprint Goal and adapt their plan.",
+          "options": [
+            { "label": "Developers inspect progress toward the Sprint Goal and adapt their plan", "correct": true },
+            { "label": "The Scrum Master collects individual status reports", "correct": false },
+            { "label": "Stakeholders approve the Increment", "correct": false },
+            { "label": "The Product Owner rewrites the Product Goal", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the timebox for Sprint Planning?",
+          "explanation": "Sprint Planning is timeboxed to a maximum of eight hours for a one-month Sprint and is usually shorter for shorter Sprints.",
+          "options": [
+            { "label": "A maximum of eight hours for a one-month Sprint", "correct": true },
+            { "label": "Exactly 15 minutes for every Sprint", "correct": false },
+            { "label": "A maximum of four hours regardless of Sprint length", "correct": false },
+            { "label": "There is no timebox", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the three topics addressed in Sprint Planning?",
+          "explanation": "Sprint Planning addresses why the Sprint is valuable, what can be done and how the chosen work will get done.",
+          "options": [
+            { "label": "Why the Sprint is valuable, what can be done, and how the work will get done", "correct": true },
+            { "label": "Who is promoted, what the budget is, and when contracts end", "correct": false },
+            { "label": "What failed previously, who caused it, and who approves it", "correct": false },
+            { "label": "Only the exact technical solution for every backlog item", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 4,
+      "sourceReference": "Day 3 Summary — Quiz Yourself, page 20; answers cross-checked with facilitator artifact guidance",
+      "title": "Day 3 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What are the three Scrum artifacts?",
+          "explanation": "The Scrum artifacts are the Product Backlog, Sprint Backlog and Increment.",
+          "options": [
+            { "label": "Product Backlog, Sprint Backlog and Increment", "correct": true },
+            { "label": "Product Goal, Sprint Goal and Definition of Done", "correct": false },
+            { "label": "Charter, Schedule and Risk Register", "correct": false },
+            { "label": "Epic, Story and Task", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the Definition of Done?",
+          "explanation": "The Definition of Done is a formal description of the state of the Increment when it meets required quality measures.",
+          "options": [
+            { "label": "A shared quality standard describing when an Increment is complete", "correct": true },
+            { "label": "A list of all future Product Backlog items", "correct": false },
+            { "label": "The Product Owner's approval of the Sprint plan", "correct": false },
+            { "label": "A deadline set by the Scrum Master", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the format of a user story?",
+          "explanation": "The common user story format is: As a [user], I want [goal], so that [benefit].",
+          "options": [
+            { "label": "As a [user], I want [goal], so that [benefit]", "correct": true },
+            { "label": "Given [scope], when [cost], then [deadline]", "correct": false },
+            { "label": "Who, what, when, where and budget", "correct": false },
+            { "label": "Problem, solution, owner and status", "correct": false }
+          ]
+        },
+        {
+          "question": "What is velocity used for?",
+          "explanation": "Velocity is an empirical planning aid used to forecast how much work a team may complete in future Sprints; it is not a cross-team performance measure.",
+          "options": [
+            { "label": "Forecasting how much work the team may complete in future Sprints", "correct": true },
+            { "label": "Comparing the productivity of different Scrum Teams", "correct": false },
+            { "label": "Measuring the quality of the Increment", "correct": false },
+            { "label": "Setting the length of the Daily Scrum", "correct": false }
+          ]
+        },
+        {
+          "question": "What is backlog refinement?",
+          "explanation": "Backlog refinement is the ongoing activity of breaking down and further defining Product Backlog items by adding details, order and size.",
+          "options": [
+            { "label": "Ongoing clarification, decomposition, ordering and sizing of Product Backlog items", "correct": true },
+            { "label": "A formal Scrum event held only at the end of a Sprint", "correct": false },
+            { "label": "Removing every unfinished item after Sprint Review", "correct": false },
+            { "label": "The Scrum Master's private prioritisation meeting", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 5,
+      "sourceReference": "Day 4 Summary — Quiz Yourself, page 26; answers cross-checked with facilitator Day 4 recap",
+      "title": "Day 4 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What is an impediment?",
+          "explanation": "An impediment is an obstacle that slows or prevents the Scrum Team from making progress or achieving its goals.",
+          "options": [
+            { "label": "An obstacle that slows or blocks the Scrum Team's progress", "correct": true },
+            { "label": "Any Product Backlog item not selected for the Sprint", "correct": false },
+            { "label": "A stakeholder who attends Sprint Review", "correct": false },
+            { "label": "A change to the Sprint Backlog made by Developers", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the difference between coaching and telling?",
+          "explanation": "Coaching uses powerful questions and listening to help people think and find their own solutions; telling prescribes an answer.",
+          "options": [
+            { "label": "Coaching helps people discover solutions; telling prescribes the solution", "correct": true },
+            { "label": "Coaching assigns tasks; telling removes impediments", "correct": false },
+            { "label": "Coaching is for managers; telling is for Scrum Masters", "correct": false },
+            { "label": "There is no difference", "correct": false }
+          ]
+        },
+        {
+          "question": "Which set contains three facilitation techniques?",
+          "explanation": "Techniques such as silent brainstorming, dot voting and round-robin participation support inclusive group decisions.",
+          "options": [
+            { "label": "Silent brainstorming, dot voting and round-robin participation", "correct": true },
+            { "label": "Task assignment, individual ranking and performance appraisal", "correct": false },
+            { "label": "Budget approval, procurement and contract review", "correct": false },
+            { "label": "Coding, testing and deployment", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the five conflict resolution approaches?",
+          "explanation": "The module identifies Collaborate, Compromise, Accommodate, Avoid and Compete.",
+          "options": [
+            { "label": "Collaborate, Compromise, Accommodate, Avoid and Compete", "correct": true },
+            { "label": "Plan, Build, Inspect, Release and Close", "correct": false },
+            { "label": "Direct, Coach, Support, Delegate and Audit", "correct": false },
+            { "label": "Identify, Assess, Address, Follow-up and Prevent", "correct": false }
+          ]
+        },
+        {
+          "question": "When should a Scrum Master escalate an impediment?",
+          "explanation": "Escalation is appropriate after the team cannot resolve an impediment and it lies outside the team's authority or requires organisational action.",
+          "options": [
+            { "label": "When the team cannot resolve it and organisational authority or action is required", "correct": true },
+            { "label": "Immediately, before the team has tried to resolve it", "correct": false },
+            { "label": "Only after the Sprint has been cancelled", "correct": false },
+            { "label": "Never; Scrum Masters must solve every impediment alone", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 6,
+      "sourceReference": "Day 5 Summary — Quiz Yourself, page 31; certification facts cross-checked with facilitator Day 5 guidance",
+      "title": "Day 5 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What is the passing score for PSM I?",
+          "explanation": "The Professional Scrum Master I assessment requires a score of 85% or higher.",
+          "options": [
+            { "label": "85%", "correct": true },
+            { "label": "60%", "correct": false },
+            { "label": "70%", "correct": false },
+            { "label": "100%", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the passing score for CSM?",
+          "explanation": "The course booklet identifies 74% as the passing score for the Certified ScrumMaster test.",
+          "options": [
+            { "label": "74%", "correct": true },
+            { "label": "50%", "correct": false },
+            { "label": "85%", "correct": false },
+            { "label": "95%", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the timebox for the Sprint Review?",
+          "explanation": "The Sprint Review is timeboxed to a maximum of four hours for a one-month Sprint and is normally shorter for shorter Sprints.",
+          "options": [
+            { "label": "A maximum of four hours for a one-month Sprint", "correct": true },
+            { "label": "15 minutes for every Sprint", "correct": false },
+            { "label": "Eight hours for every Sprint", "correct": false },
+            { "label": "There is no timebox", "correct": false }
+          ]
+        },
+        {
+          "question": "Who owns the Sprint Backlog?",
+          "explanation": "The Sprint Backlog is a plan by and for the Developers, who adapt it throughout the Sprint.",
+          "options": [
+            { "label": "The Developers", "correct": true },
+            { "label": "The Scrum Master", "correct": false },
+            { "label": "The Product Owner", "correct": false },
+            { "label": "The external stakeholders", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the Scrum Master accountable for?",
+          "explanation": "The Scrum Master is accountable for establishing Scrum and enabling the effectiveness of the Scrum Team.",
+          "options": [
+            { "label": "Establishing Scrum and enabling Scrum Team effectiveness", "correct": true },
+            { "label": "Managing Developers and assigning their tasks", "correct": false },
+            { "label": "Maximising product value by ordering the Product Backlog", "correct": false },
+            { "label": "Owning the Sprint Backlog and the Increment", "correct": false }
+          ]
+        }
+      ]
+    }
+  ]
+}

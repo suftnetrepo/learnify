@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { BookOpen, Users, Calendar, Settings, BarChart3 } from "lucide-react";
+import { BookOpen, Users, Calendar, Settings, BarChart3, ClipboardCheck } from "lucide-react";
 
 const TABS = [
   { id: "overview",    label: "Overview",    icon: Settings  },
@@ -10,6 +10,7 @@ const TABS = [
   { id: "tutors",      label: "Tutors",      icon: Users     },
   { id: "sessions",    label: "Sessions",    icon: Calendar  },
   { id: "progress",    label: "Progress",    icon: BarChart3 },
+  { id: "assessments", label: "Assessments", icon: ClipboardCheck },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
@@ -20,20 +21,22 @@ interface Props {
   tutors:      React.ReactNode | null;
   sessions:    React.ReactNode | null;
   progress?:   React.ReactNode | null; // student lesson completion; tab hidden when absent
+  assessments?: React.ReactNode | null;
   defaultTab?: TabId;
   role?:       "admin" | "tutor"; // default "admin"
 }
 
-export function CourseEditTabs({ overview, curriculum, tutors, sessions, progress, defaultTab = "overview", role = "admin" }: Props) {
+export function CourseEditTabs({ overview, curriculum, tutors, sessions, progress, assessments, defaultTab = "overview", role = "admin" }: Props) {
   const [active, setActive] = useState<TabId>(defaultTab);
 
   const visibleTabs = TABS.filter((t) => {
     if (role === "tutor" && (t.id === "tutors" || t.id === "sessions")) return false;
     if (t.id === "progress" && !progress) return false;
+    if (t.id === "assessments" && !assessments) return false;
     return true;
   });
 
-  const panels = { overview, curriculum, tutors, sessions, progress };
+  const panels = { overview, curriculum, tutors, sessions, progress, assessments };
 
   // This page lives inside DashboardShell, which already owns the page's one
   // scroll container (`<main><div className="overflow-y-auto">`). Making the

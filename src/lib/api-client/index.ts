@@ -153,3 +153,13 @@ export const notesApi = {
   get:  (lectureId: string)                    => get<LectureNote | null>(`/api/lectures/${lectureId}/notes`),
   save: (lectureId: string, content: string)   => post<LectureNote>(`/api/lectures/${lectureId}/notes`, { content }),
 };
+
+// ─── End-of-module quizzes ───────────────────────────────────────────────────
+import type { QuizSubmissionResult, StudentModuleQuiz } from "@/types";
+
+export const quizzesApi = {
+  getForSection: (sectionId: string) =>
+    get<StudentModuleQuiz | null>(`/api/sections/${sectionId}/quiz`),
+  submit: (quizId: string, answers: Array<{ questionId: string; optionId: string }>) =>
+    post<QuizSubmissionResult>(`/api/quizzes/${quizId}/attempts`, { answers }),
+};

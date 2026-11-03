@@ -9,6 +9,7 @@ import {
   LayoutDashboard, BookOpen, Award, Calendar, Settings, LogOut,
   Archive, ExternalLink,
   Star,
+  ClipboardCheck,
 } from "lucide-react";
 import { ReviewForm, type OwnReview } from "@/app/(dashboard)/dashboard/courses/[id]/ReviewForm";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
@@ -16,6 +17,7 @@ import { cn, formatDuration } from "@/lib/utils";
 import { initials } from "@/lib/avatar";
 import { handoutDisplayName, handoutDownloadPath } from "@/lib/handout";
 import { resourcesApi, notesApi } from "@/lib/api-client";
+import { ModuleQuizDialog } from "@/components/quiz/ModuleQuizDialog";
 import type { LectureResource, LectureResourceType } from "@/types";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
@@ -43,6 +45,12 @@ interface Section {
   // separately scheduled.
   scheduledStart: string | null;
   scheduledEnd:   string | null;
+  quiz: {
+    id: string;
+    sectionId: string;
+    title: string;
+    questionCount: number;
+  } | null;
 }
 
 interface ProgressRow {
@@ -131,6 +139,8 @@ export function CourseViewer({
   const [activeLecture, setActiveLecture] = useState(initialLecture);
   const [progressMap,   setProgressMap]   = useState(initialProgressMap);
   const [activeTab,     setActiveTab]     = useState<TabKey>("overview");
+  const [quizSection, setQuizSection] = useState<Section | null>(null);
+  const activeLectureId = activeLecture?.id ?? null;
 
   // ─ Resources — feeds the Resources tab AND the "Watch Recording" quick-view
   //   in the video area, so this fetches on every lecture change, not just
@@ -139,13 +149,20 @@ export function CourseViewer({
   const [loadingResources, setLoadingResources]  = useState(false);
 
   useEffect(() => {
-    if (!activeLecture) { setResources([]); return; }
-    setLoadingResources(true);
-    resourcesApi.list(activeLecture.id)
-      .then(setResources)
-      .catch(() => setResources([]))
-      .finally(() => setLoadingResources(false));
-  }, [activeLecture?.id]);
+    if (!activeLectureId) return;
+    let cancelled = false;
+    // Start from a microtask so state transitions are responses to the async
+    // resource load, not synchronous state writes in the effect body.
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setLoadingResources(true);
+      resourcesApi.list(activeLectureId)
+        .then((rows) => { if (!cancelled) setResources(rows); })
+        .catch(() => { if (!cancelled) setResources([]); })
+        .finally(() => { if (!cancelled) setLoadingResources(false); });
+    });
+    return () => { cancelled = true; };
+  }, [activeLectureId]);
 
   // ─ Notes tab — fetch on lecture change, auto-save 1s after typing stops ─────
   // Only the student's own edits are saved, and only into the lecture whose note is loaded:
@@ -159,7 +176,6 @@ export function CourseViewer({
   const noteContentRef = useRef(noteContent);
   useEffect(() => { noteContentRef.current = noteContent; }, [noteContent]);
 
-  const activeLectureId = activeLecture?.id ?? null;
   useEffect(() => {
     if (!activeLectureId) return;
     const lectureId = activeLectureId;
@@ -666,6 +682,31 @@ export function CourseViewer({
                           </button>
                         );
                       })}
+                      <button
+                        onClick={() => setQuizSection(section)}
+                        className={cn(
+                          "mx-3 mt-2 flex w-[calc(100%-1.5rem)] items-center gap-3 rounded-xl border px-3 py-3 text-left transition-colors",
+                          section.quiz
+                            ? "border-brand-100 bg-brand-50/70 hover:border-brand-200 hover:bg-brand-50"
+                            : "cursor-default border-dashed border-surface-200 bg-surface-50/70",
+                        )}
+                      >
+                        <span className={cn(
+                          "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg",
+                          section.quiz ? "bg-white text-brand-600 shadow-sm" : "bg-white text-gray-300",
+                        )}>
+                          <ClipboardCheck size={16} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className={cn("block text-xs font-semibold", section.quiz ? "text-brand-800" : "text-gray-500")}>
+                            End-of-module exercise
+                          </span>
+                          <span className="block text-[10px] text-gray-400">
+                            {section.quiz ? `${section.quiz.questionCount} questions` : "Questions coming soon"}
+                          </span>
+                        </span>
+                        {section.quiz && <ChevronRight size={15} className="text-brand-400" />}
+                      </button>
                     </div>
                   )}
                 </div>
@@ -687,6 +728,13 @@ export function CourseViewer({
         </aside>
         </div>
       </div>
+      {quizSection && (
+        <ModuleQuizDialog
+          sectionId={quizSection.id}
+          sectionTitle={quizSection.title}
+          onClose={() => setQuizSection(null)}
+        />
+      )}
     </div>
   );
 }

@@ -21,6 +21,7 @@ export * from "./emailQueue";
 export * from "./lectureProgress";
 export * from "./lectureResources";
 export * from "./lectureNotes";
+export * from "./moduleQuizzes";
 
 // Messaging: private (student ↔ tutors), announcements, live Q&A, staff (course tutors ↔ admins), direct (tutor ↔ admin team)
 export * from "./conversations";

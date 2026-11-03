@@ -248,7 +248,7 @@ export class EnrollmentService {
   static async getCourseViewerData(studentId: string, courseId: string) {
     const {
       enrollments, courses, courseSections, lectures: lecturesTable,
-      lectureProgress, courseReviews,
+      lectureProgress, moduleQuizzes, quizQuestions,
     } = await import("@/db/schema");
     const { eq, and, inArray } = await import("drizzle-orm");
 
@@ -288,6 +288,26 @@ export class EnrollmentService {
       .orderBy(courseSections.sortOrder);
 
     const sectionIds = sections.map((s) => s.id);
+    const quizRows = sectionIds.length
+      ? await db
+          .select({
+            id: moduleQuizzes.id,
+            sectionId: moduleQuizzes.sectionId,
+            title: moduleQuizzes.title,
+          })
+          .from(moduleQuizzes)
+          .where(and(
+            inArray(moduleQuizzes.sectionId, sectionIds),
+            eq(moduleQuizzes.isPublished, true),
+          ))
+      : [];
+    const quizIds = quizRows.map((q) => q.id);
+    const quizQuestionRows = quizIds.length
+      ? await db
+          .select({ quizId: quizQuestions.quizId })
+          .from(quizQuestions)
+          .where(inArray(quizQuestions.quizId, quizIds))
+      : [];
     const allLectures = sectionIds.length
       ? await db
           .select({
@@ -335,6 +355,14 @@ export class EnrollmentService {
     const sectionsWithLectures = sections.map((s) => ({
       ...s,
       lectures: allLectures.filter((l) => l.sectionId === s.id),
+      quiz: (() => {
+        const quiz = quizRows.find((q) => q.sectionId === s.id);
+        if (!quiz) return null;
+        return {
+          ...quiz,
+          questionCount: quizQuestionRows.filter((q) => q.quizId === quiz.id).length,
+        };
+      })(),
     }));
 
     return {

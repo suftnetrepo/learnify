@@ -17,6 +17,8 @@ import { CourseMessagingService, EnrollmentService } from "@/services";
 import { CourseProgressPanel } from "@/components/progress/CourseProgressPanel";
 import Link from "next/link";
 import { BookOpen, Download } from "lucide-react";
+import { QuizService } from "@/services";
+import { CourseQuizResultsPanel } from "@/components/quiz/CourseQuizResultsPanel";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -37,7 +39,7 @@ export default async function InstructorCourseEditPage({ params }: Props) {
   );
   if (!allowed) redirect("/instructor/courses");
 
-  const [course, sectionsWithLectures, assignment, categories, liveSession, progressReport] = await Promise.all([
+  const [course, sectionsWithLectures, assignment, categories, liveSession, progressReport, quizReport] = await Promise.all([
     CourseService.findById(courseId),
     CourseService.getSectionsWithLectures(courseId),
     session.user.role === "tutor"
@@ -46,6 +48,7 @@ export default async function InstructorCourseEditPage({ params }: Props) {
     CourseService.getCategories(),
     CourseMessagingService.activeSession(courseId),
     EnrollmentService.getCourseProgressReport(courseId),
+    QuizService.getCourseReport(courseId),
   ]);
   if (!course) notFound();
 
@@ -205,6 +208,7 @@ export default async function InstructorCourseEditPage({ params }: Props) {
         tutors={null}
         sessions={null}
         progress={<CourseProgressPanel report={progressReport} />}
+        assessments={<CourseQuizResultsPanel report={quizReport} />}
       />
 
       {studyMindCourse && (

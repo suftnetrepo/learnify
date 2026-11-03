@@ -85,6 +85,20 @@
       "when": 1792821899693,
       "tag": "0011_ai_pass_consent",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793705814825,
+      "tag": "0012_fuzzy_firebird",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793706458189,
+      "tag": "0013_charming_night_thrasher",
+      "breakpoints": true
     }
   ]
 }

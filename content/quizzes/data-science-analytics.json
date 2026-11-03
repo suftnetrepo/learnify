@@ -1,0 +1,301 @@
+{
+  "courseTitle": "Data Science & Analytics Foundations",
+  "sourceDocument": "DATA SCIENCE & ANALYTICS FUNDATION COMPLETE COURSE BOOKLET.pdf",
+  "modules": [
+    {
+      "sortOrder": 2,
+      "sourceReference": "Day 1 content and summary, pages 2–6; answers cross-checked with facilitator pages 10 and 32–33",
+      "title": "Day 1 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "Which three disciplines form the foundation of data science?",
+          "explanation": "The facilitator recap defines data science as the intersection of statistics, programming and domain knowledge.",
+          "options": [
+            { "label": "Statistics, programming and domain knowledge", "correct": true },
+            { "label": "Marketing, finance and human resources", "correct": false },
+            { "label": "Networking, hardware and cybersecurity", "correct": false },
+            { "label": "Design, procurement and operations", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the four types of analytics?",
+          "explanation": "The four types are Descriptive, Diagnostic, Predictive and Prescriptive analytics.",
+          "options": [
+            { "label": "Descriptive, Diagnostic, Predictive and Prescriptive", "correct": true },
+            { "label": "Structured, Unstructured, Semi-structured and Relational", "correct": false },
+            { "label": "Collection, Cleaning, Modelling and Deployment", "correct": false },
+            { "label": "Mean, Median, Mode and Standard Deviation", "correct": false }
+          ]
+        },
+        {
+          "question": "Which type of analytics answers 'Why did it happen?'",
+          "explanation": "Diagnostic analytics investigates the factors or reasons behind past performance.",
+          "options": [
+            { "label": "Diagnostic analytics", "correct": true },
+            { "label": "Descriptive analytics", "correct": false },
+            { "label": "Predictive analytics", "correct": false },
+            { "label": "Prescriptive analytics", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the correct data science lifecycle sequence?",
+          "explanation": "The lifecycle is Ask, Gather, Clean, Explore, Model, Evaluate and Communicate, and it is iterative rather than strictly linear.",
+          "options": [
+            { "label": "Ask, Gather, Clean, Explore, Model, Evaluate, Communicate", "correct": true },
+            { "label": "Model, Deploy, Gather, Clean, Ask, Evaluate, Archive", "correct": false },
+            { "label": "Plan, Budget, Build, Test, Sell, Support, Close", "correct": false },
+            { "label": "Collect, Publish, Visualise, Delete, Repeat", "correct": false }
+          ]
+        },
+        {
+          "question": "How does a Data Analyst's primary focus differ from a Data Scientist's?",
+          "explanation": "A Data Analyst primarily explains what happened through reports and dashboards, while a Data Scientist builds models to predict what may happen.",
+          "options": [
+            { "label": "Analysts focus on what happened; Data Scientists focus on what may happen", "correct": true },
+            { "label": "Analysts build hardware; Data Scientists manage networks", "correct": false },
+            { "label": "Analysts use no data; Data Scientists use only images", "correct": false },
+            { "label": "The roles always have identical responsibilities", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 3,
+      "sourceReference": "Day 2 content and summary, pages 7–10; answers cross-checked with facilitator pages 17 and 33",
+      "title": "Day 2 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "Which is an example of structured data?",
+          "explanation": "Structured data is organised into rows and columns, such as SQL tables, spreadsheets and CSV files.",
+          "options": [
+            { "label": "A customer table in a SQL database", "correct": true },
+            { "label": "A collection of unlabelled photographs", "correct": false },
+            { "label": "A recorded customer-support call", "correct": false },
+            { "label": "A free-form video archive", "correct": false }
+          ]
+        },
+        {
+          "question": "Which list contains common data quality issues?",
+          "explanation": "The module highlights missing values, duplicates, inconsistent formats, outliers and typos as common quality issues.",
+          "options": [
+            { "label": "Missing values, duplicates, inconsistent formats and outliers", "correct": true },
+            { "label": "Charts, dashboards, models and reports", "correct": false },
+            { "label": "Rows, columns, tables and keys", "correct": false },
+            { "label": "Training, testing, deployment and monitoring", "correct": false }
+          ]
+        },
+        {
+          "question": "What should you do before removing an apparent outlier?",
+          "explanation": "Outliers should be investigated using context and domain knowledge before removal because they may be valid observations.",
+          "options": [
+            { "label": "Investigate it and consider domain knowledge", "correct": true },
+            { "label": "Delete it immediately in every case", "correct": false },
+            { "label": "Replace it with zero without checking", "correct": false },
+            { "label": "Duplicate it to balance the dataset", "correct": false }
+          ]
+        },
+        {
+          "question": "Which transformation combines records from different datasets?",
+          "explanation": "Joining combines related data from two or more datasets.",
+          "options": [
+            { "label": "Joining", "correct": true },
+            { "label": "Sorting", "correct": false },
+            { "label": "Filtering", "correct": false },
+            { "label": "Pivoting", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the best treatment for duplicate records?",
+          "explanation": "Duplicates should be identified and deduplicated, retaining the first or most complete valid record according to an explicit rule.",
+          "options": [
+            { "label": "Identify and remove duplicates using a defined retention rule", "correct": true },
+            { "label": "Keep every duplicate because more rows always improve analysis", "correct": false },
+            { "label": "Convert duplicates into missing values", "correct": false },
+            { "label": "Change only the column names", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 4,
+      "sourceReference": "Day 3 content and summary, pages 11–13; answers cross-checked with facilitator pages 22 and 34",
+      "title": "Day 3 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What is Exploratory Data Analysis (EDA)?",
+          "explanation": "EDA explores data to understand its characteristics, quality, patterns and relationships before formal modelling.",
+          "options": [
+            { "label": "Exploring data to understand it before formal modelling", "correct": true },
+            { "label": "Deploying a completed model into production", "correct": false },
+            { "label": "Removing every unusual value from a dataset", "correct": false },
+            { "label": "Creating only the final executive presentation", "correct": false }
+          ]
+        },
+        {
+          "question": "Which statistic is the middle value and is robust to outliers?",
+          "explanation": "The median is the middle ordered value and is less affected by extreme values than the mean.",
+          "options": [
+            { "label": "Median", "correct": true },
+            { "label": "Mean", "correct": false },
+            { "label": "Mode", "correct": false },
+            { "label": "Maximum", "correct": false }
+          ]
+        },
+        {
+          "question": "Which chart is best for showing revenue trends over time?",
+          "explanation": "A line chart is well suited to showing change and trends across time.",
+          "options": [
+            { "label": "Line chart", "correct": true },
+            { "label": "Pie chart", "correct": false },
+            { "label": "Histogram", "correct": false },
+            { "label": "Scatter plot", "correct": false }
+          ]
+        },
+        {
+          "question": "Which chart is best for examining the relationship between ad spend and sales?",
+          "explanation": "A scatter plot shows the relationship between two numerical variables.",
+          "options": [
+            { "label": "Scatter plot", "correct": true },
+            { "label": "Pie chart", "correct": false },
+            { "label": "Single-value card", "correct": false },
+            { "label": "Text table without values", "correct": false }
+          ]
+        },
+        {
+          "question": "Which is a sound data-visualisation practice?",
+          "explanation": "Effective visualisations use the right chart, label axes and titles, avoid clutter and use honest scales.",
+          "options": [
+            { "label": "Label axes and titles and remove unnecessary clutter", "correct": true },
+            { "label": "Remove labels so the chart looks cleaner", "correct": false },
+            { "label": "Distort the scale to make small changes look dramatic", "correct": false },
+            { "label": "Use as many colours and decorations as possible", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 5,
+      "sourceReference": "Day 4 content and summary, pages 14–17; answers cross-checked with facilitator pages 27 and 34",
+      "title": "Day 4 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What is the difference between correlation and causation?",
+          "explanation": "Correlation indicates a relationship; causation means one variable produces a change in another. Correlation alone does not prove causation.",
+          "options": [
+            { "label": "Correlation is a relationship; causation means one variable causes the other", "correct": true },
+            { "label": "Correlation always proves causation", "correct": false },
+            { "label": "Causation measures averages; correlation measures totals", "correct": false },
+            { "label": "They are identical concepts", "correct": false }
+          ]
+        },
+        {
+          "question": "What does a p-value of 0.03 indicate at a 0.05 significance level?",
+          "explanation": "A p-value of 0.03 is below 0.05, so the result is statistically significant and the null hypothesis is rejected.",
+          "options": [
+            { "label": "The result is statistically significant, so reject the null hypothesis", "correct": true },
+            { "label": "The result is not significant, so accept every alternative claim", "correct": false },
+            { "label": "The model is exactly 97% accurate", "correct": false },
+            { "label": "There is a 30% probability that the data is correct", "correct": false }
+          ]
+        },
+        {
+          "question": "Which machine-learning type learns from labelled data?",
+          "explanation": "Supervised learning trains on labelled examples to predict outcomes such as classes or continuous values.",
+          "options": [
+            { "label": "Supervised learning", "correct": true },
+            { "label": "Unsupervised learning", "correct": false },
+            { "label": "Reinforcement learning", "correct": false },
+            { "label": "Descriptive analytics", "correct": false }
+          ]
+        },
+        {
+          "question": "Which machine-learning approach is appropriate for grouping customers by behaviour without existing labels?",
+          "explanation": "Unsupervised learning identifies patterns or clusters in unlabelled data; K-Means is a clustering algorithm covered in the module.",
+          "options": [
+            { "label": "Unsupervised learning", "correct": true },
+            { "label": "Supervised learning", "correct": false },
+            { "label": "Reinforcement learning", "correct": false },
+            { "label": "Manual reporting only", "correct": false }
+          ]
+        },
+        {
+          "question": "Why should a model be evaluated on separate test data?",
+          "explanation": "Unseen test data provides a more honest estimate of how the model generalises beyond the examples used for training.",
+          "options": [
+            { "label": "To measure performance on unseen data and assess generalisation", "correct": true },
+            { "label": "To make the training data larger", "correct": false },
+            { "label": "To guarantee the model has no errors", "correct": false },
+            { "label": "To avoid choosing an evaluation metric", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 6,
+      "sourceReference": "Day 5 content and summary, pages 18–21; answers cross-checked with facilitator pages 28 and 34",
+      "title": "Day 5 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What is the correct structure of a data story?",
+          "explanation": "The course structures a data story as Context, Data, Insight and Recommendation.",
+          "options": [
+            { "label": "Context, Data, Insight, Recommendation", "correct": true },
+            { "label": "Budget, Schedule, Scope, Closure", "correct": false },
+            { "label": "Code, Test, Deploy, Monitor", "correct": false },
+            { "label": "Title, Colour, Animation, Appendix", "correct": false }
+          ]
+        },
+        {
+          "question": "What do executives usually care about most in a data presentation?",
+          "explanation": "Executives typically need the business impact and a clear recommendation rather than detailed methodology.",
+          "options": [
+            { "label": "Business impact and recommendations", "correct": true },
+            { "label": "Every line of source code", "correct": false },
+            { "label": "Only detailed statistical formulas", "correct": false },
+            { "label": "A complete raw-data export", "correct": false }
+          ]
+        },
+        {
+          "question": "Which role primarily focuses on building and maintaining data pipelines?",
+          "explanation": "Data Engineers focus on data pipelines and commonly use technologies such as SQL, Spark and Airflow.",
+          "options": [
+            { "label": "Data Engineer", "correct": true },
+            { "label": "Data Analyst", "correct": false },
+            { "label": "BI Developer", "correct": false },
+            { "label": "Project Sponsor", "correct": false }
+          ]
+        },
+        {
+          "question": "What makes a strong beginner data portfolio?",
+          "explanation": "The module recommends two or three varied projects using real data, with the process documented and the story clearly communicated.",
+          "options": [
+            { "label": "A few varied real-data projects with documented process, insight and recommendation", "correct": true },
+            { "label": "A list of tools without any completed projects", "correct": false },
+            { "label": "Only screenshots with no explanation or data source", "correct": false },
+            { "label": "One copied project with no personal analysis", "correct": false }
+          ]
+        },
+        {
+          "question": "In the churn scenario, what recommendation follows from finding that customers with more than three first-month support calls are five times more likely to churn?",
+          "explanation": "The facilitator answer recommends proactive outreach to high-contact customers based on the identified churn risk.",
+          "options": [
+            { "label": "Proactively contact and support high-contact customers", "correct": true },
+            { "label": "Stop recording support calls", "correct": false },
+            { "label": "Remove those customers from the dataset", "correct": false },
+            { "label": "Ignore the finding until every customer has churned", "correct": false }
+          ]
+        }
+      ]
+    }
+  ]
+}

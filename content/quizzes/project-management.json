@@ -1,0 +1,301 @@
+{
+  "courseTitle": "Project Management Foundations",
+  "sourceDocument": "PROJECT MANAGEMENT FOUNDATIONS COMPLETE COURSE BOOKLET.pdf",
+  "modules": [
+    {
+      "sortOrder": 2,
+      "sourceReference": "Day 1 Summary — Quiz Yourself, page 7; answers cross-checked with facilitator Day 1 recap",
+      "title": "Day 1 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What is the difference between a project and an operation?",
+          "explanation": "A project is temporary and creates a unique result; operations are ongoing and repetitive.",
+          "options": [
+            { "label": "A project is temporary and unique; operations are ongoing and repetitive", "correct": true },
+            { "label": "A project is ongoing; operations always have a fixed end date", "correct": false },
+            { "label": "Projects produce reports; operations produce physical products", "correct": false },
+            { "label": "There is no meaningful difference", "correct": false }
+          ]
+        },
+        {
+          "question": "Name the five phases of the project lifecycle.",
+          "explanation": "The lifecycle phases are Initiation, Planning, Execution, Monitoring & Control, and Closure.",
+          "options": [
+            { "label": "Initiation, Planning, Execution, Monitoring & Control, Closure", "correct": true },
+            { "label": "Discovery, Design, Coding, Testing, Support", "correct": false },
+            { "label": "Scope, Time, Cost, Quality, Risk", "correct": false },
+            { "label": "Request, Approval, Purchase, Delivery, Payment", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the triple constraint?",
+          "explanation": "The triple constraint balances project scope, time and cost.",
+          "options": [
+            { "label": "Scope, time and cost", "correct": true },
+            { "label": "People, process and technology", "correct": false },
+            { "label": "Risk, quality and communication", "correct": false },
+            { "label": "Initiation, execution and closure", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the five process groups?",
+          "explanation": "The process groups are Initiating, Planning, Executing, Monitoring & Controlling, and Closing.",
+          "options": [
+            { "label": "Initiating, Planning, Executing, Monitoring & Controlling, Closing", "correct": true },
+            { "label": "Concept, Design, Build, Launch, Maintain", "correct": false },
+            { "label": "Scope, Schedule, Budget, Quality, People", "correct": false },
+            { "label": "Request, Review, Approve, Deliver, Audit", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the core responsibilities of a project manager?",
+          "explanation": "The project manager plans, leads, communicates, monitors, controls and closes the project.",
+          "options": [
+            { "label": "Plan, lead, communicate, monitor, control and close", "correct": true },
+            { "label": "Write all code and perform every project task", "correct": false },
+            { "label": "Approve only the budget and leave delivery to others", "correct": false },
+            { "label": "Avoid stakeholder communication until closure", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 3,
+      "sourceReference": "Day 2 Summary — Quiz Yourself, page 13; answers cross-checked with facilitator Day 2 recap",
+      "title": "Day 2 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What is a project charter?",
+          "explanation": "A project charter formally authorises the project and establishes its purpose, objectives, high-level scope and key stakeholders.",
+          "options": [
+            { "label": "The document that formally authorises a project", "correct": true },
+            { "label": "The detailed list of every project task and resource", "correct": false },
+            { "label": "The final report produced after project closure", "correct": false },
+            { "label": "A contract used only for external suppliers", "correct": false }
+          ]
+        },
+        {
+          "question": "How do you prioritize stakeholders?",
+          "explanation": "Stakeholders are commonly prioritised by their level of power or influence and their interest in the project.",
+          "options": [
+            { "label": "Assess their power or influence and their level of interest", "correct": true },
+            { "label": "Rank them only by job title", "correct": false },
+            { "label": "Engage only stakeholders who support the project", "correct": false },
+            { "label": "Prioritise them by the order in which they were identified", "correct": false }
+          ]
+        },
+        {
+          "question": "What is a WBS?",
+          "explanation": "A Work Breakdown Structure decomposes project scope into smaller, manageable work packages.",
+          "options": [
+            { "label": "A hierarchical decomposition of project work into manageable packages", "correct": true },
+            { "label": "A chart ranking stakeholder power and interest", "correct": false },
+            { "label": "A calculation of project cost variance", "correct": false },
+            { "label": "A register of completed lessons learned", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the critical path?",
+          "explanation": "The critical path is the longest sequence of dependent activities and determines the shortest possible project duration.",
+          "options": [
+            { "label": "The longest dependent sequence that determines project duration", "correct": true },
+            { "label": "The least expensive sequence of activities", "correct": false },
+            { "label": "The list of tasks assigned to the project manager", "correct": false },
+            { "label": "Every activity with an identified risk", "correct": false }
+          ]
+        },
+        {
+          "question": "Name three cost estimation techniques.",
+          "explanation": "The module covers analogous, parametric and bottom-up cost estimation.",
+          "options": [
+            { "label": "Analogous, parametric and bottom-up", "correct": true },
+            { "label": "Agile, Waterfall and Hybrid", "correct": false },
+            { "label": "Avoid, transfer and accept", "correct": false },
+            { "label": "Forming, storming and norming", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 4,
+      "sourceReference": "Day 3 Summary — Quiz Yourself, page 18; answers cross-checked with facilitator Day 3 guidance",
+      "title": "Day 3 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What are the four leadership styles?",
+          "explanation": "Situational leadership uses Directing, Coaching, Supporting and Delegating styles based on team needs.",
+          "options": [
+            { "label": "Directing, Coaching, Supporting and Delegating", "correct": true },
+            { "label": "Planning, Executing, Monitoring and Closing", "correct": false },
+            { "label": "Avoiding, Transferring, Mitigating and Accepting", "correct": false },
+            { "label": "Formal, Informal, Written and Verbal", "correct": false }
+          ]
+        },
+        {
+          "question": "Name Tuckman's five stages of team development.",
+          "explanation": "The stages are Forming, Storming, Norming, Performing and Adjourning.",
+          "options": [
+            { "label": "Forming, Storming, Norming, Performing and Adjourning", "correct": true },
+            { "label": "Initiating, Planning, Executing, Controlling and Closing", "correct": false },
+            { "label": "Discovering, Designing, Building, Testing and Releasing", "correct": false },
+            { "label": "Directing, Coaching, Supporting, Delegating and Reviewing", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the five conflict resolution approaches?",
+          "explanation": "The module identifies Collaborate, Compromise, Accommodate, Avoid and Compete.",
+          "options": [
+            { "label": "Collaborate, Compromise, Accommodate, Avoid and Compete", "correct": true },
+            { "label": "Plan, Assure, Control, Inspect and Close", "correct": false },
+            { "label": "Identify, Analyse, Transfer, Monitor and Audit", "correct": false },
+            { "label": "Direct, Coach, Support, Delegate and Escalate", "correct": false }
+          ]
+        },
+        {
+          "question": "What makes an effective status report?",
+          "explanation": "A useful status report clearly shows overall status, accomplishments, planned work, and issues or risks.",
+          "options": [
+            { "label": "Clear overall status, accomplishments, planned activities, and issues or risks", "correct": true },
+            { "label": "A complete transcript of every project conversation", "correct": false },
+            { "label": "Only positive news with no risks or issues", "correct": false },
+            { "label": "Technical details without an overall status", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the difference between quality assurance and quality control?",
+          "explanation": "Quality assurance is process-focused and prevents defects; quality control inspects deliverables and identifies defects.",
+          "options": [
+            { "label": "Assurance improves processes; control inspects deliverables", "correct": true },
+            { "label": "Assurance happens after closure; control happens before initiation", "correct": false },
+            { "label": "Assurance manages cost; control manages schedule", "correct": false },
+            { "label": "They are the same activity", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 5,
+      "sourceReference": "Day 4 Summary — Quiz Yourself, page 24; answers cross-checked with facilitator monitoring and risk guidance",
+      "title": "Day 4 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What is EVM?",
+          "explanation": "Earned Value Management integrates scope, schedule and cost information to measure project performance.",
+          "options": [
+            { "label": "A method integrating scope, schedule and cost to measure performance", "correct": true },
+            { "label": "A technique used only to identify stakeholders", "correct": false },
+            { "label": "A process for choosing a project methodology", "correct": false },
+            { "label": "A quality inspection performed at closure", "correct": false }
+          ]
+        },
+        {
+          "question": "What does SPI < 1 mean?",
+          "explanation": "A Schedule Performance Index below 1 means the project is behind schedule.",
+          "options": [
+            { "label": "The project is behind schedule", "correct": true },
+            { "label": "The project is ahead of schedule", "correct": false },
+            { "label": "The project is under budget", "correct": false },
+            { "label": "The project has no schedule variance", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the change control board?",
+          "explanation": "The change control board is the authorised group that reviews, approves, rejects or defers project change requests.",
+          "options": [
+            { "label": "The group authorised to review and decide on change requests", "correct": true },
+            { "label": "The team that performs all project work", "correct": false },
+            { "label": "The supplier panel that sets contract prices", "correct": false },
+            { "label": "The group that writes the lessons learned report", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the risk response strategies?",
+          "explanation": "For threats, the module covers Avoid, Mitigate, Transfer and Accept.",
+          "options": [
+            { "label": "Avoid, mitigate, transfer and accept", "correct": true },
+            { "label": "Initiate, plan, execute and close", "correct": false },
+            { "label": "Direct, coach, support and delegate", "correct": false },
+            { "label": "Measure, analyse, design and verify", "correct": false }
+          ]
+        },
+        {
+          "question": "What's the difference between an issue and a risk?",
+          "explanation": "A risk is an uncertain future event; an issue has already occurred and requires action.",
+          "options": [
+            { "label": "A risk may happen; an issue has already happened", "correct": true },
+            { "label": "A risk is always negative; an issue is always positive", "correct": false },
+            { "label": "A risk affects schedule; an issue affects only cost", "correct": false },
+            { "label": "There is no difference", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 6,
+      "sourceReference": "Day 5 Summary — Quiz Yourself, page 30; answers cross-checked with facilitator closure and certification guidance",
+      "title": "Day 5 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What are the key closure activities?",
+          "explanation": "Closure includes obtaining acceptance, completing handover, closing contracts, releasing resources, archiving records and documenting lessons learned.",
+          "options": [
+            { "label": "Acceptance, handover, contract closure, resource release, archiving and lessons learned", "correct": true },
+            { "label": "Creating the charter and identifying initial stakeholders", "correct": false },
+            { "label": "Estimating costs and building the first schedule", "correct": false },
+            { "label": "Avoiding documentation so the team can move quickly", "correct": false }
+          ]
+        },
+        {
+          "question": "What is lessons learned?",
+          "explanation": "Lessons learned capture what worked, what did not and recommendations that can improve future projects.",
+          "options": [
+            { "label": "Knowledge captured from project experience for use on future projects", "correct": true },
+            { "label": "A list of tasks that remain incomplete at closure", "correct": false },
+            { "label": "The final project budget approval", "correct": false },
+            { "label": "A replacement for stakeholder acceptance", "correct": false }
+          ]
+        },
+        {
+          "question": "When would you choose Waterfall vs Agile?",
+          "explanation": "Waterfall suits stable, well-defined requirements; Agile suits evolving requirements and frequent feedback. Hybrid combines elements of both.",
+          "options": [
+            { "label": "Waterfall for stable requirements; Agile for evolving requirements and frequent feedback", "correct": true },
+            { "label": "Waterfall for every software project; Agile only for construction", "correct": false },
+            { "label": "Agile when no stakeholder feedback is available", "correct": false },
+            { "label": "Choose solely according to project budget", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the PMP exam domains?",
+          "explanation": "The course identifies People, Process and Business Environment as the PMP exam domains.",
+          "options": [
+            { "label": "People, Process and Business Environment", "correct": true },
+            { "label": "Scope, Time and Cost", "correct": false },
+            { "label": "Initiation, Planning and Closure", "correct": false },
+            { "label": "Waterfall, Agile and Hybrid", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the 10 knowledge areas?",
+          "explanation": "The ten are Integration, Scope, Schedule, Cost, Quality, Resource, Communications, Risk, Procurement and Stakeholder Management.",
+          "options": [
+            { "label": "Integration, Scope, Schedule, Cost, Quality, Resource, Communications, Risk, Procurement and Stakeholder", "correct": true },
+            { "label": "Initiating, Planning, Executing, Monitoring and Closing only", "correct": false },
+            { "label": "People, Process, Technology, Finance and Operations only", "correct": false },
+            { "label": "Waterfall, Agile, Scrum, Kanban and Hybrid only", "correct": false }
+          ]
+        }
+      ]
+    }
+  ]
+}

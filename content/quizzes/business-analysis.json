@@ -1,0 +1,301 @@
+{
+  "courseTitle": "Business Analysis Foundations",
+  "sourceDocument": "BUSINESS ANALYSIS COMPLETE COURSE BOOKLET.pdf",
+  "modules": [
+    {
+      "sortOrder": 2,
+      "sourceReference": "Day 1 Summary — Quiz Yourself, page 7; answers cross-checked with facilitator page 10",
+      "title": "Day 1 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What is the definition of business analysis?",
+          "explanation": "Business analysis enables change by defining needs and recommending solutions that deliver value to stakeholders.",
+          "options": [
+            { "label": "Enabling change by defining needs and recommending solutions that deliver value", "correct": true },
+            { "label": "Managing a project schedule, budget and delivery team", "correct": false },
+            { "label": "Writing software specifications without stakeholder involvement", "correct": false },
+            { "label": "Auditing completed projects for financial compliance", "correct": false }
+          ]
+        },
+        {
+          "question": "How does the BA role differ from the Project Manager role?",
+          "explanation": "The BA defines the right solution; the Project Manager focuses on delivering the solution.",
+          "options": [
+            { "label": "The BA defines the right solution; the PM delivers the solution", "correct": true },
+            { "label": "The BA owns the budget; the PM writes all requirements", "correct": false },
+            { "label": "The BA manages developers; the PM manages stakeholders", "correct": false },
+            { "label": "There is no practical difference between the two roles", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the six concepts of the BACCM™?",
+          "explanation": "The six core concepts are Change, Need, Solution, Stakeholder, Value and Context.",
+          "options": [
+            { "label": "Change, Need, Solution, Stakeholder, Value and Context", "correct": true },
+            { "label": "Scope, Time, Cost, Quality, Risk and Resource", "correct": false },
+            { "label": "Plan, Build, Test, Release, Operate and Review", "correct": false },
+            { "label": "Vision, Mission, Goal, Strategy, Action and Result", "correct": false }
+          ]
+        },
+        {
+          "question": "Name three of the six knowledge areas.",
+          "explanation": "The BABOK knowledge areas include Planning & Monitoring, Elicitation & Collaboration, Requirements Life Cycle Management, Strategy Analysis, Requirements Analysis & Design Definition and Solution Evaluation.",
+          "options": [
+            { "label": "Strategy Analysis, Elicitation & Collaboration, and Solution Evaluation", "correct": true },
+            { "label": "Procurement, Cost Control, and Quality Assurance", "correct": false },
+            { "label": "Recruitment, Payroll, and Performance Management", "correct": false },
+            { "label": "Development, Deployment, and Infrastructure Operations", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the underlying competencies of a BA?",
+          "explanation": "The competency categories are Analytical Thinking, Behavioral Characteristics, Business Knowledge, Communication, Interaction and Software Knowledge.",
+          "options": [
+            { "label": "Analytical, behavioral, business, communication, interaction and software knowledge", "correct": true },
+            { "label": "Budgeting, scheduling, procurement, auditing, hiring and contracting", "correct": false },
+            { "label": "Coding, testing, deployment, networking, security and support", "correct": false },
+            { "label": "Marketing, sales, advertising, branding, pricing and distribution", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 3,
+      "sourceReference": "Day 2 Summary — Quiz Yourself, page 13; answers cross-checked with facilitator Day 2 recap",
+      "title": "Day 2 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What are the three phases of Strategy Analysis?",
+          "explanation": "Strategy Analysis examines the current state, defines the future state and determines the change strategy needed to bridge the gap.",
+          "options": [
+            { "label": "Analyze current state, define future state, and assess risks/change strategy", "correct": true },
+            { "label": "Elicit requirements, write code, and deploy software", "correct": false },
+            { "label": "Recruit staff, allocate desks, and approve payroll", "correct": false },
+            { "label": "Create a budget, run testing, and close the project", "correct": false }
+          ]
+        },
+        {
+          "question": "What is a SMART objective?",
+          "explanation": "SMART objectives are Specific, Measurable, Achievable, Relevant and Time-bound.",
+          "options": [
+            { "label": "Specific, Measurable, Achievable, Relevant and Time-bound", "correct": true },
+            { "label": "Simple, Managed, Approved, Recorded and Tested", "correct": false },
+            { "label": "Strategic, Marketable, Agile, Repeatable and Technical", "correct": false },
+            { "label": "Scoped, Monitored, Assigned, Resourced and Traceable", "correct": false }
+          ]
+        },
+        {
+          "question": "How do you identify stakeholders?",
+          "explanation": "Stakeholders are identified by considering everyone affected by, influencing, deciding on, funding or using the proposed change.",
+          "options": [
+            { "label": "Identify people and groups affected by or able to influence the change", "correct": true },
+            { "label": "Include only the project sponsor and senior management", "correct": false },
+            { "label": "Include only people who will use the final system", "correct": false },
+            { "label": "Wait until requirements are complete before identifying anyone", "correct": false }
+          ]
+        },
+        {
+          "question": "What is a RACI matrix?",
+          "explanation": "A RACI matrix clarifies who is Responsible, Accountable, Consulted and Informed for activities or decisions.",
+          "options": [
+            { "label": "A responsibility chart showing Responsible, Accountable, Consulted and Informed roles", "correct": true },
+            { "label": "A financial model for calculating return on investment", "correct": false },
+            { "label": "A diagram showing database entities and relationships", "correct": false },
+            { "label": "A method for ranking requirements by business value", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the four types of business risk?",
+          "explanation": "The module groups business risks as strategic, operational, financial and compliance risks.",
+          "options": [
+            { "label": "Strategic, operational, financial and compliance", "correct": true },
+            { "label": "High, medium, low and closed", "correct": false },
+            { "label": "Internal, external, temporary and permanent", "correct": false },
+            { "label": "Scope, schedule, quality and communication", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 4,
+      "sourceReference": "Day 3 Summary — Quiz Yourself, page 19; answers cross-checked with facilitator Day 3 recap",
+      "title": "Day 3 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What is elicitation?",
+          "explanation": "Elicitation is an iterative process of drawing out information from stakeholders and other sources.",
+          "options": [
+            { "label": "An iterative process of drawing out information from stakeholders and other sources", "correct": true },
+            { "label": "A one-time meeting used to approve a finished specification", "correct": false },
+            { "label": "The technical process of converting requirements into code", "correct": false },
+            { "label": "A financial review performed after delivery", "correct": false }
+          ]
+        },
+        {
+          "question": "Which set contains three valid elicitation techniques?",
+          "explanation": "Interviews, workshops and observation are established elicitation techniques; prototypes are another technique covered in the module.",
+          "options": [
+            { "label": "Interviews, workshops and observation", "correct": true },
+            { "label": "Budgeting, procurement and auditing", "correct": false },
+            { "label": "Coding, deployment and monitoring", "correct": false },
+            { "label": "Recruitment, payroll and appraisal", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the difference between functional and non-functional requirements?",
+          "explanation": "Functional requirements describe what a solution does; non-functional requirements describe how well it performs or the constraints it must meet.",
+          "options": [
+            { "label": "Functional describes what the system does; non-functional describes how well it does it", "correct": true },
+            { "label": "Functional is mandatory; non-functional is always optional", "correct": false },
+            { "label": "Functional is technical; non-functional is purely financial", "correct": false },
+            { "label": "There is no difference between the two", "correct": false }
+          ]
+        },
+        {
+          "question": "What does MoSCoW stand for?",
+          "explanation": "MoSCoW prioritises requirements as Must have, Should have, Could have and Won't have this time.",
+          "options": [
+            { "label": "Must have, Should have, Could have, Won't have this time", "correct": true },
+            { "label": "Measure, Scope, Cost, Work and Output", "correct": false },
+            { "label": "Model, Specify, Confirm, Write and Operate", "correct": false },
+            { "label": "Mandatory, Standard, Conditional and Withdrawn", "correct": false }
+          ]
+        },
+        {
+          "question": "Why is traceability important?",
+          "explanation": "Traceability links requirements to business goals, stakeholders and tests so coverage and the impact of change can be understood.",
+          "options": [
+            { "label": "It links requirements to goals, stakeholders and tests and supports change impact analysis", "correct": true },
+            { "label": "It removes the need to validate requirements with stakeholders", "correct": false },
+            { "label": "It guarantees that a project will finish under budget", "correct": false },
+            { "label": "It replaces requirements prioritisation", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 5,
+      "sourceReference": "Day 4 Summary — Quiz Yourself, page 26; answers cross-checked with facilitator Day 4 recap",
+      "title": "Day 4 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What makes a good requirement?",
+          "explanation": "Good requirements are clear, complete, consistent, testable, feasible and traceable.",
+          "options": [
+            { "label": "Clear, complete, consistent, testable, feasible and traceable", "correct": true },
+            { "label": "Short, technical, fixed, confidential and unreviewed", "correct": false },
+            { "label": "Ambitious, broad, informal and solution-specific", "correct": false },
+            { "label": "Approved only by the development team", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the difference between as-is and to-be models?",
+          "explanation": "An as-is model represents the current process or state; a to-be model represents the desired future process or state.",
+          "options": [
+            { "label": "As-is shows the current state; to-be shows the desired future state", "correct": true },
+            { "label": "As-is shows requirements; to-be shows project costs", "correct": false },
+            { "label": "As-is is for users; to-be is only for developers", "correct": false },
+            { "label": "As-is is approved; to-be is rejected", "correct": false }
+          ]
+        },
+        {
+          "question": "What is an ERD?",
+          "explanation": "An Entity Relationship Diagram models data entities and the relationships between them.",
+          "options": [
+            { "label": "A diagram of data entities and their relationships", "correct": true },
+            { "label": "A register of project expenses and delivery dates", "correct": false },
+            { "label": "A chart of stakeholder influence and interest", "correct": false },
+            { "label": "A sequence of user-interface screens", "correct": false }
+          ]
+        },
+        {
+          "question": "What is a user story format?",
+          "explanation": "The standard format is: As a [user], I want [goal], so that [benefit].",
+          "options": [
+            { "label": "As a [user], I want [goal], so that [benefit]", "correct": true },
+            { "label": "Given [budget], when [deadline], then [scope]", "correct": false },
+            { "label": "Who, what, when, where and cost", "correct": false },
+            { "label": "Problem, algorithm, code and test", "correct": false }
+          ]
+        },
+        {
+          "question": "What is the difference between verification and validation?",
+          "explanation": "Verification checks requirement quality and correctness; validation checks that requirements and the solution meet stakeholder needs.",
+          "options": [
+            { "label": "Verification checks quality; validation checks that the right needs are met", "correct": true },
+            { "label": "Verification is performed after delivery; validation is never required", "correct": false },
+            { "label": "Verification checks cost; validation checks schedule", "correct": false },
+            { "label": "They are identical quality activities", "correct": false }
+          ]
+        }
+      ]
+    },
+    {
+      "sortOrder": 6,
+      "sourceReference": "Day 5 Summary — Quiz Yourself, page 32; answers cross-checked with facilitator certification and competency guidance",
+      "title": "Day 5 Knowledge Check",
+      "instructions": "Choose the best answer for each question. You can retake this exercise after reviewing the module.",
+      "passMark": 70,
+      "questions": [
+        {
+          "question": "What is the purpose of Solution Evaluation?",
+          "explanation": "Solution Evaluation assesses how well a deployed solution delivers value and identifies opportunities for improvement.",
+          "options": [
+            { "label": "Assess value delivery and identify opportunities for improvement", "correct": true },
+            { "label": "Approve the original project budget before work begins", "correct": false },
+            { "label": "Replace stakeholder elicitation with system testing", "correct": false },
+            { "label": "Select the programming language for a solution", "correct": false }
+          ]
+        },
+        {
+          "question": "Which factors indicate organizational readiness for change?",
+          "explanation": "Readiness is indicated by leadership support, stakeholder commitment, capability, capacity and effective communication and training plans.",
+          "options": [
+            { "label": "Leadership support, stakeholder commitment, capability, capacity and change preparation", "correct": true },
+            { "label": "Only the availability of a technology budget", "correct": false },
+            { "label": "A completed solution with no user involvement", "correct": false },
+            { "label": "The number of requirements in the specification", "correct": false }
+          ]
+        },
+        {
+          "question": "Which set contains three BA underlying competencies?",
+          "explanation": "Underlying competency categories include analytical thinking, communication, interaction, behavioural characteristics, business knowledge and software knowledge.",
+          "options": [
+            { "label": "Analytical thinking, communication and interaction skills", "correct": true },
+            { "label": "Procurement, payroll and recruitment", "correct": false },
+            { "label": "Coding, deployment and network administration", "correct": false },
+            { "label": "Budget control, scheduling and contract management", "correct": false }
+          ]
+        },
+        {
+          "question": "What are the three IIBA certification levels?",
+          "explanation": "The course identifies ECBA as entry-level, CCBA as intermediate and CBAP as advanced.",
+          "options": [
+            { "label": "ECBA, CCBA and CBAP", "correct": true },
+            { "label": "CAPM, PMP and PRINCE2", "correct": false },
+            { "label": "PSM I, PSM II and CSM", "correct": false },
+            { "label": "Foundation, Practitioner and Architect", "correct": false }
+          ]
+        },
+        {
+          "question": "How should you prepare for a BA certification exam?",
+          "explanation": "Effective preparation combines understanding the exam blueprint, studying BABOK concepts, practising questions and following a structured study plan.",
+          "options": [
+            { "label": "Use the exam blueprint, study core concepts, practise questions and follow a study plan", "correct": true },
+            { "label": "Memorise terminology only on the day before the exam", "correct": false },
+            { "label": "Study software development tools instead of BA concepts", "correct": false },
+            { "label": "Skip practice questions to avoid learning incorrect patterns", "correct": false }
+          ]
+        }
+      ]
+    }
+  ]
+}
