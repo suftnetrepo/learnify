@@ -248,38 +248,48 @@ export class EnrollmentService {
   static async getCourseViewerData(studentId: string, courseId: string) {
     const {
       enrollments, courses, courseSections, lectures: lecturesTable,
-      lectureProgress, moduleQuizzes, quizQuestions,
+      lectureProgress, moduleQuizzes, quizQuestions, courseReviews,
     } = await import("@/db/schema");
-    const { eq, and, inArray } = await import("drizzle-orm");
+    const { eq, and, inArray, count } = await import("drizzle-orm");
 
-    const [enrollment] = await db
+    // Enrollment and course are always consumed together. Fetching them in one
+    // join removes a full Neon round trip from every course-viewer request.
+    const [viewer] = await db
       .select({
-        id:             enrollments.id,
-        progress:       enrollments.progress,
-        completedAt:    enrollments.completedAt,
-        certificateUrl: enrollments.certificateUrl,
+        enrollmentId:             enrollments.id,
+        enrollmentProgress:       enrollments.progress,
+        enrollmentCompletedAt:    enrollments.completedAt,
+        enrollmentCertificateUrl: enrollments.certificateUrl,
+        courseId:                  courses.id,
+        courseTitle:               courses.title,
+        courseThumbnailUrl:        courses.thumbnailUrl,
+        courseShortDescription:    courses.shortDescription,
+        courseWhatYouLearn:        courses.whatYouLearn,
+        courseHandoutUrl:          courses.handoutUrl,
+        courseHandoutName:         courses.handoutName,
       })
       .from(enrollments)
+      .innerJoin(courses, eq(courses.id, enrollments.courseId))
       .where(and(eq(enrollments.studentId, studentId), eq(enrollments.courseId, courseId)))
       .limit(1);
 
-    if (!enrollment) return null;
+    if (!viewer) return null;
 
-    const [course] = await db
-      .select({
-        id:               courses.id,
-        title:            courses.title,
-        thumbnailUrl:     courses.thumbnailUrl,
-        shortDescription: courses.shortDescription,
-        whatYouLearn:     courses.whatYouLearn,
-        handoutUrl:       courses.handoutUrl,
-        handoutName:      courses.handoutName,
-      })
-      .from(courses)
-      .where(eq(courses.id, courseId))
-      .limit(1);
-
-    if (!course) return null;
+    const enrollment = {
+      id: viewer.enrollmentId,
+      progress: viewer.enrollmentProgress,
+      completedAt: viewer.enrollmentCompletedAt,
+      certificateUrl: viewer.enrollmentCertificateUrl,
+    };
+    const course = {
+      id: viewer.courseId,
+      title: viewer.courseTitle,
+      thumbnailUrl: viewer.courseThumbnailUrl,
+      shortDescription: viewer.courseShortDescription,
+      whatYouLearn: viewer.courseWhatYouLearn,
+      handoutUrl: viewer.courseHandoutUrl,
+      handoutName: viewer.courseHandoutName,
+    };
 
     const sections = await db
       .select()
@@ -288,28 +298,26 @@ export class EnrollmentService {
       .orderBy(courseSections.sortOrder);
 
     const sectionIds = sections.map((s) => s.id);
-    const quizRows = sectionIds.length
-      ? await db
-          .select({
-            id: moduleQuizzes.id,
-            sectionId: moduleQuizzes.sectionId,
-            title: moduleQuizzes.title,
-          })
-          .from(moduleQuizzes)
-          .where(and(
-            inArray(moduleQuizzes.sectionId, sectionIds),
-            eq(moduleQuizzes.isPublished, true),
-          ))
-      : [];
-    const quizIds = quizRows.map((q) => q.id);
-    const quizQuestionRows = quizIds.length
-      ? await db
-          .select({ quizId: quizQuestions.quizId })
-          .from(quizQuestions)
-          .where(inArray(quizQuestions.quizId, quizIds))
-      : [];
-    const allLectures = sectionIds.length
-      ? await db
+    // At most two DB calls run concurrently to match the deliberately small
+    // production connection pool. Quiz counts are aggregated in Postgres rather
+    // than transferring every question row to the app process.
+    const [quizRows, allLectures] = sectionIds.length
+      ? await Promise.all([
+          db
+            .select({
+              id: moduleQuizzes.id,
+              sectionId: moduleQuizzes.sectionId,
+              title: moduleQuizzes.title,
+              questionCount: count(quizQuestions.id),
+            })
+            .from(moduleQuizzes)
+            .leftJoin(quizQuestions, eq(quizQuestions.quizId, moduleQuizzes.id))
+            .where(and(
+              inArray(moduleQuizzes.sectionId, sectionIds),
+              eq(moduleQuizzes.isPublished, true),
+            ))
+            .groupBy(moduleQuizzes.id, moduleQuizzes.sectionId, moduleQuizzes.title),
+          db
           .select({
             id:            lecturesTable.id,
             title:         lecturesTable.title,
@@ -327,12 +335,13 @@ export class EnrollmentService {
             inArray(lecturesTable.sectionId, sectionIds),
             eq(lecturesTable.isPublished, true)
           ))
-          .orderBy(lecturesTable.sortOrder)
-      : [];
+          .orderBy(lecturesTable.sortOrder),
+        ])
+      : [[], []];
 
     const lectureIds = allLectures.map((l) => l.id);
-    const progressRows = lectureIds.length
-      ? await db
+    const progressPromise = lectureIds.length
+      ? db
           .select({
             lectureId:      lectureProgress.lectureId,
             watchedSeconds: lectureProgress.watchedSeconds,
@@ -343,26 +352,41 @@ export class EnrollmentService {
             eq(lectureProgress.userId, studentId),
             inArray(lectureProgress.lectureId, lectureIds)
           ))
-      : [];
+      : Promise.resolve([]);
+
+    const reviewPromise = db
+      .select({
+        id: courseReviews.id,
+        rating: courseReviews.rating,
+        title: courseReviews.title,
+        body: courseReviews.body,
+        isPublished: courseReviews.isPublished,
+        updatedAt: courseReviews.updatedAt,
+      })
+      .from(courseReviews)
+      .where(and(eq(courseReviews.studentId, studentId), eq(courseReviews.courseId, courseId)))
+      .limit(1);
+
+    const [progressRows, ownReviews] = await Promise.all([progressPromise, reviewPromise]);
 
     const progressMap = Object.fromEntries(
       progressRows.map((p) => [p.lectureId, { watchedSeconds: p.watchedSeconds, isCompleted: p.isCompleted }])
     );
 
-    const { ReviewService } = await import("@/services/review.service");
-    const myReview = await ReviewService.getOwn(studentId, courseId);
+    const myReview = ownReviews[0] ?? null;
+
+    const lecturesBySection = new Map<string, typeof allLectures>();
+    for (const lecture of allLectures) {
+      const rows = lecturesBySection.get(lecture.sectionId) ?? [];
+      rows.push(lecture);
+      lecturesBySection.set(lecture.sectionId, rows);
+    }
+    const quizzesBySection = new Map(quizRows.map((quiz) => [quiz.sectionId, quiz]));
 
     const sectionsWithLectures = sections.map((s) => ({
       ...s,
-      lectures: allLectures.filter((l) => l.sectionId === s.id),
-      quiz: (() => {
-        const quiz = quizRows.find((q) => q.sectionId === s.id);
-        if (!quiz) return null;
-        return {
-          ...quiz,
-          questionCount: quizQuestionRows.filter((q) => q.quizId === quiz.id).length,
-        };
-      })(),
+      lectures: lecturesBySection.get(s.id) ?? [],
+      quiz: quizzesBySection.get(s.id) ?? null,
     }));
 
     return {

@@ -15,49 +15,61 @@ export class QuizError extends Error {
 
 export class QuizService {
   static async getPublishedForStudent(sectionId: string, studentId: string): Promise<StudentModuleQuiz | null> {
+    // Resolve the quiz and the student's enrollment together. This keeps the
+    // authorization check without paying for a second network round trip.
     const [row] = await db
       .select({
         id: moduleQuizzes.id, sectionId: moduleQuizzes.sectionId, title: moduleQuizzes.title,
         instructions: moduleQuizzes.instructions, passMark: moduleQuizzes.passMark,
-        courseId: courseSections.courseId,
+        enrollmentId: enrollments.id,
       })
       .from(moduleQuizzes)
       .innerJoin(courseSections, eq(courseSections.id, moduleQuizzes.sectionId))
+      .leftJoin(enrollments, and(
+        eq(enrollments.courseId, courseSections.courseId),
+        eq(enrollments.studentId, studentId),
+      ))
       .where(and(eq(moduleQuizzes.sectionId, sectionId), eq(moduleQuizzes.isPublished, true)))
       .limit(1);
 
     if (!row) return null;
+    if (!row.enrollmentId) throw new QuizError("You are not enrolled in this course", 403);
 
-    const [enrollment] = await db
-      .select({ id: enrollments.id })
-      .from(enrollments)
-      .where(and(eq(enrollments.courseId, row.courseId), eq(enrollments.studentId, studentId)))
-      .limit(1);
-    if (!enrollment) throw new QuizError("You are not enrolled in this course", 403);
+    // Render data and attempt history are independent. Run exactly two queries
+    // in parallel (the production pool is intentionally small), and join options
+    // onto questions so opening a quiz takes two DB stages instead of five.
+    const [questionOptionRows, attempts] = await Promise.all([
+      db
+        .select({
+          questionId: quizQuestions.id,
+          question: quizQuestions.question,
+          optionId: quizOptions.id,
+          optionLabel: quizOptions.label,
+        })
+        .from(quizQuestions)
+        .innerJoin(quizOptions, eq(quizOptions.questionId, quizQuestions.id))
+        .where(eq(quizQuestions.quizId, row.id))
+        .orderBy(asc(quizQuestions.sortOrder), asc(quizOptions.sortOrder)),
+      db
+        .select({
+          id: quizAttempts.id, score: quizAttempts.score, correctAnswers: quizAttempts.correctAnswers,
+          totalQuestions: quizAttempts.totalQuestions, passed: quizAttempts.passed,
+          submittedAt: quizAttempts.submittedAt,
+        })
+        .from(quizAttempts)
+        .where(and(eq(quizAttempts.quizId, row.id), eq(quizAttempts.studentId, studentId)))
+        .orderBy(desc(quizAttempts.submittedAt)),
+    ]);
 
-    const questionRows = await db
-      .select({ id: quizQuestions.id, question: quizQuestions.question, sortOrder: quizQuestions.sortOrder })
-      .from(quizQuestions)
-      .where(eq(quizQuestions.quizId, row.id))
-      .orderBy(asc(quizQuestions.sortOrder));
-    const questionIds = questionRows.map((q) => q.id);
-    const optionRows = questionIds.length
-      ? await db
-          .select({ id: quizOptions.id, questionId: quizOptions.questionId, label: quizOptions.label, sortOrder: quizOptions.sortOrder })
-          .from(quizOptions)
-          .where(inArray(quizOptions.questionId, questionIds))
-          .orderBy(asc(quizOptions.sortOrder))
-      : [];
-
-    const attempts = await db
-      .select({
-        id: quizAttempts.id, score: quizAttempts.score, correctAnswers: quizAttempts.correctAnswers,
-        totalQuestions: quizAttempts.totalQuestions, passed: quizAttempts.passed,
-        submittedAt: quizAttempts.submittedAt,
-      })
-      .from(quizAttempts)
-      .where(and(eq(quizAttempts.quizId, row.id), eq(quizAttempts.studentId, studentId)))
-      .orderBy(desc(quizAttempts.submittedAt));
+    const questions = new Map<string, StudentModuleQuiz["questions"][number]>();
+    for (const item of questionOptionRows) {
+      let question = questions.get(item.questionId);
+      if (!question) {
+        question = { id: item.questionId, question: item.question, options: [] };
+        questions.set(item.questionId, question);
+      }
+      question.options.push({ id: item.optionId, label: item.optionLabel });
+    }
 
     return {
       id: row.id,
@@ -65,11 +77,7 @@ export class QuizService {
       title: row.title,
       instructions: row.instructions,
       passMark: row.passMark,
-      questions: questionRows.map((q) => ({
-        id: q.id,
-        question: q.question,
-        options: optionRows.filter((o) => o.questionId === q.id).map(({ id, label }) => ({ id, label })),
-      })),
+      questions: Array.from(questions.values()),
       latestAttempt: attempts[0] ?? null,
       bestScore: attempts.length ? Math.max(...attempts.map((a) => a.score)) : null,
     };
