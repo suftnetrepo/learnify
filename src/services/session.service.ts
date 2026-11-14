@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { courseSessions, courseSessionWaitlist, enrollments, courses, users } from "@/db/schema";
+import { courseSessions, courseSessionWaitlist, enrollments, courses, users, sessionAttendance, certificates } from "@/db/schema";
 import { eq, and, gt, asc, count, sql, isNull } from "drizzle-orm";
 import { log } from "@/lib/logger";
 import { EmailService } from "@/services/email.service";
@@ -461,6 +461,9 @@ export class SessionService {
         title: courseSessions.title,
         capacity: courseSessions.capacity,
         courseTitle: courses.title,
+        courseId: courses.id,
+        startDatetime: courseSessions.startDatetime,
+        endDatetime: courseSessions.endDatetime,
       })
       .from(courseSessions)
       .innerJoin(courses, eq(courseSessions.courseId, courses.id))
@@ -472,14 +475,51 @@ export class SessionService {
     const candidates = await db
       .select({
         id: users.id,
+        enrollmentId: enrollments.id,
         name: users.name,
         email: users.email,
         avatarUrl: users.avatarUrl,
         enrolledAt: enrollments.enrolledAt,
         progress: enrollments.progress,
+        completedAt: enrollments.completedAt,
+        attendanceStatus: sessionAttendance.status,
+        outcome: sessionAttendance.outcome,
+        attendanceNotes: sessionAttendance.notes,
+        certificateId: sql<string | null>`(
+          select ${certificates.id} from ${certificates}
+          where ${certificates.enrollmentId} = ${enrollments.id}
+            and ${certificates.sessionId} = ${sessionId}
+            and ${certificates.status} = 'active'
+          order by ${certificates.issuedAt} desc limit 1
+        )`,
+        certificateType: sql<string | null>`(
+          select ${certificates.type}::text from ${certificates}
+          where ${certificates.enrollmentId} = ${enrollments.id}
+            and ${certificates.sessionId} = ${sessionId}
+            and ${certificates.status} = 'active'
+          order by ${certificates.issuedAt} desc limit 1
+        )`,
+        certificateUrl: sql<string | null>`(
+          select ${certificates.pdfUrl} from ${certificates}
+          where ${certificates.enrollmentId} = ${enrollments.id}
+            and ${certificates.sessionId} = ${sessionId}
+            and ${certificates.status} = 'active'
+          order by ${certificates.issuedAt} desc limit 1
+        )`,
+        certificateIssuedAt: sql<Date | null>`(
+          select ${certificates.issuedAt} from ${certificates}
+          where ${certificates.enrollmentId} = ${enrollments.id}
+            and ${certificates.sessionId} = ${sessionId}
+            and ${certificates.status} = 'active'
+          order by ${certificates.issuedAt} desc limit 1
+        )`,
       })
       .from(enrollments)
       .innerJoin(users, eq(enrollments.studentId, users.id))
+      .leftJoin(sessionAttendance, and(
+        eq(sessionAttendance.sessionId, sessionId),
+        eq(sessionAttendance.enrollmentId, enrollments.id),
+      ))
       .where(eq(enrollments.sessionId, sessionId))
       .orderBy(asc(users.name), asc(users.email));
 

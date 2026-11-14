@@ -84,6 +84,29 @@ export const conferencePlatformEnum = pgEnum("conference_platform", [
   "other",
 ]);
 
+export const attendanceStatusEnum = pgEnum("attendance_status", [
+  "not_reviewed",
+  "attended",
+  "partial",
+  "absent",
+]);
+
+export const candidateOutcomeEnum = pgEnum("candidate_outcome", [
+  "pending",
+  "passed",
+  "incomplete",
+]);
+
+export const certificateTypeEnum = pgEnum("certificate_type", [
+  "attendance",
+  "completion",
+]);
+
+export const certificateStatusEnum = pgEnum("certificate_status", [
+  "active",
+  "revoked",
+]);
+
 // ─── Email delivery ──────────────────────────────────────────────────────────
 export const emailQueueStatusEnum = pgEnum("email_queue_status", [
   "pending",

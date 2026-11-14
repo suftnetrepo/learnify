@@ -242,6 +242,26 @@ export class EnrollmentService {
     };
   }
 
+  /** Audited certificates issued through the session candidate workflow. */
+  static async getIssuedCertificates(studentId: string) {
+    const { certificates } = await import("@/db/schema");
+    const { eq, and, desc } = await import("drizzle-orm");
+    return db.select({
+      id: certificates.id,
+      enrollmentId: certificates.enrollmentId,
+      type: certificates.type,
+      courseTitle: certificates.courseTitle,
+      sessionTitle: certificates.sessionTitle,
+      completionDate: certificates.completionDate,
+      verificationCode: certificates.verificationCode,
+      pdfUrl: certificates.pdfUrl,
+      issuedAt: certificates.issuedAt,
+    }).from(certificates).where(and(
+      eq(certificates.studentId, studentId),
+      eq(certificates.status, "active"),
+    )).orderBy(desc(certificates.issuedAt));
+  }
+
   /**
    * Course viewer page — enrollment + course + sections data for a student.
    */
