@@ -1,8 +1,9 @@
 import { db } from "@/db";
-import { enrollments, users, courses } from "@/db/schema";
+import { certificates, enrollments, users, courses } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { cloudinary } from "@/lib/cloudinary";
 import { log } from "@/lib/logger";
+import crypto from "crypto";
 
 /**
  * Generates a PDF certificate for a completed course enrolment,
@@ -73,6 +74,10 @@ async function buildCertificatePdf(data: {
   studentName:    string;
   courseTitle:    string;
   completionDate: string;
+  certificateLabel?: string;
+  sessionTitle?: string;
+  issuerName?: string;
+  verificationCode?: string;
 }): Promise<Buffer> {
   const PDFDocument = (await import("pdfkit")).default;
 
@@ -109,14 +114,14 @@ async function buildCertificatePdf(data: {
       .fontSize(11)
       .font("Helvetica-Bold")
       .fillColor("#6366f1")
-      .text("LEARNIFY", 0, 70, { align: "center", characterSpacing: 6 });
+      .text("EDQUIS", 0, 70, { align: "center", characterSpacing: 6 });
 
     // ── Certificate heading ───────────────────────────────────────────────────
     doc
       .fontSize(10)
       .font("Helvetica")
       .fillColor("#6b7280")
-      .text("CERTIFICATE OF COMPLETION", 0, 102, { align: "center", characterSpacing: 3 });
+      .text(data.certificateLabel ?? "CERTIFICATE OF COMPLETION", 0, 102, { align: "center", characterSpacing: 3 });
 
     // Divider line
     doc.moveTo(W / 2 - 80, 124).lineTo(W / 2 + 80, 124).lineWidth(0.5).stroke("#2e2e4e");
@@ -148,7 +153,7 @@ async function buildCertificatePdf(data: {
       .fontSize(13)
       .font("Helvetica")
       .fillColor("#9ca3af")
-      .text("has successfully completed", 0, 240, { align: "center" });
+      .text(data.certificateLabel === "CERTIFICATE OF ATTENDANCE" ? "has attended" : "has successfully completed", 0, 240, { align: "center" });
 
     // ── Course title ──────────────────────────────────────────────────────────
     doc
@@ -157,12 +162,21 @@ async function buildCertificatePdf(data: {
       .fillColor("#a5b4fc")
       .text(data.courseTitle, 60, 268, { align: "center" });
 
+    if (data.sessionTitle) {
+      doc.fontSize(10).font("Helvetica").fillColor("#9ca3af")
+        .text(data.sessionTitle, 60, 302, { align: "center" });
+    }
+
     // ── Date ──────────────────────────────────────────────────────────────────
     doc
       .fontSize(11)
       .font("Helvetica")
       .fillColor("#6b7280")
       .text(`Completed on ${data.completionDate}`, 0, 330, { align: "center" });
+
+    if (data.issuerName) {
+      doc.fontSize(9).fillColor("#6b7280").text(`Issued by ${data.issuerName}`, 0, 352, { align: "center" });
+    }
 
     // ── Bottom decorations ────────────────────────────────────────────────────
     // Seal circle
@@ -175,15 +189,96 @@ async function buildCertificatePdf(data: {
       .fontSize(8)
       .font("Helvetica-Bold")
       .fillColor("#6366f1")
-      .text("VERIFIED", W / 2 - 20, 453, { align: "left", characterSpacing: 1 } as any);
+      .text("VERIFIED", W / 2 - 20, 453, { align: "left", characterSpacing: 1 });
 
     // Footer
     doc
       .fontSize(8)
       .font("Helvetica")
       .fillColor("#374151")
-      .text("edquis.com", 0, H - 50, { align: "center" });
+      .text(data.verificationCode ? `edquis.com  •  Certificate ${data.verificationCode}` : "edquis.com", 0, H - 50, { align: "center" });
 
     doc.end();
   });
+}
+
+export interface SessionCertificateInput {
+  enrollmentId: string;
+  sessionId: string;
+  studentId: string;
+  courseId: string;
+  recipientName: string;
+  courseTitle: string;
+  sessionTitle: string;
+  completionDate: Date;
+  type: "attendance" | "completion";
+  issuerName?: string | null;
+  notes?: string | null;
+  issuedBy: string;
+}
+
+/** Issues one audited certificate while preserving the legacy enrollment certificate fields. */
+export async function issueSessionCertificate(input: SessionCertificateInput) {
+  const verificationCode = crypto.randomBytes(8).toString("hex").toUpperCase();
+  const formattedDate = new Intl.DateTimeFormat("en-GB", {
+    day: "numeric", month: "long", year: "numeric",
+  }).format(input.completionDate);
+
+  const pdfBuffer = await buildCertificatePdf({
+    studentName: input.recipientName,
+    courseTitle: input.courseTitle,
+    completionDate: formattedDate,
+    certificateLabel: input.type === "attendance" ? "CERTIFICATE OF ATTENDANCE" : "CERTIFICATE OF COMPLETION",
+    sessionTitle: input.sessionTitle,
+    issuerName: input.issuerName ?? undefined,
+    verificationCode,
+  });
+
+  const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream({
+      resource_type: "raw",
+      folder: "learnify/certificates",
+      public_id: `certificate-${verificationCode.toLowerCase()}`,
+      format: "pdf",
+      overwrite: false,
+    }, (error, result) => {
+      if (error || !result) reject(error ?? new Error("Upload failed"));
+      else resolve(result as { secure_url: string });
+    });
+    stream.end(pdfBuffer);
+  });
+
+  const [certificate] = await db.insert(certificates).values({
+    verificationCode,
+    enrollmentId: input.enrollmentId,
+    sessionId: input.sessionId,
+    studentId: input.studentId,
+    courseId: input.courseId,
+    type: input.type,
+    recipientName: input.recipientName,
+    courseTitle: input.courseTitle,
+    sessionTitle: input.sessionTitle,
+    completionDate: input.completionDate,
+    issuerName: input.issuerName ?? null,
+    notes: input.notes ?? null,
+    pdfUrl: uploadResult.secure_url,
+    issuedBy: input.issuedBy,
+  }).returning();
+
+  if (input.type === "completion") {
+    await db.update(enrollments).set({
+      progress: 100,
+      completedAt: input.completionDate,
+      certificateUrl: uploadResult.secure_url,
+      certificateIssuedAt: certificate.issuedAt,
+    }).where(eq(enrollments.id, input.enrollmentId));
+  }
+
+  log.info("Session certificate issued", {
+    certificateId: certificate.id,
+    sessionId: input.sessionId,
+    studentId: input.studentId,
+    issuedBy: input.issuedBy,
+  });
+  return certificate;
 }

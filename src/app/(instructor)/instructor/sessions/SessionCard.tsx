@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, Clock, MapPin, Video, Users, Copy, Mail, LockKeyhole } from "lucide-react";
+import { Calendar, Clock, MapPin, Video, Users, Copy, LockKeyhole } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { InstructorSession } from "@/services/session.service";
 import { CandidateEmailPanel } from "@/components/sessions/CandidateEmailPanel";
@@ -168,7 +168,7 @@ export function SessionCard({ s, variant }: { s: InstructorSession; variant: "li
             </>
           )}
           <button onClick={() => setShowCandidates(true)} className="flex items-center gap-1.5 rounded-xl border border-surface-200 px-3 py-2 text-xs font-medium text-gray-600 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600 transition-colors">
-            <Mail size={12} /> Email students
+            <Users size={12} /> Manage candidates
           </button>
         </div>
       </div>

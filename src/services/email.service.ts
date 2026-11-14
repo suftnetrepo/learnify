@@ -201,6 +201,24 @@ export const EmailService = {
     await send(to, `Course completed: ${data.courseTitle}`, html);
   },
 
+  /** Sent after an administrator or assigned tutor manually issues a certificate. */
+  async certificateIssued(to: string, data: {
+    candidateName: string;
+    courseTitle: string;
+    certificateType: "attendance" | "completion";
+    certificateUrl: string;
+  }) {
+    const label = data.certificateType === "attendance" ? "certificate of attendance" : "certificate of completion";
+    const html = baseTemplate(
+      h1("Your certificate is ready") +
+      p(`Hi ${data.candidateName}, your ${label} for <strong>${data.courseTitle}</strong> has been issued.`) +
+      p("You can download and retain the PDF using the button below.") +
+      btn("Download Certificate", data.certificateUrl),
+      `Your certificate for ${data.courseTitle}`
+    );
+    await send(to, `Certificate issued: ${data.courseTitle}`, html);
+  },
+
   /** Sent to a tutor when they're assigned to a course. */
   async tutorAssigned(to: string, data: {
     tutorName:   string;

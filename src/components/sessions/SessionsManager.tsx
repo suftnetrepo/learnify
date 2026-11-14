@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/Toast";
 import {
   Plus, Calendar, Clock, MapPin, Video,
   ChevronDown, ChevronUp, Trash2, X, Check,
-  Ban, Mail, Pencil, EyeOff, PenLine,
+  Ban, Users, Pencil, EyeOff, PenLine,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ConfirmModal } from "@/components/ui/Modal";
@@ -180,8 +180,8 @@ function SessionCard({ s, onRefresh, onEdit }: {
         <div className="flex items-center gap-1 flex-shrink-0">
           <button onClick={() => setShowCandidates(true)}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-brand-50 hover:text-brand-600 transition-colors"
-            title="View and email candidates">
-            <Mail size={14} />
+            title="Manage candidates and certificates">
+            <Users size={14} />
           </button>
           {s.status === "scheduled" && (
             <button onClick={onEdit}

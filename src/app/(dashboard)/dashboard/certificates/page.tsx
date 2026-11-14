@@ -13,8 +13,25 @@ export default async function CertificatesPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const { enrolled } = await EnrollmentService.getDashboardData(session.user.id);
-  const certificates  = enrolled.filter((e) => e.completedAt !== null);
+  const [{ enrolled }, issued] = await Promise.all([
+    EnrollmentService.getDashboardData(session.user.id),
+    EnrollmentService.getIssuedCertificates(session.user.id),
+  ]);
+  const issuedEnrollmentIds = new Set(issued.map((certificate) => certificate.enrollmentId));
+  const legacy = enrolled
+    .filter((enrollment) => enrollment.completedAt !== null && !issuedEnrollmentIds.has(enrollment.enrollmentId))
+    .map((enrollment) => ({
+      id: `legacy-${enrollment.enrollmentId}`,
+      enrollmentId: enrollment.enrollmentId,
+      type: "completion" as const,
+      courseTitle: enrollment.courseTitle,
+      sessionTitle: null,
+      completionDate: enrollment.completedAt!,
+      verificationCode: null,
+      pdfUrl: null,
+      issuedAt: enrollment.completedAt!,
+    }));
+  const certificates = [...issued, ...legacy];
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -48,20 +65,22 @@ export default async function CertificatesPage() {
                     </span>
                   </div>
 
-                  {c.categoryName && (
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-brand-500 mb-1">
-                      {c.categoryName}
-                    </p>
-                  )}
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-brand-500">
+                    Certificate of {c.type}
+                  </p>
                   <h3 className="font-semibold text-sm text-gray-900 leading-snug mb-2 flex-1">
                     {c.courseTitle}
                   </h3>
+                  {c.sessionTitle && <p className="mb-2 text-xs text-gray-500">{c.sessionTitle}</p>}
                   <p className="text-xs text-gray-400 mb-4">
-                    Completed {formatDate(c.completedAt!)}
+                    {c.type === "attendance" ? "Attended" : "Completed"} {formatDate(c.completionDate)}
                   </p>
+                  {c.verificationCode && <p className="mb-3 font-mono text-[10px] text-gray-400">ID {c.verificationCode}</p>}
 
                   <a
-                    href={`/api/enrollments/${c.enrollmentId}/certificate`}
+                    href={c.pdfUrl ?? `/api/enrollments/${c.enrollmentId}/certificate`}
+                    target="_blank"
+                    rel="noreferrer"
                     className="flex items-center justify-center gap-2 rounded-xl border border-surface-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:border-brand-300 hover:text-brand-700 transition-colors"
                   >
                     <Download size={15} />
