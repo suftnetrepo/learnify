@@ -11,6 +11,13 @@ import Link from "next/link";
 import { Search, Bell, TrendingUp, BookOpen, CalendarDays, Video, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { gradientFor } from "./_lib/thumbGradient";
+import {
+  SESSION_TIME_ZONE,
+  sessionDateKey,
+  sessionIsActiveAt,
+  sessionOccursOnDate,
+  sessionWeekDays,
+} from "@/lib/session-schedule";
 
 export const metadata: Metadata = { title: "Dashboard | Instructor" };
 
@@ -27,29 +34,22 @@ export default async function InstructorDashboardPage() {
   ]);
 
   const now       = new Date();
-  const todayStr  = now.toDateString();
+  const todayStr  = sessionDateKey(now);
   const firstName = session.user.name?.split(" ")[0] ?? "there";
 
-  const upcomingSessions = allSessions.filter((s) => new Date(s.startDatetime) > now);
+  // A multi-day session remains current until it ends; it should not disappear
+  // from the dashboard immediately after its first morning.
+  const upcomingSessions = allSessions.filter((s) =>
+    s.status === "scheduled" && new Date(s.endDatetime) >= now
+  );
   const totalStudents    = assigned.reduce((sum, a) => sum + (a.enrollmentCount ?? 0), 0);
 
   const todaySessions = allSessions.filter((s) =>
-    new Date(s.startDatetime).toDateString() === todayStr
+    s.status === "scheduled" && sessionOccursOnDate(s, now)
   );
 
   // Week days Mon–Sun
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const day = now.getDay();
-    const mon = new Date(now);
-    mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
-    const d = new Date(mon);
-    d.setDate(mon.getDate() + i);
-    return d;
-  });
-
-  const sessionDays = new Set(
-    allSessions.map((s) => new Date(s.startDatetime).toDateString())
-  );
+  const weekDays = sessionWeekDays(now);
 
   // Mean lesson completion over every student enrolled in the tutor's courses
   const reports = await Promise.all(assigned.map((a) => EnrollmentService.getCourseProgressReport(a.courseId)));
@@ -204,8 +204,10 @@ export default async function InstructorDashboardPage() {
               </div>
               <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                 {weekDays.map((day) => {
-                  const isToday    = day.toDateString() === todayStr;
-                  const hasSession = sessionDays.has(day.toDateString());
+                  const isToday = sessionDateKey(day) === todayStr;
+                  const hasSession = allSessions.some((session) =>
+                    session.status === "scheduled" && sessionOccursOnDate(session, day)
+                  );
                   return (
                     <div key={day.toISOString()} className={cn(
                       "flex flex-col items-center gap-1 py-2 sm:gap-2 sm:py-3 cursor-pointer transition-all",
@@ -255,9 +257,9 @@ export default async function InstructorDashboardPage() {
               ) : (
                 <div className="space-y-2">
                   {todaySessions.map((s) => {
-                    const isLive = now >= new Date(s.startDatetime) && now <= new Date(s.endDatetime);
-                    const start  = new Date(s.startDatetime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-                    const end    = new Date(s.endDatetime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+                    const isLive = sessionIsActiveAt(s, now);
+                    const start  = new Date(s.startDatetime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: SESSION_TIME_ZONE });
+                    const end    = new Date(s.endDatetime).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: SESSION_TIME_ZONE });
 
                     return (
                       <div key={s.id} className={cn(
